@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from django.contrib.auth.base_user import BaseUserManager
 from ihost.settings import TIME_ZONE
 from django.db import models
-from django.contrib.auth.models import AbstractUser, Group, UserManager
+from django.contrib.auth.models import AbstractUser, UserManager
 import uuid
 from django.utils import timezone
 from random import randint
@@ -53,7 +53,7 @@ class UserAccount(AbstractUser):
         ("DEL", "Deleted"),
     ]
     username = None
-    email = models.CharField(max_length=35, null=True,blank=True)
+    email = models.CharField(max_length=35, null=True, blank=True)
     phone = models.CharField(max_length=35, unique=True)
     user_status = models.CharField(max_length=25,
                                    choices=USERS_IN_STATUS_CHOICES, default='UNV')
@@ -61,6 +61,9 @@ class UserAccount(AbstractUser):
     REQUIRED_FIELDS = []
     created_at = models.DateTimeField(auto_now_add=True)
     objects = UserManager()
+
+    # class Meta(AbstractUser.Meta):
+    #     swappable = 'AUTH_USER_MODEL'
 
 
 class PhoneVerification(models.Model):
@@ -108,6 +111,3 @@ class PhoneVerification(models.Model):
             self.verification_code = " "
             self.save()
             return "Phone Verification Success"
-
-
-

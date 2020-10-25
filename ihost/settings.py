@@ -44,8 +44,7 @@ LIBRARY_APPS = [
     "drf_yasg2",
 ]
 DJANOG_APPS = [
-    "account_management",
-
+    'account_management',
 ]
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -56,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]+LIBRARY_APPS+DJANOG_APPS
 
+AUTH_USER_MODEL = 'account_management.UserAccount'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -75,7 +75,7 @@ INTERNAL_IPS = [
 
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': ['knox.auth.TokenAuthentication'],
+    # 'DEFAULT_AUTHENTICATION_CLASSES': ['knox.auth.TokenAuthentication'],
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
@@ -128,7 +128,6 @@ else:
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
-AUTH_USER_MODEL = 'account_management.UserAccount'
 
 AUTH_PASSWORD_VALIDATORS = [
     # {

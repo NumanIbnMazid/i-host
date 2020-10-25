@@ -1,16 +1,17 @@
-from account_management.models import UserAccount
-from account_management.models import UserAccount as User
-from account_management.serializers import UserAccountPatchSerializer, UserAccountSerializer, UserSignupSerializer
-from django.shortcuts import render
+# from account_management.models import UserAccount
+# from account_management.models import UserAccount as User
+# from account_management.serializers import UserAccountPatchSerializer, UserAccountSerializer, UserSignupSerializer
+# from django.shortcuts import render
 
 # Create your views here.
 from knox.views import LoginView as KnoxLoginView
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, permissions
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-import uuid
-from rest_framework import viewsets
+# import uuid
+# from rest_framework import viewsets
+
 
 class LoginView(KnoxLoginView):
     authentication_classes = [BasicAuthentication]

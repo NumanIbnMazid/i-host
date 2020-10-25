@@ -19,8 +19,8 @@ from rest_framework import permissions
 from drf_yasg2.views import get_schema_view
 from drf_yasg2 import openapi
 from django.conf.urls import url
-from account_management.views import LoginView, verify_login
-from knox import views as knox_views
+# from account_management.views import LoginView, verify_login
+# from knox import views as knox_views
 
 schema_view = get_schema_view(
     openapi.Info(

@@ -1,4 +1,4 @@
-from account_management.views import LoginView, UserAccountManagerViewSet, verify_login
+from account_management.views import LoginView, verify_login
 from django.urls import include, path
 from knox import views as knox_views
 
