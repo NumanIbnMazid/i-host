@@ -44,6 +44,7 @@ LIBRARY_APPS = [
     # 'rest_framework.authtoken',
     "knox",
     "drf_yasg2",
+    "storages",
 ]
 DJANOG_APPS = [
     'account_management',
@@ -169,9 +170,54 @@ USE_L10N = True
 USE_TZ = True
 
 
-PRODUCTION_ACTIVATED = env.bool('PRODUCTION_ACTIVATED')
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+PRODUCTION_ACTIVATED = env.bool('PRODUCTION_ACTIVATED')
+STATIC_ROOT = 'static'
+MEDIA_ROOT = 'media'
+
+if PRODUCTION_ACTIVATED:
+    AWS_STORAGE_BUCKET_NAME = env.str(
+        "AWS_STORAGE_BUCKET_NAME", default="ihost-space-dev")
+else:
+    AWS_STORAGE_BUCKET_NAME = env.str(
+        "AWS_STORAGE_BUCKET_NAME_DEV", default="ihost-space-dev")
+
+AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY')
+
+AWS_S3_CUSTOM_DOMAIN = env.str(
+    "AWS_S3_CUSTOM_DOMAIN", default="ihost-space.sgp1.cdn.digitaloceanspaces.com")
+AWS_S3_CUSTOM_DOMAIN += '/'+AWS_STORAGE_BUCKET_NAME
+AWS_S3_ENDPOINT_URL = env.str("AWS_S3_ENDPOINT_URL", default="")
+# AWS_STORAGE_BUCKET_NAME = 'gozayaan'
+# AWS_S3_CUSTOM_DOMAIN = 'gozayaan.sgp1.digitaloceanspaces.com'
+# AWS_S3_ENDPOINT_URL = 'https://sgp1.digitaloceanspaces.com'
+# General optimization for faster delivery
+AWS_IS_GZIPPED = True
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+AWS_QUERYSTRING_AUTH = False
+AWS_DEFAULT_ACL = 'public-read'
+
+# static files location
+AWS_LOCATION = env.str("AWS_LOCATION", default="static")
+STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+# AWS_S3_ENDPOINT_URL
+STATIC_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
+# media file location
+AWS_MEDIA_LOCATION = env.str("AWS_MEDIA_LOCATION", default="media")
+DEFAULT_FILE_STORAGE = 'utils.storage_backends.MediaStorage'
+
+
+# AWS_S3_CUSTOM_DOMAIN
+MEDIA_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, AWS_MEDIA_LOCATION)
