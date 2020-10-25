@@ -1,15 +1,15 @@
-from account_management.views import LoginView, verify_login
+from account_management.views import LoginView, UserAccountManagerViewSet, verify_login
 from django.urls import include, path
 from knox import views as knox_views
 
-# user_account_get_post_patch_delete = UserAccountManagerViewSet.as_view(
-#     {
-#         "get": "retrieve",
-#         "post": "create",
-#         # "patch": "update",
-#         "delete": "destroy"
-#     }
-# )
+user_account_get_post_patch_delete = UserAccountManagerViewSet.as_view(
+    {
+        "get": "retrieve",
+        "post": "create",
+        # "patch": "update",
+        "delete": "destroy"
+    }
+)
 
 auth_urlpatterns = [
     path("login/", LoginView.as_view(), name="knox_login"),
@@ -22,7 +22,7 @@ auth_urlpatterns = [
 ]
 urlpatterns = [
     path("auth/", include(auth_urlpatterns), name="auth"),
-    # path("user_account/", user_account_get_post_patch_delete),
+    path("user_account/", user_account_get_post_patch_delete),
 
 
 ]

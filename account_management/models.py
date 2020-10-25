@@ -55,11 +55,10 @@ class UserAccount(AbstractUser):
     username = None
     email = models.CharField(max_length=35, null=True, blank=True)
     phone = models.CharField(max_length=35, unique=True)
-    user_status = models.CharField(max_length=25,
-                                   choices=USERS_IN_STATUS_CHOICES, default='UNV')
+    status = models.CharField(max_length=25,
+                              choices=USERS_IN_STATUS_CHOICES, default='UNV')
     USERNAME_FIELD = "phone"
     REQUIRED_FIELDS = []
-    created_at = models.DateTimeField(auto_now_add=True)
     objects = UserManager()
 
     # class Meta(AbstractUser.Meta):

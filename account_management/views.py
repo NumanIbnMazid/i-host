@@ -1,7 +1,8 @@
-# from account_management.models import UserAccount
-# from account_management.models import UserAccount as User
-# from account_management.serializers import UserAccountPatchSerializer, UserAccountSerializer, UserSignupSerializer
-# from django.shortcuts import render
+from account_management.models import UserAccount
+from account_management.models import UserAccount as User
+from account_management.serializers import UserAccountPatchSerializer, UserAccountSerializer, UserSignupSerializer
+from django.shortcuts import render
+from rest_framework import permissions
 
 # Create your views here.
 from knox.views import LoginView as KnoxLoginView
@@ -9,8 +10,8 @@ from rest_framework.authentication import BasicAuthentication
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-# import uuid
-# from rest_framework import viewsets
+import uuid
+from rest_framework import viewsets
 
 
 class LoginView(KnoxLoginView):
@@ -23,91 +24,84 @@ def verify_login(request):
     return Response(data="Token is Valid", status=200)
 
 
-# class UserAccountManagerViewSet(viewsets.ModelViewSet):
+class UserAccountManagerViewSet(viewsets.ModelViewSet):
 
-#     # def get_serializer_class(self):
-#     #     if self.action == 'create':
-#     #         return UserSignupSerializer
-#     #     else:
-#     #         return UserAccountSerializer
+    def get_serializer_class(self):
+        """
+        Return the class to use for the serializer.
+        Defaults to using `self.serializer_class`.
 
-#     def get_serializer_class(self):
-#         """
-#         Return the class to use for the serializer.
-#         Defaults to using `self.serializer_class`.
+        You may want to override this if you need to provide different
+        serializations depending on the incoming request.
 
-#         You may want to override this if you need to provide different
-#         serializations depending on the incoming request.
+        (Eg. admins get full serialization, others get basic serialization)
+        """
 
-#         (Eg. admins get full serialization, others get basic serialization)
-#         """
+        if self.action == "create":
+            self.serializer_class = UserSignupSerializer
+        elif self.action == "update":
+            self.serializer_class = UserAccountPatchSerializer
+        else:
+            self.serializer_class = UserAccountSerializer
 
-#         if self.action == "create":
-#             self.serializer_class = UserSignupSerializer
-#         elif self.action == "update":
-#             self.serializer_class = UserAccountPatchSerializer
-#         else:
-#             self.serializer_class = UserAccountSerializer
+        return self.serializer_class
 
+    def get_permissions(self):
+        if self.action == "create":
+            permission_classes = [permissions.AllowAny]
+        elif self.action == "retrieve" or self.action == "update":
+            permission_classes = [permissions.IsAuthenticated]
+        else:
+            permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
 
-#         return self.serializer_class
+    queryset = User.objects.exclude(status="DEL")
 
-#     def get_permissions(self):
-#         if self.action == "create":
-#             permission_classes = [permissions.AllowAny]
-#         elif self.action == "retrieve" or self.action == "update":
-#             permission_classes = [permissions.IsAuthenticated]
-#         else:
-#             permission_classes = [permissions.IsAdminUser]
-#         return [permission() for permission in permission_classes]
+    def create(self, request, *args, **kwargs):
+        try:
+            # email = request.data.pop("email")
+            password = request.data.pop("password")
+            phone = request.data["phone"]
+            verification_id = uuid.uuid4().__str__()
+        except Exception as e:
+            return Response(data=e.args, status=401)
 
-#     queryset = UserAccount.objects.exclude(status="DEL")
+        try:
+            # temp_user = User.objects.
+            # email_exist = User.objects.filter(email=email).exists()
+            phone_exist = User.objects.filter(phone=phone).exists()
 
-#     def create(self, request, *args, **kwargs):
-#         try:
-#             # email = request.data.pop("email")
-#             password = request.data.pop("password")
-#             phone = request.data["phone"]
-#             verification_id = uuid.uuid4().__str__()
-#         except Exception as e:
-#             return Response(data=e.args, status=401)
+            if phone_exist:
+                return Response(
+                    data="Please use different Phone, it’s already been in use", status=400
+                )
 
-#         try:
-#             # temp_user = User.objects.
-#             # email_exist = User.objects.filter(email=email).exists()
-#             phone_exist = User.objects.filter(phone=phone).exists()
-
-#             if phone_exist:
-#                 return Response(
-#                     data="Please use different Phone, it’s already been in use", status=400
-#                 )
-
-#             user = User.objects.create_user(
-#                 # email=email,
-#                 password=password,
-#                 # verification_id=verification_id,
-#                 **request.data
-#             )
-#             # if user is None:
-#             #     return Response(data="Account already exist with given Email or Phone", status=401)
-#         except Exception as err:
-#             # logger.exception(msg="error while account cration")
-#             return Response(
-#                 data="Account creation failed", status=401
-#             )
+            user = User.objects.create_user(
+                # email=email,
+                password=password,
+                # verification_id=verification_id,
+                **request.data
+            )
+            # if user is None:
+            #     return Response(data="Account already exist with given Email or Phone", status=401)
+        except Exception as err:
+            # logger.exception(msg="error while account cration")
+            return Response(
+                data="Account creation failed", status=401
+            )
 
 
-#         # send_registration_confirmation_email(email)
-#         user_serializer = UserAccountSerializer(instance=user, many=False)
-#         return Response(data=user_serializer.data, status=200)
+        # send_registration_confirmation_email(email)
+        user_serializer = UserAccountSerializer(instance=user, many=False)
+        return Response(data=user_serializer.data, status=200)
 
-#     def retrieve(self, request, *args, **kwargs):
-#         if request.user is not None:
-#             # user_serializer = self.serializer_class(instance=request.user)
-#             user_serializer = UserAccountSerializer(instance=request.user)
-#             return Response(data=user_serializer.data, status=200)
-#         else:
-#             return Response(data="No User found", status=400)
+    def retrieve(self, request, *args, **kwargs):
+        if request.user is not None:
+            # user_serializer = self.serializer_class(instance=request.user)
+            user_serializer = UserAccountSerializer(instance=request.user)
+            return Response(data=user_serializer.data, status=200)
+        else:
+            return Response(data="No User found", status=400)
 
 #     # @swagger_auto_schema(request_body=TravellerAccountDetailSerializer)
 #     # def update(self, request, *args, **kwargs):
@@ -157,14 +151,14 @@ def verify_login(request):
 #     #         # if user_primary_traveller_serializer.is_valid():
 #     #         #     return Response(data=user_primary_traveller_serializer.data, status=200)
 
-#     def destroy(self, request, *args, **kwargs):
-#         if request.user is not None:
-#             user_serializer = UserAccountSerializer(
-#                 instance=request.user, data={}, partial=True
-#             )
-#             user_serializer.update(
-#                 instance=request.user, validated_data={"status": "DEL"}
-#             )
-#             if user_serializer.is_valid():
-#                 return Response(data=user_serializer.data, status=200)
-#         return Response(data="Active account not found", status=400)
+    def destroy(self, request, *args, **kwargs):
+        if request.user is not None:
+            user_serializer = UserAccountSerializer(
+                instance=request.user, data={}, partial=True
+            )
+            user_serializer.update(
+                instance=request.user, validated_data={"status": "DEL"}
+            )
+            if user_serializer.is_valid():
+                return Response(data=user_serializer.data, status=200)
+        return Response(data="Active account not found", status=400)
