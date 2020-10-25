@@ -13,7 +13,7 @@ from rest_framework.response import Response
 import uuid
 from rest_framework import viewsets
 
-
+from utils.response_wrapper import ResponseWrapper
 class LoginView(KnoxLoginView):
     authentication_classes = [BasicAuthentication]
 
@@ -21,7 +21,7 @@ class LoginView(KnoxLoginView):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def verify_login(request):
-    return Response(data="Token is Valid", status=200)
+    return ResponseWrapper(data="Token is Valid", status=200)
 
 
 class UserAccountManagerViewSet(viewsets.ModelViewSet):
@@ -64,7 +64,7 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
             phone = request.data["phone"]
             verification_id = uuid.uuid4().__str__()
         except Exception as e:
-            return Response(data=e.args, status=401)
+            return ResponseWrapper(data=e.args, status=401)
 
         try:
             # temp_user = User.objects.
@@ -72,7 +72,7 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
             phone_exist = User.objects.filter(phone=phone).exists()
 
             if phone_exist:
-                return Response(
+                return ResponseWrapper(
                     data="Please use different Phone, it’s already been in use", status=400
                 )
 
@@ -83,25 +83,25 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
                 **request.data
             )
             # if user is None:
-            #     return Response(data="Account already exist with given Email or Phone", status=401)
+            #     return ResponseWrapper(data="Account already exist with given Email or Phone", status=401)
         except Exception as err:
             # logger.exception(msg="error while account cration")
-            return Response(
+            return ResponseWrapper(
                 data="Account creation failed", status=401
             )
 
 
         # send_registration_confirmation_email(email)
         user_serializer = UserAccountSerializer(instance=user, many=False)
-        return Response(data=user_serializer.data, status=200)
+        return ResponseWrapper(data=user_serializer.data, status=200)
 
     def retrieve(self, request, *args, **kwargs):
         if request.user is not None:
             # user_serializer = self.serializer_class(instance=request.user)
             user_serializer = UserAccountSerializer(instance=request.user)
-            return Response(data=user_serializer.data, status=200)
+            return ResponseWrapper(data=user_serializer.data, status=200)
         else:
-            return Response(data="No User found", status=400)
+            return ResponseWrapper(data="No User found", status=400)
 
 #     # @swagger_auto_schema(request_body=TravellerAccountDetailSerializer)
 #     # def update(self, request, *args, **kwargs):
@@ -141,7 +141,7 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
 #     #         traveller_serializer = TravellerAccountDetailSerializer(traveller)
 #     #         traveller_serializer.update(
 #     #             instance=traveller, validated_data=request.data)
-#     #         return Response(data=traveller_serializer.data, status=200)
+#     #         return ResponseWrapper(data=traveller_serializer.data, status=200)
 
 #     #         # user_primary_traveller_serializer = TravellerAccountDetailSerializer(
 #     #         #     instance=user.primary_traveller, data=request.data, partial=True
@@ -149,7 +149,7 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
 #     #         # user_primary_traveller_serializer.update(instance=user.primary_traveller, validated_data=request.data)
 #     #         # # self.serializer_class.update(instance=request.user,validated_data=request.data)
 #     #         # if user_primary_traveller_serializer.is_valid():
-#     #         #     return Response(data=user_primary_traveller_serializer.data, status=200)
+#     #         #     return ResponseWrapper(data=user_primary_traveller_serializer.data, status=200)
 
     def destroy(self, request, *args, **kwargs):
         if request.user is not None:
@@ -160,5 +160,5 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
                 instance=request.user, validated_data={"status": "DEL"}
             )
             if user_serializer.is_valid():
-                return Response(data=user_serializer.data, status=200)
-        return Response(data="Active account not found", status=400)
+                return ResponseWrapper(data=user_serializer.data, status=200)
+        return ResponseWrapper(data="Active account not found", status=400)
