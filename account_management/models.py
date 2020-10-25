@@ -1,4 +1,5 @@
-from rest_framework import viewsets
+
+# from rest_framework import viewsets
 from django.contrib.auth.base_user import BaseUserManager
 from ihost.settings import TIME_ZONE
 from django.db import models

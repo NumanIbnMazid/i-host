@@ -12,10 +12,23 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 import uuid
 from rest_framework import viewsets
-
+from django.contrib.auth import login
 from utils.response_wrapper import ResponseWrapper
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+from drf_yasg2.utils import swagger_auto_schema
+
+
 class LoginView(KnoxLoginView):
-    authentication_classes = [BasicAuthentication]
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = AuthTokenSerializer
+
+    @swagger_auto_schema(request_body=AuthTokenSerializer)
+    def post(self, request, format=None):
+        serializer = AuthTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        login(request, user)
+        return super(LoginView, self).post(request, format=None)
 
 
 @api_view(['POST'])
@@ -89,7 +102,6 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
             return ResponseWrapper(
                 data="Account creation failed", status=401
             )
-
 
         # send_registration_confirmation_email(email)
         user_serializer = UserAccountSerializer(instance=user, many=False)

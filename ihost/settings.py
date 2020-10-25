@@ -40,6 +40,8 @@ LIBRARY_APPS = [
     'django.contrib.postgres',
     # 'debug_toolbar',
     'rest_framework',
+    'django_extensions',
+    # 'rest_framework.authtoken',
     "knox",
     "drf_yasg2",
 ]
@@ -75,7 +77,15 @@ INTERNAL_IPS = [
 
 
 REST_FRAMEWORK = {
-    # 'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',),
+    'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',),
+    # # 'DEFAULT_AUTHENTICATION_CLASSES': [
+    # #     'rest_framework.authentication.BasicAuthentication',
+    # #     'rest_framework.authentication.SessionAuthentication',
+    # # ],
+    # 'DEFAULT_AUTHENTICATION_CLASSES': (
+
+    #     'rest_framework_simplejwt.authentication.JWTAuthentication',
+    # ),
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
