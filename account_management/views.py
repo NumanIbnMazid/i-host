@@ -1,9 +1,11 @@
+from django.contrib.auth.signals import user_logged_in
+from django.utils import timezone
 from account_management.models import UserAccount
 from account_management.models import UserAccount as User
-from account_management.serializers import UserAccountPatchSerializer, UserAccountSerializer, UserSignupSerializer
+from account_management.serializers import OtpLoginSerializer, UserAccountPatchSerializer, UserAccountSerializer, UserSignupSerializer
 from django.shortcuts import render
 from rest_framework import permissions
-
+from rest_framework import status
 # Create your views here.
 from knox.views import LoginView as KnoxLoginView
 from rest_framework.authentication import BasicAuthentication
@@ -16,6 +18,8 @@ from django.contrib.auth import login
 from utils.response_wrapper import ResponseWrapper
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from drf_yasg2.utils import swagger_auto_schema
+from knox.models import AuthToken
+from django.contrib.auth import get_user_model
 
 
 class LoginView(KnoxLoginView):
@@ -31,13 +35,38 @@ class LoginView(KnoxLoginView):
         return super(LoginView, self).post(request, format=None)
 
 
+class OtpLoginView(KnoxLoginView):
+    permission_classes = (permissions.AllowAny,)
+    # TODO:need to check if otp is same
+
+    @swagger_auto_schema(request_body=OtpLoginSerializer)
+    def post(self, request, format=None):
+        token_limit_per_user = self.get_token_limit_per_user()
+        user_qs = User.objects.filter(phone=request.data.get('phone')).first()
+        if token_limit_per_user is not None:
+            now = timezone.now()
+            token = user_qs.auth_token_set.filter(expiry__gt=now)
+            # token = request.user.auth_token_set.filter(expiry__gt=now)
+            if token.count() >= token_limit_per_user:
+                return Response(
+                    {"error": "Maximum amount of tokens allowed per user exceeded."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        token_ttl = self.get_token_ttl()
+        instance, token = AuthToken.objects.create(user_qs, token_ttl)
+        user_logged_in.send(sender=user_qs.__class__,
+                            request=request, user=user_qs)
+        data = self.get_post_response_data(request, token, instance)
+        return Response(data)
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def verify_login(request):
     return ResponseWrapper(data="Token is Valid", status=200)
 
 
-class UserAccountManagerViewSet(viewsets.ModelViewSet):
+class UserAccountManagerViewSet(viewsets.ModelViewSet, KnoxLoginView):
 
     def get_serializer_class(self):
         """

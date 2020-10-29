@@ -18,4 +18,8 @@ class UserAccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserAccount
-        fields = ['phone','first_name','last_name']
+        fields = ['phone', 'first_name', 'last_name']
+
+
+class OtpLoginSerializer(serializers.Serializer):
+    phone = serializers.CharField()

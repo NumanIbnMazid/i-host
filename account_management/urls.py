@@ -13,6 +13,8 @@ user_account_get_post_patch_delete = UserAccountManagerViewSet.as_view(
 
 auth_urlpatterns = [
     path("login/", LoginView.as_view(), name="knox_login"),
+    # path("otp_login/", OtpLoginView.as_view(), name="otp_login"),
+
     path("logout/", knox_views.LogoutView.as_view(), name="knox_logout"),
     # path("reset_password/", reset_password),
     # path("change_password/",

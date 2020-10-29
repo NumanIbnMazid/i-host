@@ -1,5 +1,6 @@
 
 # from rest_framework import viewsets
+import restaurant
 from django.contrib.auth.base_user import BaseUserManager
 from ihost.settings import TIME_ZONE
 from django.db import models
@@ -58,12 +59,38 @@ class UserAccount(AbstractUser):
     phone = models.CharField(max_length=35, unique=True)
     status = models.CharField(max_length=25,
                               choices=USERS_IN_STATUS_CHOICES, default='UNV')
+
     USERNAME_FIELD = "phone"
     REQUIRED_FIELDS = []
     objects = UserManager()
 
     # class Meta(AbstractUser.Meta):
     #     swappable = 'AUTH_USER_MODEL'
+
+
+class HotelStaffInformation(models.Model):
+    # user = models.ForeignKey()
+    DAYS_OF_WEEK = (
+        ('Monday', 'Monday'),
+        ('Tuesday', 'Tuesday'),
+        ('Wednesday', 'Wednesday'),
+        ('Thursday', 'Thursday'),
+        ('Friday', 'Friday'),
+        ('Saturday', 'Saturday'),
+        ('Sunday', 'Sunday'),
+    )
+    user = models.ForeignKey(
+        to=UserAccount,  on_delete=models.CASCADE, related_name='hotel_staff')
+    is_hotel_manager = models.BooleanField(default=False)
+    is_hotel_owner = models.BooleanField(default=False)
+    is_waiter = models.BooleanField(default=False)
+    shift_start = models.TimeField(null=True, blank=True)
+    shift_end = models.TimeField(null=True, blank=True)
+    nid = models.CharField(max_length=50, null=True, blank=True)
+    shift_days = models.CharField(
+        choices=DAYS_OF_WEEK, max_length=20, null=True, blank=True)
+    restaurant = models.ForeignKey(
+        to='restaurant.Restaurant', on_delete=models.CASCADE, null=True, blank=True, related_name='hotel_staff')
 
 
 class PhoneVerification(models.Model):
