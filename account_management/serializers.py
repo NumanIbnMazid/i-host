@@ -18,7 +18,13 @@ class StaffInfoSerializer(serializers.ModelSerializer):
         fields = ['shift_start', 'shift_end', 'nid', 'shift_days']
 
 
-class RestaurantUserSignUpSerializer(UserSignupSerializer):
+class StaffInfoGetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HotelStaffInformation
+        fields = '__all__'
+
+
+class RestaurantUserSignUpSerializer(serializers.Serializer):
     restaurant_id = serializers.IntegerField()
     staff_info = StaffInfoSerializer(required=False)
 

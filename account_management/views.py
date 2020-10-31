@@ -22,7 +22,7 @@ from account_management.models import HotelStaffInformation
 from account_management.models import UserAccount
 from account_management.models import UserAccount as User
 from account_management.serializers import (OtpLoginSerializer,
-                                            RestaurantUserSignUpSerializer,
+                                            RestaurantUserSignUpSerializer, StaffInfoGetSerializer,
                                             UserAccountPatchSerializer,
                                             UserAccountSerializer,
                                             UserSignupSerializer)
@@ -108,7 +108,7 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
     queryset = User.objects.exclude(status="DEL")
 
     def create_owner(self, request, *args, **kwargs):
-        return self.create_staff(request, is_owner == True)
+        return self.create_staff(request, is_owner=True)
 
     def create_manager(self, request, *args, **kwargs):
         # email = request.data.pop("email")
@@ -119,7 +119,7 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
         return self.create_staff(request, is_waiter=True)
 
     def create_staff(self, request, is_owner=False, is_manager=False, is_waiter=False):
-        serializer = self.serializer_class(request.data)
+        serializer = RestaurantUserSignUpSerializer(data=request.data)
         if not serializer.is_valid():
             return ResponseWrapper(error_code=400, error_msg=serializer.errors)
         password = request.data.pop("password")
@@ -137,10 +137,19 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
                 # verification_id=verification_id,
                 **request.data
             )
-        staff_qs = HotelStaffInformation.objects.create(
-            user=user_qs, is_manager=is_manager, is_owner=is_owner, is_waiter=is_waiter, restaurant=restaurant_id, **staff_info)
+
+        staff_qs = HotelStaffInformation.objects.filter(
+            user=user_qs, restaurant=restaurant_qs)
+        if staff_qs:
+            updated = staff_qs.update(is_manager=is_manager, is_owner=is_owner,
+                                      is_waiter=is_waiter, **staff_info)
+            if not updated:
+                return ResponseWrapper(error_code=400, error_msg=['failed to update'])
+        else:
+            staff_qs = HotelStaffInformation.objects.create(
+                user=user_qs, is_manager=is_manager, is_owner=is_owner, is_waiter=is_waiter, restaurant=restaurant_qs, **staff_info)
         user_serializer = UserAccountSerializer(instance=user_qs, many=False)
-        return ResponseWrapper(data=user_serializer.data, status=200)
+        return ResponseWrapper(data={"user": user_serializer.data, "staff_qs": staff_qs.values()}, status=200)
 
     def retrieve(self, request, *args, **kwargs):
         if request.user is not None:
