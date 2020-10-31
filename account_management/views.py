@@ -1,27 +1,31 @@
-from restaurant.models import Restaurant
+import uuid
+
 import restaurant
+from django.contrib.auth import get_user_model, login
 from django.contrib.auth.signals import user_logged_in
-from django.utils import timezone
-from account_management.models import UserAccount, HotelStaffInformation
-from account_management.models import UserAccount as User
-from account_management.serializers import OtpLoginSerializer, RestaurantUserSignUpSerializer,  UserAccountPatchSerializer, UserAccountSerializer, UserSignupSerializer
 from django.shortcuts import render
-from rest_framework import permissions
-from rest_framework import status
+from django.utils import timezone
+from drf_yasg2.utils import swagger_auto_schema
+from knox.models import AuthToken
 # Create your views here.
 from knox.views import LoginView as KnoxLoginView
+from rest_framework import permissions, status, viewsets
 from rest_framework.authentication import BasicAuthentication
+from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-import uuid
-from rest_framework import viewsets
-from django.contrib.auth import login
+from restaurant.models import Restaurant
 from utils.response_wrapper import ResponseWrapper
-from rest_framework.authtoken.serializers import AuthTokenSerializer
-from drf_yasg2.utils import swagger_auto_schema
-from knox.models import AuthToken
-from django.contrib.auth import get_user_model
+
+from account_management.models import HotelStaffInformation
+from account_management.models import UserAccount
+from account_management.models import UserAccount as User
+from account_management.serializers import (OtpLoginSerializer,
+                                            RestaurantUserSignUpSerializer,
+                                            UserAccountPatchSerializer,
+                                            UserAccountSerializer,
+                                            UserSignupSerializer)
 
 
 class LoginView(KnoxLoginView):
@@ -80,7 +84,7 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
         (Eg. admins get full serialization, others get basic serialization)
         """
 
-        if self.action in ["create_owner", "create_manager"]:
+        if self.action in ["create_owner", "create_manager", "create_waiter"]:
             self.serializer_class = RestaurantUserSignUpSerializer
         elif self.action == "update":
             self.serializer_class = UserAccountPatchSerializer
@@ -90,7 +94,7 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
         return self.serializer_class
 
     def get_permissions(self):
-        if self.action in ["create_owner"]:
+        if self.action in ["create_owner", "create_manager"]:
             #     permission_classes = [permissions.AllowAny]
             # elif self.action in ["retrieve", "update"]:
             #     permission_classes = [permissions.IsAuthenticated]
@@ -104,37 +108,23 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
     queryset = User.objects.exclude(status="DEL")
 
     def create_owner(self, request, *args, **kwargs):
-        # email = request.data.pop("email")
-        serializer = self.serializer_class(request.data)
-        if not serializer.is_valid():
-            return ResponseWrapper(error_code=400, error_msg=serializer.errors)
-        password = request.data.pop("password")
-        restaurant_id = request.data.pop('restaurant_id')
-        restaurant_qs = Restaurant.objects.filter(pk=restaurant_id).first()
-        if not restaurant_qs:
-            return ResponseWrapper(error_code=404, error_msg=[{"restaurant_id": "restaurant not found"}])
-        phone = request.data["phone"]
-        user_qs = User.objects.filter(phone=phone).first()
-        if not user_qs:
-            user_qs = User.objects.create_user(
-                # email=email,
-                password=password,
-                # verification_id=verification_id,
-                **request.data
-            )
-        HotelStaffInformation.objects.create(
-            user=user_qs, is_owner=True, restaurant=restaurant_id)
-
-        user_serializer = UserAccountSerializer(instance=user_qs, many=False)
-        return ResponseWrapper(data=user_serializer.data, status=200)
+        return self.create_staff(request, is_owner == True)
 
     def create_manager(self, request, *args, **kwargs):
         # email = request.data.pop("email")
+        return self.create_staff(request, is_manager=True)
+
+    def create_waiter(self, request, *args, **kwargs):
+        # email = request.data.pop("email")
+        return self.create_staff(request, is_waiter=True)
+
+    def create_staff(self, request, is_owner=False, is_manager=False, is_waiter=False):
         serializer = self.serializer_class(request.data)
         if not serializer.is_valid():
             return ResponseWrapper(error_code=400, error_msg=serializer.errors)
         password = request.data.pop("password")
         restaurant_id = request.data.pop('restaurant_id')
+        staff_info = request.data.pop('staff_info', {})
         restaurant_qs = Restaurant.objects.filter(pk=restaurant_id).first()
         if not restaurant_qs:
             return ResponseWrapper(error_code=404, error_msg=[{"restaurant_id": "restaurant not found"}])
@@ -147,9 +137,8 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
                 # verification_id=verification_id,
                 **request.data
             )
-        HotelStaffInformation.objects.create(
-            user=user_qs, is_owner=True, restaurant=restaurant_id)
-
+        staff_qs = HotelStaffInformation.objects.create(
+            user=user_qs, is_manager=is_manager, is_owner=is_owner, is_waiter=is_waiter, restaurant=restaurant_id, **staff_info)
         user_serializer = UserAccountSerializer(instance=user_qs, many=False)
         return ResponseWrapper(data=user_serializer.data, status=200)
 

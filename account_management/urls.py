@@ -23,6 +23,12 @@ restaurant_account_management = [
     path("restaurant/create_owner/", RestaurantAccountManagerViewSet.as_view({
         "post": "create_owner",
     }), name="create_owner"),
+    path("restaurant/create_manager/", RestaurantAccountManagerViewSet.as_view({
+        "post": "create_manager",
+    }), name="create_manager"),
+    path("restaurant/create_waiter/", RestaurantAccountManagerViewSet.as_view({
+        "post": "create_waiter",
+    }), name="create_waiter"),
 
 
 ]

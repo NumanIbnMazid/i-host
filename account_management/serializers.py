@@ -1,8 +1,9 @@
+from rest_framework import fields
 from rest_framework.serializers import Serializer
 import restaurant
-from restaurant.models import Restaurant
+from restaurant.models import Restaurant, models
 from rest_framework import serializers
-from .models import UserAccount
+from .models import HotelStaffInformation, UserAccount
 
 
 class UserSignupSerializer(serializers.ModelSerializer):
@@ -11,8 +12,19 @@ class UserSignupSerializer(serializers.ModelSerializer):
         fields = ["phone", "password"]
 
 
+class StaffInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HotelStaffInformation
+        fields = ['shift_start', 'shift_end', 'nid', 'shift_days']
+
+
 class RestaurantUserSignUpSerializer(UserSignupSerializer):
-    restaurant_id = serializers.IntegerField(read_only=True)
+    restaurant_id = serializers.IntegerField()
+    staff_info = StaffInfoSerializer(required=False)
+
+    class Meta(UserSignupSerializer.Meta):
+        fields = UserSignupSerializer.Meta.fields + \
+            ['restaurant_id', 'staff_info']
 
 
 class UserAccountPatchSerializer(serializers.ModelSerializer):
