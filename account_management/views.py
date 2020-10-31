@@ -1,8 +1,10 @@
+from restaurant.models import Restaurant
+import restaurant
 from django.contrib.auth.signals import user_logged_in
 from django.utils import timezone
-from account_management.models import UserAccount
+from account_management.models import UserAccount, HotelStaffInformation
 from account_management.models import UserAccount as User
-from account_management.serializers import OtpLoginSerializer, UserAccountPatchSerializer, UserAccountSerializer, UserSignupSerializer
+from account_management.serializers import OtpLoginSerializer, RestaurantUserSignUpSerializer,  UserAccountPatchSerializer, UserAccountSerializer, UserSignupSerializer
 from django.shortcuts import render
 from rest_framework import permissions
 from rest_framework import status
@@ -48,8 +50,8 @@ class OtpLoginView(KnoxLoginView):
             token = user_qs.auth_token_set.filter(expiry__gt=now)
             # token = request.user.auth_token_set.filter(expiry__gt=now)
             if token.count() >= token_limit_per_user:
-                return Response(
-                    {"error": "Maximum amount of tokens allowed per user exceeded."},
+                return ResponseWrapper(
+                    error_msg="Maximum amount of tokens allowed per user exceeded.",
                     status=status.HTTP_403_FORBIDDEN
                 )
         token_ttl = self.get_token_ttl()
@@ -57,7 +59,7 @@ class OtpLoginView(KnoxLoginView):
         user_logged_in.send(sender=user_qs.__class__,
                             request=request, user=user_qs)
         data = self.get_post_response_data(request, token, instance)
-        return Response(data)
+        return ResponseWrapper(data=data)
 
 
 @api_view(['POST'])
@@ -66,7 +68,161 @@ def verify_login(request):
     return ResponseWrapper(data="Token is Valid", status=200)
 
 
-class UserAccountManagerViewSet(viewsets.ModelViewSet, KnoxLoginView):
+class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
+    def get_serializer_class(self):
+        """
+        Return the class to use for the serializer.
+        Defaults to using `self.serializer_class`.
+
+        You may want to override this if you need to provide different
+        serializations depending on the incoming request.
+
+        (Eg. admins get full serialization, others get basic serialization)
+        """
+
+        if self.action in ["create_owner", "create_manager"]:
+            self.serializer_class = RestaurantUserSignUpSerializer
+        elif self.action == "update":
+            self.serializer_class = UserAccountPatchSerializer
+        else:
+            self.serializer_class = UserAccountSerializer
+
+        return self.serializer_class
+
+    def get_permissions(self):
+        if self.action in ["create_owner"]:
+            #     permission_classes = [permissions.AllowAny]
+            # elif self.action in ["retrieve", "update"]:
+            #     permission_classes = [permissions.IsAuthenticated]
+            # else:
+            # permissions.DjangoObjectPermissions.has_permission()
+            permission_classes = [permissions.IsAdminUser]
+        else:
+            permission_classes = [permissions.IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
+    queryset = User.objects.exclude(status="DEL")
+
+    def create_owner(self, request, *args, **kwargs):
+        # email = request.data.pop("email")
+        serializer = self.serializer_class(request.data)
+        if not serializer.is_valid():
+            return ResponseWrapper(error_code=400, error_msg=serializer.errors)
+        password = request.data.pop("password")
+        restaurant_id = request.data.pop('restaurant_id')
+        restaurant_qs = Restaurant.objects.filter(pk=restaurant_id).first()
+        if not restaurant_qs:
+            return ResponseWrapper(error_code=404, error_msg=[{"restaurant_id": "restaurant not found"}])
+        phone = request.data["phone"]
+        user_qs = User.objects.filter(phone=phone).first()
+        if not user_qs:
+            user_qs = User.objects.create_user(
+                # email=email,
+                password=password,
+                # verification_id=verification_id,
+                **request.data
+            )
+        HotelStaffInformation.objects.create(
+            user=user_qs, is_owner=True, restaurant=restaurant_id)
+
+        user_serializer = UserAccountSerializer(instance=user_qs, many=False)
+        return ResponseWrapper(data=user_serializer.data, status=200)
+
+    def create_manager(self, request, *args, **kwargs):
+        # email = request.data.pop("email")
+        serializer = self.serializer_class(request.data)
+        if not serializer.is_valid():
+            return ResponseWrapper(error_code=400, error_msg=serializer.errors)
+        password = request.data.pop("password")
+        restaurant_id = request.data.pop('restaurant_id')
+        restaurant_qs = Restaurant.objects.filter(pk=restaurant_id).first()
+        if not restaurant_qs:
+            return ResponseWrapper(error_code=404, error_msg=[{"restaurant_id": "restaurant not found"}])
+        phone = request.data["phone"]
+        user_qs = User.objects.filter(phone=phone).first()
+        if not user_qs:
+            user_qs = User.objects.create_user(
+                # email=email,
+                password=password,
+                # verification_id=verification_id,
+                **request.data
+            )
+        HotelStaffInformation.objects.create(
+            user=user_qs, is_owner=True, restaurant=restaurant_id)
+
+        user_serializer = UserAccountSerializer(instance=user_qs, many=False)
+        return ResponseWrapper(data=user_serializer.data, status=200)
+
+    def retrieve(self, request, *args, **kwargs):
+        if request.user is not None:
+            # user_serializer = self.serializer_class(instance=request.user)
+            user_serializer = UserAccountSerializer(instance=request.user)
+            return ResponseWrapper(data=user_serializer.data, status=200)
+        else:
+            return ResponseWrapper(data="No User found", status=400)
+
+#     # @swagger_auto_schema(request_body=TravellerAccountDetailSerializer)
+#     # def update(self, request, *args, **kwargs):
+#     #     if request.user is not None:
+#     #         user = User.objects.get(id=request.user.id)
+#     #         # print(user.primary_traveller_id)
+#     #         # print(user.primary_traveller.pk)
+#     #         traveller = TravellerAccount.objects.get(
+#     #             traveller_id=user.primary_traveller.pk)
+#     #         # print(traveller)
+#     #         if "present_address" in request.data:
+#     #             present_address = request.data.pop("present_address")
+#     #             present_address_serializer = AddressInformationSerializer(
+#     #                 present_address)
+#     #             if traveller.present_address is None:
+#     #                 present_address_record = present_address_serializer.create(
+#     #                     validated_data=present_address)
+#     #                 traveller.present_address = present_address_record
+#     #                 traveller.save()
+#     #             else:
+#     #                 present_address_serializer.update(instance=traveller.present_address,
+#     #                                                   validated_data=present_address)
+#     #         if "permanent_address" in request.data:
+#     #             permanent_address = request.data.pop("permanent_address")
+#     #             permanent_address_serializer = AddressInformationSerializer(
+#     #                 permanent_address)
+#     #             if traveller.permanent_address is None:
+#     #                 permanent_address_record = present_address_serializer.create(
+#     #                     validated_data=present_address)
+#     #                 traveller.permanent_address = permanent_address_record
+#     #                 traveller.save()
+#     #             else:
+#     #                 permanent_address_serializer.update(instance=traveller.permanent_address,
+#     #                                                     validated_data=permanent_address)
+
+#     #         # print("address saved")
+#     #         traveller_serializer = TravellerAccountDetailSerializer(traveller)
+#     #         traveller_serializer.update(
+#     #             instance=traveller, validated_data=request.data)
+#     #         return ResponseWrapper(data=traveller_serializer.data, status=200)
+
+#     #         # user_primary_traveller_serializer = TravellerAccountDetailSerializer(
+#     #         #     instance=user.primary_traveller, data=request.data, partial=True
+#     #         # )
+#     #         # user_primary_traveller_serializer.update(instance=user.primary_traveller, validated_data=request.data)
+#     #         # # self.serializer_class.update(instance=request.user,validated_data=request.data)
+#     #         # if user_primary_traveller_serializer.is_valid():
+#     #         #     return ResponseWrapper(data=user_primary_traveller_serializer.data, status=200)
+
+    def destroy(self, request, *args, **kwargs):
+        if request.user is not None:
+            user_serializer = UserAccountSerializer(
+                instance=request.user, data={}, partial=True
+            )
+            user_serializer.update(
+                instance=request.user, validated_data={"status": "DEL"}
+            )
+            if user_serializer.is_valid():
+                return ResponseWrapper(data=user_serializer.data, status=200)
+        return ResponseWrapper(data="Active account not found", status=400)
+
+
+class UserAccountManagerViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         """
@@ -91,9 +247,10 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet, KnoxLoginView):
     def get_permissions(self):
         if self.action == "create":
             permission_classes = [permissions.AllowAny]
-        elif self.action == "retrieve" or self.action == "update":
+        elif self.action in ["retrieve", "update"]:
             permission_classes = [permissions.IsAuthenticated]
         else:
+            # permissions.DjangoObjectPermissions.has_permission()
             permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
 
@@ -142,7 +299,7 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet, KnoxLoginView):
             user_serializer = UserAccountSerializer(instance=request.user)
             return ResponseWrapper(data=user_serializer.data, status=200)
         else:
-            return ResponseWrapper(data="No User found", status=400)
+            return ResponseWrapper(data={}, status=status.HTTP_204_NO_CONTENT)
 
 #     # @swagger_auto_schema(request_body=TravellerAccountDetailSerializer)
 #     # def update(self, request, *args, **kwargs):

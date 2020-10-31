@@ -11,6 +11,22 @@ user_account_get_post_patch_delete = UserAccountManagerViewSet.as_view(
     }
 )
 
+user_account_get_post_patch_delete = RestaurantAccountManagerViewSet.as_view(
+    {
+        "get": "retrieve",
+        "post": "create_owner",
+        # "patch": "update",
+        "delete": "destroy"
+    }
+)
+restaurant_account_management = [
+    path("restaurant/create_owner/", RestaurantAccountManagerViewSet.as_view({
+        "post": "create_owner",
+    }), name="create_owner"),
+
+
+]
+
 auth_urlpatterns = [
     path("login/", LoginView.as_view(), name="knox_login"),
     # path("otp_login/", OtpLoginView.as_view(), name="otp_login"),
@@ -27,4 +43,4 @@ urlpatterns = [
     path("user_account/", user_account_get_post_patch_delete),
 
 
-]
+]+restaurant_account_management

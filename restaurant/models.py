@@ -32,6 +32,7 @@ class Restaurant(models.Model):
 
 class RestaurantContactPerson(models.Model):
     name = models.CharField(max_length=150)
+    designation = models.CharField(max_length=150 ,null=True,blank=True)
     phone = models.CharField(max_length=25, null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
     restaurant = models.ForeignKey(

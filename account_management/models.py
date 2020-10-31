@@ -81,8 +81,8 @@ class HotelStaffInformation(models.Model):
     )
     user = models.ForeignKey(
         to=UserAccount,  on_delete=models.CASCADE, related_name='hotel_staff')
-    is_hotel_manager = models.BooleanField(default=False)
-    is_hotel_owner = models.BooleanField(default=False)
+    is_manager = models.BooleanField(default=False)
+    is_owner = models.BooleanField(default=False)
     is_waiter = models.BooleanField(default=False)
     shift_start = models.TimeField(null=True, blank=True)
     shift_end = models.TimeField(null=True, blank=True)
