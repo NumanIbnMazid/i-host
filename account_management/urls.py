@@ -11,14 +11,7 @@ user_account_get_post_patch_delete = UserAccountManagerViewSet.as_view(
     }
 )
 
-user_account_get_post_patch_delete = RestaurantAccountManagerViewSet.as_view(
-    {
-        "get": "retrieve",
-        "post": "create_owner",
-        # "patch": "update",
-        "delete": "destroy"
-    }
-)
+
 restaurant_account_management = [
     path("restaurant/create_owner/", RestaurantAccountManagerViewSet.as_view({
         "post": "create_owner",
@@ -29,6 +22,9 @@ restaurant_account_management = [
     path("restaurant/create_waiter/", RestaurantAccountManagerViewSet.as_view({
         "post": "create_waiter",
     }), name="create_waiter"),
+    path("restaurant/staff/", RestaurantAccountManagerViewSet.as_view({
+        "get": "retrieve",
+    }), name="staff_info"),
 
 
 ]
