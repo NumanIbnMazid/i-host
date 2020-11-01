@@ -5,8 +5,8 @@ from knox import views as knox_views
 user_account_get_post_patch_delete = UserAccountManagerViewSet.as_view(
     {
         "get": "retrieve",
-        "post": "create",
-        # "patch": "update",
+        # "post": "create",
+        "patch": "update",
         "delete": "destroy"
     }
 )
@@ -31,7 +31,7 @@ restaurant_account_management = [
 
 auth_urlpatterns = [
     path("login/", LoginView.as_view(), name="knox_login"),
-    # path("otp_login/", OtpLoginView.as_view(), name="otp_login"),
+    path("otp_auth/", OtpSignUpView.as_view(), name="otp_login"),
 
     path("logout/", knox_views.LogoutView.as_view(), name="knox_logout"),
     # path("reset_password/", reset_password),

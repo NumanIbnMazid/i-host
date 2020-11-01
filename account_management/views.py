@@ -1,4 +1,5 @@
 import uuid
+from uuid import uuid4
 
 import restaurant
 from django.contrib.auth import get_user_model, login
@@ -41,14 +42,22 @@ class LoginView(KnoxLoginView):
         return super(LoginView, self).post(request, format=None)
 
 
-class OtpLoginView(KnoxLoginView):
+class OtpSignUpView(KnoxLoginView):
     permission_classes = (permissions.AllowAny,)
     # TODO:need to check if otp is same
 
     @swagger_auto_schema(request_body=OtpLoginSerializer)
     def post(self, request, format=None):
+        if request.data.get('otp') != 1234:
+            return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp mismatched'])
         token_limit_per_user = self.get_token_limit_per_user()
         user_qs = User.objects.filter(phone=request.data.get('phone')).first()
+        if not user_qs:
+            user_qs = User.objects.create_user(
+                phone=request.data.get('phone'),
+                password=uuid.uuid4().__str__()
+            )
+
         if token_limit_per_user is not None:
             now = timezone.now()
             token = user_qs.auth_token_set.filter(expiry__gt=now)
@@ -291,6 +300,18 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
         user_serializer = UserAccountSerializer(instance=user, many=False)
         return ResponseWrapper(data=user_serializer.data, status=200)
 
+    def update(self, request, *args, **kwargs):
+        password = request.data.pop("password")
+        user_qs = User.objects.filter(pk=request.user.pk)
+
+        # if user_qs:
+        updated = user_qs.update(password=password, **request.data)
+        if not updated:
+            return ResponseWrapper(error_code=status.HTTP_400_BAD_REQUEST, error_msg=['failed to update'])
+        user_serializer = UserAccountSerializer(
+            instance=user_qs.first(), many=False)
+        return ResponseWrapper(data=user_serializer.data, status=200)
+
     def retrieve(self, request, *args, **kwargs):
         if request.user is not None:
             # user_serializer = self.serializer_class(instance=request.user)
@@ -298,54 +319,6 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
             return ResponseWrapper(data=user_serializer.data, status=200)
         else:
             return ResponseWrapper(data={}, status=status.HTTP_204_NO_CONTENT)
-
-#     # @swagger_auto_schema(request_body=TravellerAccountDetailSerializer)
-#     # def update(self, request, *args, **kwargs):
-#     #     if request.user is not None:
-#     #         user = User.objects.get(id=request.user.id)
-#     #         # print(user.primary_traveller_id)
-#     #         # print(user.primary_traveller.pk)
-#     #         traveller = TravellerAccount.objects.get(
-#     #             traveller_id=user.primary_traveller.pk)
-#     #         # print(traveller)
-#     #         if "present_address" in request.data:
-#     #             present_address = request.data.pop("present_address")
-#     #             present_address_serializer = AddressInformationSerializer(
-#     #                 present_address)
-#     #             if traveller.present_address is None:
-#     #                 present_address_record = present_address_serializer.create(
-#     #                     validated_data=present_address)
-#     #                 traveller.present_address = present_address_record
-#     #                 traveller.save()
-#     #             else:
-#     #                 present_address_serializer.update(instance=traveller.present_address,
-#     #                                                   validated_data=present_address)
-#     #         if "permanent_address" in request.data:
-#     #             permanent_address = request.data.pop("permanent_address")
-#     #             permanent_address_serializer = AddressInformationSerializer(
-#     #                 permanent_address)
-#     #             if traveller.permanent_address is None:
-#     #                 permanent_address_record = present_address_serializer.create(
-#     #                     validated_data=present_address)
-#     #                 traveller.permanent_address = permanent_address_record
-#     #                 traveller.save()
-#     #             else:
-#     #                 permanent_address_serializer.update(instance=traveller.permanent_address,
-#     #                                                     validated_data=permanent_address)
-
-#     #         # print("address saved")
-#     #         traveller_serializer = TravellerAccountDetailSerializer(traveller)
-#     #         traveller_serializer.update(
-#     #             instance=traveller, validated_data=request.data)
-#     #         return ResponseWrapper(data=traveller_serializer.data, status=200)
-
-#     #         # user_primary_traveller_serializer = TravellerAccountDetailSerializer(
-#     #         #     instance=user.primary_traveller, data=request.data, partial=True
-#     #         # )
-#     #         # user_primary_traveller_serializer.update(instance=user.primary_traveller, validated_data=request.data)
-#     #         # # self.serializer_class.update(instance=request.user,validated_data=request.data)
-#     #         # if user_primary_traveller_serializer.is_valid():
-#     #         #     return ResponseWrapper(data=user_primary_traveller_serializer.data, status=200)
 
     def destroy(self, request, *args, **kwargs):
         if request.user is not None:

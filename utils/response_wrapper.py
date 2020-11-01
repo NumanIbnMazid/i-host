@@ -22,7 +22,7 @@ class ResponseWrapper(Response):
 
         output_data = {
             "error": {"code": error_code, "error_details": error_msg},
-            "result": data,
+            "data": data,
             "status": response_success,
             "msg": msg if msg else str(error_msg) if error_msg else "Success" if response_success else "Failed",
         }

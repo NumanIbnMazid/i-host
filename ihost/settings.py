@@ -222,3 +222,6 @@ DEFAULT_FILE_STORAGE = 'utils.storage_backends.MediaStorage'
 
 # AWS_S3_CUSTOM_DOMAIN
 MEDIA_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, AWS_MEDIA_LOCATION)
+
+
+CORS_ORIGIN_ALLOW_ALL = True

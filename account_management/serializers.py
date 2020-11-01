@@ -36,7 +36,7 @@ class RestaurantUserSignUpSerializer(serializers.Serializer):
 class UserAccountPatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAccount
-        exclude = ["password"]
+        exclude = ["password","first_name"]
 
 
 class UserAccountSerializer(serializers.ModelSerializer):
@@ -48,3 +48,4 @@ class UserAccountSerializer(serializers.ModelSerializer):
 
 class OtpLoginSerializer(serializers.Serializer):
     phone = serializers.CharField()
+    otp = serializers.IntegerField(default=1234)
