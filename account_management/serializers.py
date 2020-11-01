@@ -36,7 +36,7 @@ class RestaurantUserSignUpSerializer(serializers.Serializer):
 class UserAccountPatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAccount
-        exclude = ["password","first_name"]
+        fields = ["password", "first_name"]
 
 
 class UserAccountSerializer(serializers.ModelSerializer):
