@@ -32,6 +32,8 @@ restaurant_account_management = [
 auth_urlpatterns = [
     path("login/", LoginView.as_view(), name="knox_login"),
     path("otp_auth/", OtpSignUpView.as_view(), name="otp_login"),
+    path("get_otp/<str:phone>/",
+         UserAccountManagerViewSet.as_view({'get': 'get_otp'}), name="get_otp"),
 
     path("logout/", knox_views.LogoutView.as_view(), name="knox_logout"),
     # path("reset_password/", reset_password),

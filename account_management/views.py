@@ -246,13 +246,15 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
             self.serializer_class = UserSignupSerializer
         elif self.action == "update":
             self.serializer_class = UserAccountPatchSerializer
+        elif self.action == "get_otp":
+            self.serializer_class = None
         else:
             self.serializer_class = UserAccountSerializer
 
         return self.serializer_class
 
     def get_permissions(self):
-        if self.action == "create":
+        if self.action == "create" or self.action == "get_otp":
             permission_classes = [permissions.AllowAny]
         elif self.action in ["retrieve", "update"]:
             permission_classes = [permissions.IsAuthenticated]
@@ -331,3 +333,6 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
             if user_serializer.is_valid():
                 return ResponseWrapper(data=user_serializer.data, status=200)
         return ResponseWrapper(data="Active account not found", status=400)
+
+    def get_otp(self, request, phone, **kwargs):
+        return ResponseWrapper(msg='otp sent', status=200)
