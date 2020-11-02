@@ -16,7 +16,7 @@ class Restaurant(models.Model):
     RESTAURANT_STATUS = [('ACTIVE', 'ACTIVE'), ('INACTIVE', 'INACTIVE')]
 
     name = models.CharField(max_length=250)
-    logo = models.ImageField(blank=True, null=True)
+    logo = models.FileField(blank=True)
     address = models.CharField(max_length=500, null=True, blank=True)
     latitude = models.DecimalField(
         max_digits=50, decimal_places=45, null=True, blank=True)

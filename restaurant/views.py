@@ -37,11 +37,11 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         serializer = RestaurantSerializer(data=request.data)
-        if not serializer.is_valid():
-            return ResponseWrapper(error_code=400, error_msg=serializer.errors)
-        qs = Restaurant.objects.create(**request.data)
-        restaurant_serializer = RestaurantSerializer(instance=qs)
-        return ResponseWrapper(data=restaurant_serializer.data, msg='created')
+        if serializer.is_valid():
+            serializer.save()
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_code=400, error_msg=serializer.errors, msg='failed to create restaurent')
 
     def update(self, request, pk, *args, **kwargs):
         if not (
