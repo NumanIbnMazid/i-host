@@ -19,7 +19,6 @@ class RestaurantViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             self.serializer_class = RestaurantSerializer
-
         elif self.action == 'update':
             self.serializer_class = RestaurantUpdateSerialier
         else:
