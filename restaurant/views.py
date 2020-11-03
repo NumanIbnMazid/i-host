@@ -4,10 +4,10 @@ from account_management import serializers
 from drf_yasg2.utils import get_serializer_class
 from rest_framework.permissions import IsAdminUser
 from rest_framework.serializers import Serializer
-from restaurant.models import Restaurant
+from restaurant.models import FoodCategory, Restaurant
 from utils.response_wrapper import ResponseWrapper
 from rest_framework import permissions, status, viewsets
-from .serializers import RestaurantSerializer, RestaurantContactPerson, RestaurantUpdateSerialier
+from .serializers import FoodCategorySerializer, RestaurantSerializer, RestaurantContactPerson, RestaurantUpdateSerialier
 from django.db.models import Q
 
 
@@ -85,3 +85,29 @@ class RestaurantViewSet(viewsets.ModelViewSet):
         qs = Restaurant.objects.all()
         serializer = RestaurantSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
+
+
+class FoodCategoryViewSet(viewsets.ModelViewSet):
+    serializer_class = FoodCategorySerializer
+    permission_classes = [permissions.IsAdminUser]
+    queryset = FoodCategory.objects.all()
+    lookup_field = 'pk'
+
+    def create(self, request):
+        serializer = self.serializer_class(request.data)
+        if serializer.is_valid():
+            qs = serializer.save()
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def update(self, request, pk):
+        serializer = self.serializer_class(request.data)
+        if serializer.is_valid():
+            qs = serializer.update(instance=self.get_queryset(
+            ), validated_data=serializer.validated_data)
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
