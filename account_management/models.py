@@ -59,7 +59,7 @@ class UserAccount(AbstractUser):
     phone = models.CharField(max_length=35, unique=True)
     status = models.CharField(max_length=25,
                               choices=USERS_IN_STATUS_CHOICES, default='UNV')
-
+    date_of_birth = models.DateField(null=True,blank=True)
     USERNAME_FIELD = "phone"
     REQUIRED_FIELDS = []
     objects = UserManager()

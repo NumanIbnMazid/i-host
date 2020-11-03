@@ -36,14 +36,14 @@ class RestaurantUserSignUpSerializer(serializers.Serializer):
 class UserAccountPatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAccount
-        fields = ["password", "first_name"]
+        fields = ["password", "first_name", "date_of_birth"]
 
 
 class UserAccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserAccount
-        fields = ['phone', 'first_name', 'last_name']
+        fields = ['phone', 'first_name', 'last_name', 'date_of_birth']
 
 
 class OtpLoginSerializer(serializers.Serializer):

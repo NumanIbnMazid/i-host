@@ -1,3 +1,4 @@
+from django.http import request
 from account_management.models import HotelStaffInformation, UserAccount
 from account_management.serializers import StaffInfoSerializer
 from account_management import serializers
@@ -111,3 +112,11 @@ class FoodCategoryViewSet(viewsets.GenericViewSet):
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def destroy(self, request, pk):
+        qs = self.get_object()
+        if qs:
+            qs.delete()
+            return ResponseWrapper(status=200)
+        else:
+            return ResponseWrapper(error_msg="failed to delete", error_code=400)
