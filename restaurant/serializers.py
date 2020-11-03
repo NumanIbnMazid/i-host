@@ -7,8 +7,6 @@ from rest_framework import serializers
 
 
 class RestaurantSerializer(serializers.ModelSerializer):
-    def to_internal_value(self, data):
-        return ResponseWrapper(data=data)
 
     class Meta:
         model = Restaurant

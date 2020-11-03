@@ -66,9 +66,8 @@ class RestaurantViewSet(viewsets.ModelViewSet):
         if not qs:
             return ResponseWrapper(error_code=404, error_msg=[{"restaurant_id": "restaurant not found"}])
 
-        if qs.update(**request.data):
-            qs = qs.first()
-        else:
+        qs = serializer.update(qs.first(), serializer.validated_data)
+        if not qs:
             return ResponseWrapper(error_code=404, error_msg=['update failed'])
 
         restaurant_serializer = RestaurantSerializer(instance=qs)
