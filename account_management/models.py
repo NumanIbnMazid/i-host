@@ -144,3 +144,6 @@ class PhoneVerification(models.Model):
             self.verification_code = " "
             self.save()
             return "Phone Verification Success"
+
+
+

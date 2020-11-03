@@ -16,7 +16,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
 class RestaurantUpdateSerialier(serializers.ModelSerializer):
     class Meta:
         model = Restaurant
-        exclude = ['status']
+        exclude = ['status', 'subscription', 'subscription_ends']
 
 
 class RestaurantContactPerson(serializers.ModelSerializer):
