@@ -51,8 +51,8 @@ swagger_url = [
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("api/", include("account_management.urls")),
-    path("api/", include("restaurant.urls")),
+    path("api/account_management/", include("account_management.urls")),
+    path("api/restaurant_management/", include("restaurant.urls")),
 
 
 ]+swagger_url + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL,

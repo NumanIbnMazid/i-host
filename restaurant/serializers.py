@@ -1,4 +1,5 @@
 
+from utils.response_wrapper import ResponseWrapper
 from django.db.models import fields
 from rest_framework.serializers import Serializer
 from .models import *
@@ -6,6 +7,9 @@ from rest_framework import serializers
 
 
 class RestaurantSerializer(serializers.ModelSerializer):
+    def to_internal_value(self, data):
+        return ResponseWrapper(data=data)
+
     class Meta:
         model = Restaurant
         fields = '__all__'

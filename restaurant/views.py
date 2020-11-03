@@ -1,4 +1,4 @@
-from account_management.models import HotelStaffInformation
+from account_management.models import HotelStaffInformation, UserAccount
 from account_management.serializers import StaffInfoSerializer
 from account_management import serializers
 from drf_yasg2.utils import get_serializer_class
@@ -27,9 +27,9 @@ class RestaurantViewSet(viewsets.ModelViewSet):
         return self.serializer_class
 
     def get_permissions(self):
-        if self.action in ["create", 'destroy']:
+        if self.action in ["create", 'destroy', 'list']:
             permission_classes = [permissions.IsAdminUser]
-        if self.action in ['update']:
+        if self.action in ['update', 'restaurant_under_owner']:
             permission_classes = [permissions.IsAuthenticated]
         else:
             permission_classes = [permissions.AllowAny]
@@ -42,6 +42,14 @@ class RestaurantViewSet(viewsets.ModelViewSet):
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_code=400, error_msg=serializer.errors, msg='failed to create restaurent')
+
+    def retrieve(self, request, pk, *args, **kwargs):
+        qs = Restaurant.objects.filter(pk=pk).first()
+        if qs:
+            serializer = RestaurantSerializer(instance=qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_msg='invalid restaurant id', error_code=400)
 
     def update(self, request, pk, *args, **kwargs):
         if not (
@@ -65,3 +73,16 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 
         restaurant_serializer = RestaurantSerializer(instance=qs)
         return ResponseWrapper(data=restaurant_serializer.data, msg='updated')
+
+    def restaurant_under_owner(self, request, *args, **kwargs):
+        owner_qs = UserAccount.objects.filter(pk=request.user.pk).first()
+        restaurant_list = owner_qs.hotel_staff.values_list(
+            'restaurant', flat=True)
+        qs = Restaurant.objects.filter(pk__in=restaurant_list)
+        serializer = RestaurantSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data)
+
+    def list(self, request, *args, **kwargs):
+        qs = Restaurant.objects.all()
+        serializer = RestaurantSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data)
