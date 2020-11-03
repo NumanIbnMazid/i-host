@@ -34,6 +34,8 @@ class RestaurantUserSignUpSerializer(serializers.Serializer):
 
 
 class UserAccountPatchSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(required=False)
+
     class Meta:
         model = UserAccount
         fields = ["password", "first_name", "date_of_birth"]

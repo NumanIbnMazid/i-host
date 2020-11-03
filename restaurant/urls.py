@@ -8,7 +8,8 @@ urlpatterns = [
          RestaurantViewSet.as_view({'post': 'create', 'get': 'list'}), name='restaurant_create_and_list'),
     path('restaurant/<int:pk>/',
          RestaurantViewSet.as_view({'patch': 'update', 'get': 'retrieve'}), name='restaurant_update'),
-    path("food_category/", FoodCategoryViewSet.as_view({"post": "create"})),
+    path("food_category/",
+         FoodCategoryViewSet.as_view({"post": "create", "get": "list"})),
     path("food_category/<int:pk>/",
          FoodCategoryViewSet.as_view({"patch": "update", "delete": "destroy"})),
 

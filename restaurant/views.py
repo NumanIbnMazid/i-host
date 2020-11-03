@@ -94,6 +94,12 @@ class FoodCategoryViewSet(viewsets.GenericViewSet):
     queryset = FoodCategory.objects.all()
     lookup_field = 'pk'
 
+    def list(self, request):
+        qs = self.get_queryset()
+        serializer = self.serializer_class(instance=qs, many=True)
+        # serializer.is_valid()
+        return ResponseWrapper(data=serializer.data, msg='success')
+
     def create(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -103,7 +109,7 @@ class FoodCategoryViewSet(viewsets.GenericViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def update(self, request, pk):
+    def update(self, request, **kwargs):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             qs = serializer.update(instance=self.get_object(
@@ -113,10 +119,10 @@ class FoodCategoryViewSet(viewsets.GenericViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def destroy(self, request, pk):
-        qs = self.get_object()
+    def destroy(self, request, **kwargs):
+        qs = self.queryset.filter(**kwargs).first()
         if qs:
             qs.delete()
-            return ResponseWrapper(status=200)
+            return ResponseWrapper(status=200, msg='deleted')
         else:
             return ResponseWrapper(error_msg="failed to delete", error_code=400)
