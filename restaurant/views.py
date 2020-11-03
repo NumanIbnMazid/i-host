@@ -87,14 +87,14 @@ class RestaurantViewSet(viewsets.ModelViewSet):
         return ResponseWrapper(data=serializer.data)
 
 
-class FoodCategoryViewSet(viewsets.ModelViewSet):
+class FoodCategoryViewSet(viewsets.GenericViewSet):
     serializer_class = FoodCategorySerializer
     permission_classes = [permissions.IsAdminUser]
     queryset = FoodCategory.objects.all()
     lookup_field = 'pk'
 
     def create(self, request):
-        serializer = self.serializer_class(request.data)
+        serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             qs = serializer.save()
             serializer = self.serializer_class(instance=qs)
@@ -103,9 +103,9 @@ class FoodCategoryViewSet(viewsets.ModelViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def update(self, request, pk):
-        serializer = self.serializer_class(request.data)
+        serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            qs = serializer.update(instance=self.get_queryset(
+            qs = serializer.update(instance=self.get_object(
             ), validated_data=serializer.validated_data)
             serializer = self.serializer_class(instance=qs)
             return ResponseWrapper(data=serializer.data)

@@ -25,12 +25,11 @@ restaurant_account_management = [
     path("restaurant/staff/", RestaurantAccountManagerViewSet.as_view({
         "get": "retrieve",
     }), name="staff_info"),
-
-
 ]
 
 auth_urlpatterns = [
     path("login/", LoginView.as_view(), name="knox_login"),
+    
     path("otp_auth/", OtpSignUpView.as_view(), name="otp_login"),
     path("get_otp/<str:phone>/",
          UserAccountManagerViewSet.as_view({'get': 'get_otp'}), name="get_otp"),
