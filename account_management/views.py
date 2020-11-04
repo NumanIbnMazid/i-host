@@ -1,7 +1,7 @@
 import uuid
 from uuid import uuid4
-
 import restaurant
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.signals import user_logged_in
 from django.shortcuts import render
@@ -323,6 +323,7 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
         user_qs = User.objects.filter(pk=request.user.pk)
 
         # if user_qs:
+        password = make_password(password=password)
         updated = user_qs.update(password=password, **request.data)
         if not updated:
             return ResponseWrapper(error_code=status.HTTP_400_BAD_REQUEST, error_msg=['failed to update'])
