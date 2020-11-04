@@ -20,6 +20,9 @@ router.register('table', TableViewSet,
 router.register('food', FoodViewSet,
                 basename="food")
 
+router.register('foods', FoodByRestaurantViewSet,
+                basename="foods")
+
 urlpatterns = [
     path('', include(router.urls)),
     path('restaurant/',

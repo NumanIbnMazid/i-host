@@ -13,6 +13,8 @@ class FoodOptionExtraTypeSerializer(serializers.ModelSerializer):
 
 
 class FoodExtraSerializer(serializers.ModelSerializer):
+    extra_type = FoodOptionExtraTypeSerializer(read_only=True)
+
     class Meta:
         model = FoodExtra
         fields = '__all__'
@@ -25,6 +27,8 @@ class FoodCategorySerializer(serializers.ModelSerializer):
 
 
 class FoodOptionSerializer(serializers.ModelSerializer):
+    option_type = FoodOptionExtraTypeSerializer(read_only=True)
+
     class Meta:
         model = FoodOption
         fields = '__all__'
@@ -56,10 +60,31 @@ class OrderedItemSerializer(serializers.ModelSerializer):
 
 
 class FoodSerializer(serializers.ModelSerializer):
+    category = FoodCategorySerializer(read_only=True)
+
     class Meta:
         model = Food
         fields = '__all__'
-        
+
+
+class FoodDetailSerializer(serializers.ModelSerializer):
+    category = FoodCategorySerializer(read_only=True)
+    # food_extra = FoodExtraSerializer(read_only=True)
+
+    class Meta:
+        model = Food
+        fields = [
+            "name",
+            "image",
+            "description",
+            "restaurant",
+            "category",
+            "is_top",
+            "is_recommended",
+            # 'food_extra',
+        ]
+
+
 class RestaurantUpdateSerialier(serializers.ModelSerializer):
     class Meta:
         model = Restaurant
@@ -76,4 +101,3 @@ class RestaurantContactPerson(serializers.ModelSerializer):
     class Meta:
         model = RestaurantContactPerson
         fields = '__all__'
-

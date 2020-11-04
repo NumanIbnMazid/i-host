@@ -8,7 +8,7 @@ from rest_framework.serializers import Serializer
 from restaurant.models import Food, FoodCategory, FoodExtra, FoodOption, FoodOptionExtraType, FoodOrder, Restaurant, Table
 from utils.response_wrapper import ResponseWrapper
 from rest_framework import permissions, status, viewsets
-from .serializers import FoodCategorySerializer, FoodExtraSerializer, FoodOptionExtraTypeSerializer, FoodOptionSerializer, FoodOrderSerializer, FoodSerializer, RestaurantSerializer, RestaurantContactPerson, RestaurantUpdateSerialier, TableSerializer
+from .serializers import FoodCategorySerializer, FoodDetailSerializer, FoodExtraSerializer, FoodOptionExtraTypeSerializer, FoodOptionSerializer, FoodOrderSerializer, FoodSerializer, RestaurantSerializer, RestaurantContactPerson, RestaurantUpdateSerialier, TableSerializer
 from django.db.models import Q
 from utils.custom_viewset import CustomViewSet
 
@@ -176,3 +176,12 @@ class FoodViewSet(CustomViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     queryset = Food.objects.all()
     lookup_field = 'pk'
+    http_method_names = ['post', 'patch', 'put']
+
+
+class FoodByRestaurantViewSet(CustomViewSet):
+    serializer_class = FoodDetailSerializer
+    # permission_classes = [permissions.IsAuthenticated]
+    queryset = Food.objects.all()
+    lookup_field = 'restaurant'
+    http_method_names = ['get']

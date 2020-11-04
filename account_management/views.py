@@ -156,6 +156,7 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
         phone = request.data["phone"]
         user_qs = User.objects.filter(phone=phone).first()
         if not user_qs:
+            password = make_password(password=password)
             user_qs = User.objects.create_user(
                 # email=email,
                 password=password,

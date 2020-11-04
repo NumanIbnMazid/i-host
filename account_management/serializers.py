@@ -27,10 +27,8 @@ class StaffInfoGetSerializer(serializers.ModelSerializer):
 class RestaurantUserSignUpSerializer(serializers.Serializer):
     restaurant_id = serializers.IntegerField()
     staff_info = StaffInfoSerializer(required=False)
-
-    class Meta(UserSignupSerializer.Meta):
-        fields = UserSignupSerializer.Meta.fields + \
-            ['restaurant_id', 'staff_info']
+    phone = serializers.CharField()
+    password = serializers.CharField(required=False)
 
 
 class UserAccountPatchSerializer(serializers.ModelSerializer):
@@ -38,7 +36,7 @@ class UserAccountPatchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserAccount
-        fields = ["password", "first_name", "date_of_birth","email"]
+        fields = ["password", "first_name", "date_of_birth", "email"]
 
 
 class UserAccountSerializer(serializers.ModelSerializer):
