@@ -11,12 +11,14 @@ router.register('food_category', FoodCategoryViewSet,
 router.register('food_extra', FoodExtraViewSet,
                 basename="food_extra")
 
-
 router.register('food_option', FoodOptionViewSet,
                 basename="food_option")
 
 router.register('table', TableViewSet,
                 basename="table")
+
+router.register('food', FoodViewSet,
+                basename="food")
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -32,4 +34,3 @@ urlpatterns = [
     path('restaurant_under_owner/',
          RestaurantViewSet.as_view({'get': 'restaurant_under_owner'}), name='restaurant_under_owner'),
 ]
-

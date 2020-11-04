@@ -55,6 +55,11 @@ class OrderedItemSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class FoodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Food
+        fields = '__all__'
+        
 class RestaurantUpdateSerialier(serializers.ModelSerializer):
     class Meta:
         model = Restaurant
@@ -65,3 +70,10 @@ class RestaurantContactPerson(serializers.ModelSerializer):
     class Meta:
         model = RestaurantContactPerson
         fields = '__all__'
+
+
+class RestaurantContactPerson(serializers.ModelSerializer):
+    class Meta:
+        model = RestaurantContactPerson
+        fields = '__all__'
+

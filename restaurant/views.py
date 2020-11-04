@@ -5,10 +5,10 @@ from account_management import serializers
 from drf_yasg2.utils import get_serializer_class
 from rest_framework.permissions import IsAdminUser
 from rest_framework.serializers import Serializer
-from restaurant.models import FoodCategory, FoodExtra, FoodOption, FoodOptionExtraType, FoodOrder, Restaurant, Table
+from restaurant.models import Food, FoodCategory, FoodExtra, FoodOption, FoodOptionExtraType, FoodOrder, Restaurant, Table
 from utils.response_wrapper import ResponseWrapper
 from rest_framework import permissions, status, viewsets
-from .serializers import FoodCategorySerializer, FoodExtraSerializer, FoodOptionExtraTypeSerializer, FoodOptionSerializer, FoodOrderSerializer, RestaurantSerializer, RestaurantContactPerson, RestaurantUpdateSerialier, TableSerializer
+from .serializers import FoodCategorySerializer, FoodExtraSerializer, FoodOptionExtraTypeSerializer, FoodOptionSerializer, FoodOrderSerializer, FoodSerializer, RestaurantSerializer, RestaurantContactPerson, RestaurantUpdateSerialier, TableSerializer
 from django.db.models import Q
 from utils.custom_viewset import CustomViewSet
 
@@ -168,4 +168,11 @@ class FoodOrderViewSet(CustomViewSet):
     serializer_class = FoodOrderSerializer
     # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodOrder.objects.all()
+    lookup_field = 'pk'
+
+
+class FoodViewSet(CustomViewSet):
+    serializer_class = FoodSerializer
+    # permission_classes = [permissions.IsAuthenticated]
+    queryset = Food.objects.all()
     lookup_field = 'pk'
