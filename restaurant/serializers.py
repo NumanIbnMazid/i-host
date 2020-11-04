@@ -6,9 +6,15 @@ from .models import *
 from rest_framework import serializers
 
 
-class FoodOptionExtraType(serializers.ModelSerializer):
+class FoodOptionExtraTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOptionExtraType
+        fields = '__all__'
+
+
+class FoodExtraSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodExtra
         fields = '__all__'
 
 
@@ -18,10 +24,34 @@ class FoodCategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class FoodOptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodOption
+        fields = '__all__'
+
+
 class RestaurantSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Restaurant
+        fields = '__all__'
+
+
+class TableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Table
+        fields = '__all__'
+
+
+class FoodOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodOrder
+        fields = '__all__'
+
+
+class OrderedItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderedItem
         fields = '__all__'
 
 

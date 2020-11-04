@@ -5,6 +5,18 @@ from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register('food_option_extra_type', FoodOptionExtraTypeViewSet,
                 basename="food_option_extra_type")
+router.register('food_category', FoodCategoryViewSet,
+                basename="food_category")
+
+router.register('food_extra', FoodExtraViewSet,
+                basename="food_extra")
+
+
+router.register('food_option', FoodOptionViewSet,
+                basename="food_option")
+
+router.register('table', TableViewSet,
+                basename="table")
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -20,3 +32,4 @@ urlpatterns = [
     path('restaurant_under_owner/',
          RestaurantViewSet.as_view({'get': 'restaurant_under_owner'}), name='restaurant_under_owner'),
 ]
+
