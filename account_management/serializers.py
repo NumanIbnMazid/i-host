@@ -18,14 +18,13 @@ class StaffInfoSerializer(serializers.ModelSerializer):
         fields = ['shift_start', 'shift_end', 'nid', 'shift_days']
 
 
-class StaffInfoGetSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = HotelStaffInformation
-        fields = '__all__'
+
 
 
 class RestaurantUserSignUpSerializer(serializers.Serializer):
     restaurant_id = serializers.IntegerField()
+    email = serializers.EmailField()
+    first_name = serializers.CharField()
     staff_info = StaffInfoSerializer(required=False)
     phone = serializers.CharField()
     password = serializers.CharField(required=False)
@@ -45,6 +44,11 @@ class UserAccountSerializer(serializers.ModelSerializer):
         model = UserAccount
         fields = ['phone', 'first_name', 'last_name', 'date_of_birth', 'email']
 
+class StaffInfoGetSerializer(serializers.ModelSerializer):
+    user = UserAccountSerializer(read_only=True)
+    class Meta:
+        model = HotelStaffInformation
+        fields = '__all__'
 
 class OtpLoginSerializer(serializers.Serializer):
     phone = serializers.CharField()
