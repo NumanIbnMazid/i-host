@@ -181,7 +181,12 @@ class FoodViewSet(CustomViewSet):
 
 class FoodByRestaurantViewSet(CustomViewSet):
     serializer_class = FoodDetailSerializer
+    # queryset = Food.objects.all()
+
     # permission_classes = [permissions.IsAuthenticated]
-    queryset = Food.objects.all()
-    lookup_field = 'restaurant'
-    http_method_names = ['get']
+    # http_method_names = ['get']
+
+    def list(self, request, **kwargs):
+        qs = Food.objects.filter(**kwargs)
+        serializer = self.serializer_class(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data)
