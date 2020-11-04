@@ -58,7 +58,7 @@ class RestaurantPromoCategory(models.Model):
 class FoodCategory(models.Model):
     name = models.CharField(max_length=250)
     image = models.ImageField(null=True, blank=True)
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE,related_name='food_category')
+    # restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE,related_name='food_category')
 
 
 class Food(models.Model):
@@ -69,8 +69,10 @@ class Food(models.Model):
         Restaurant, on_delete=models.CASCADE, related_name='food')
     category = models.ForeignKey(
         FoodCategory, null=True, blank=True, on_delete=models.PROTECT, related_name='foods')
-    promotion_category = models.ManyToManyField(
-        RestaurantPromoCategory, blank=True)
+    # promotion_category = models.ManyToManyField(
+    #     RestaurantPromoCategory, blank=True)
+    is_top = models.BooleanField(default=False)
+    is_recommended = models.BooleanField(default=False)
 
 
 class FoodOptionExtraType(models.Model):
