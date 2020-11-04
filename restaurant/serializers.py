@@ -6,10 +6,17 @@ from .models import *
 from rest_framework import serializers
 
 
+class FoodOptionExtraType(serializers.ModelSerializer):
+    class Meta:
+        model = FoodOptionExtraType
+        fields = '__all__'
+
+
 class FoodCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodCategory
         fields = '__all__'
+
 
 class RestaurantSerializer(serializers.ModelSerializer):
 
