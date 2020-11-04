@@ -43,7 +43,7 @@ class UserAccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserAccount
-        fields = ['phone', 'first_name', 'last_name', 'date_of_birth']
+        fields = ['phone', 'first_name', 'last_name', 'date_of_birth', 'email']
 
 
 class OtpLoginSerializer(serializers.Serializer):
