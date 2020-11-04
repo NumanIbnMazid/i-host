@@ -58,6 +58,7 @@ class RestaurantPromoCategory(models.Model):
 class FoodCategory(models.Model):
     name = models.CharField(max_length=250)
     image = models.ImageField(null=True, blank=True)
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE,related_name='food_category')
 
 
 class Food(models.Model):
