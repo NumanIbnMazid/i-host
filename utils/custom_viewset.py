@@ -2,7 +2,7 @@ from rest_framework import permissions, status, viewsets
 from utils.response_wrapper import ResponseWrapper
 
 
-class CustomViewSet(viewsets.GenericViewSet):
+class CustomViewSet(viewsets.ModelViewSet):
     # serializer_class = FoodCategorySerializer
     # permission_classes = [permissions.IsAdminUser]
     # queryset = FoodCategory.objects.all()

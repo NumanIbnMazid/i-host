@@ -59,7 +59,7 @@ class UserAccount(AbstractUser):
     phone = models.CharField(max_length=35, unique=True)
     status = models.CharField(max_length=25,
                               choices=USERS_IN_STATUS_CHOICES, default='UNV')
-    date_of_birth = models.DateField(null=True,blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
     USERNAME_FIELD = "phone"
     REQUIRED_FIELDS = []
     objects = UserManager()
@@ -92,12 +92,12 @@ class HotelStaffInformation(models.Model):
     restaurant = models.ForeignKey(
         to='restaurant.Restaurant', on_delete=models.CASCADE, null=True, blank=True, related_name='hotel_staff')
 
-
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'restaurant'], name='staff_per_restaurant')
         ]
+
 
 class PhoneVerification(models.Model):
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
@@ -144,6 +144,3 @@ class PhoneVerification(models.Model):
             self.verification_code = " "
             self.save()
             return "Phone Verification Success"
-
-
-

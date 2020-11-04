@@ -1,9 +1,13 @@
 # from rest_framework.routers import DefaultRouter
-from .views import FoodCategoryViewSet, RestaurantViewSet
+from .views import *
 from django.urls import include, path
-
+from rest_framework.routers import DefaultRouter
+router = DefaultRouter()
+router.register('food_option_extra_type', FoodOptionExtraTypeViewSet,
+                basename="food_option_extra_type")
 
 urlpatterns = [
+    path('', include(router.urls)),
     path('restaurant/',
          RestaurantViewSet.as_view({'post': 'create', 'get': 'list'}), name='restaurant_create_and_list'),
     path('restaurant/<int:pk>/',

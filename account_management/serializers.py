@@ -38,7 +38,7 @@ class UserAccountPatchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserAccount
-        fields = ["password", "first_name", "date_of_birth"]
+        fields = ["password", "first_name", "date_of_birth","email"]
 
 
 class UserAccountSerializer(serializers.ModelSerializer):

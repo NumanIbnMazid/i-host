@@ -131,13 +131,13 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 
 class FoodCategoryViewSet(CustomViewSet):
     serializer_class = FoodCategorySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodCategory.objects.all()
     lookup_field = 'pk'
 
 
-class FoodCategoryViewSet(CustomViewSet):
+class FoodOptionExtraTypeViewSet(CustomViewSet):
     serializer_class = FoodCategorySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodOptionExtraType.objects.all()
     lookup_field = 'pk'
