@@ -172,11 +172,15 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
                                       is_waiter=is_waiter, **staff_info)
             if not updated:
                 return ResponseWrapper(error_code=400, error_msg=['failed to update'])
+            staff_qs = staff_qs.first()
         else:
             staff_qs = HotelStaffInformation.objects.create(
                 user=user_qs, is_manager=is_manager, is_owner=is_owner, is_waiter=is_waiter, restaurant=restaurant_qs, **staff_info)
+            # staff_qs = staff_qs.first()
+
         user_serializer = UserAccountSerializer(instance=user_qs, many=False)
-        staff_serializer = HotelStaffInformationSerializer(instance=staff_qs.first())
+
+        staff_serializer = HotelStaffInformationSerializer(instance=staff_qs)
         return ResponseWrapper(data={"user": user_serializer.data, "staff_info": staff_serializer.data}, status=200)
 
     def retrieve(self, request, *args, **kwargs):
