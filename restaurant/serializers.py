@@ -1,4 +1,5 @@
 
+from account_management.models import HotelStaffInformation
 from utils.response_wrapper import ResponseWrapper
 from django.db.models import fields
 from rest_framework.serializers import Serializer
@@ -91,13 +92,15 @@ class RestaurantUpdateSerialier(serializers.ModelSerializer):
         exclude = ['status', 'subscription', 'subscription_ends']
 
 
-class RestaurantContactPerson(serializers.ModelSerializer):
+class RestaurantContactPersonSerializer(serializers.ModelSerializer):
     class Meta:
         model = RestaurantContactPerson
         fields = '__all__'
 
 
-class RestaurantContactPerson(serializers.ModelSerializer):
+
+
+class HotelStaffInformationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = RestaurantContactPerson
+        model = HotelStaffInformation
         fields = '__all__'

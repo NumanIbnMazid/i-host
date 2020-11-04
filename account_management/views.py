@@ -1,3 +1,4 @@
+from restaurant.serializers import HotelStaffInformationSerializer
 import uuid
 from uuid import uuid4
 import restaurant
@@ -175,7 +176,8 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
             staff_qs = HotelStaffInformation.objects.create(
                 user=user_qs, is_manager=is_manager, is_owner=is_owner, is_waiter=is_waiter, restaurant=restaurant_qs, **staff_info)
         user_serializer = UserAccountSerializer(instance=user_qs, many=False)
-        return ResponseWrapper(data={"user": user_serializer.data, "staff_qs": staff_qs.values()}, status=200)
+        staff_serializer = HotelStaffInformationSerializer(instance=staff_qs)
+        return ResponseWrapper(data={"user": user_serializer.data, "staff_info": staff_serializer.data}, status=200)
 
     def retrieve(self, request, *args, **kwargs):
         if request.user is not None:
