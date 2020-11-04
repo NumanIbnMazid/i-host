@@ -83,7 +83,7 @@ class FoodExtra(models.Model):
     name = models.CharField(max_length=50)
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     food = models.ForeignKey(Food, on_delete=models.CASCADE,
-                             related_name='food_extra')
+                             related_name='food_extras')
     extra_type = models.ForeignKey(
         FoodOptionExtraType, on_delete=models.CASCADE, related_name='food_extras')
 
@@ -92,7 +92,7 @@ class FoodOption(models.Model):
     name = models.CharField(max_length=50)
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     food = models.ForeignKey(
-        Food, on_delete=models.CASCADE, related_name='food_option')
+        Food, on_delete=models.CASCADE, related_name='food_options')
     option_type = models.ForeignKey(
         FoodOptionExtraType, on_delete=models.CASCADE, related_name='food_options')
 

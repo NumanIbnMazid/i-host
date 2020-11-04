@@ -1,4 +1,6 @@
 
+from os import read
+from django.db.models.fields.related import RelatedField
 from account_management.models import HotelStaffInformation
 from utils.response_wrapper import ResponseWrapper
 from django.db.models import fields
@@ -70,7 +72,8 @@ class FoodSerializer(serializers.ModelSerializer):
 
 class FoodDetailSerializer(serializers.ModelSerializer):
     category = FoodCategorySerializer(read_only=True)
-    # food_extra = FoodExtraSerializer(read_only=True)
+    food_extras = FoodExtraSerializer(read_only=True, many=True)
+    food_options = FoodOptionSerializer(read_only=True, many=True)
 
     class Meta:
         model = Food
@@ -82,7 +85,8 @@ class FoodDetailSerializer(serializers.ModelSerializer):
             "category",
             "is_top",
             "is_recommended",
-            # 'food_extra',
+            "food_extras",
+            "food_options",
         ]
 
 
@@ -96,8 +100,6 @@ class RestaurantContactPersonSerializer(serializers.ModelSerializer):
     class Meta:
         model = RestaurantContactPerson
         fields = '__all__'
-
-
 
 
 class HotelStaffInformationSerializer(serializers.ModelSerializer):

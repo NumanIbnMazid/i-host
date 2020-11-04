@@ -173,14 +173,20 @@ class FoodOrderViewSet(CustomViewSet):
 
 class FoodViewSet(CustomViewSet):
     serializer_class = FoodSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            self.serializer_class = FoodDetailSerializer
+        return self.serializer_class
     # permission_classes = [permissions.IsAuthenticated]
     queryset = Food.objects.all()
     lookup_field = 'pk'
-    http_method_names = ['post', 'patch', 'put']
+    # http_method_names = ['post', 'patch', 'put']
 
 
 class FoodByRestaurantViewSet(CustomViewSet):
-    serializer_class = FoodDetailSerializer
+    serializer_class = FoodSerializer
+
     # queryset = Food.objects.all()
 
     # permission_classes = [permissions.IsAuthenticated]
