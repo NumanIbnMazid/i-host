@@ -5,7 +5,7 @@ from account_management import serializers
 from drf_yasg2.utils import get_serializer_class
 from rest_framework.permissions import IsAdminUser
 from rest_framework.serializers import Serializer
-from restaurant.models import FoodCategory, Restaurant
+from restaurant.models import FoodCategory, FoodOptionExtraType, Restaurant
 from utils.response_wrapper import ResponseWrapper
 from rest_framework import permissions, status, viewsets
 from .serializers import FoodCategorySerializer, RestaurantSerializer, RestaurantContactPerson, RestaurantUpdateSerialier
