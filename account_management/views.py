@@ -150,10 +150,13 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
         serializer = RestaurantUserSignUpSerializer(data=request.data)
         if not serializer.is_valid():
             return ResponseWrapper(error_code=400, error_msg=serializer.errors)
-        password = request.data.pop("password")
-        restaurant_id = request.data.pop('restaurant_id')
+        request.data._mutable = True
+        password = request.data.pop("password")[0]
+        restaurant_id = request.data.pop('restaurant_id')[0]
+        staff_info = request.data.pop('staff_info', [{}])[0]
 
-        staff_info = request.data.pop('staff_info', {})
+        request.data._mutable = False
+
         restaurant_qs = Restaurant.objects.filter(pk=restaurant_id).first()
 
         if not restaurant_qs:
