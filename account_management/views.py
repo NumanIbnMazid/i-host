@@ -151,18 +151,31 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
         if not serializer.is_valid():
             return ResponseWrapper(error_code=400, error_msg=serializer.errors)
         # request.data._mutable = True
-        password = request.data.get("password")
-        restaurant_id = request.data.get('restaurant_id')
+        password = serializer.data.get("password")
+        restaurant_id = serializer.data.get('restaurant_id')
         user_info_dict = {}
 
-        if request.data.get("email"):
-            user_info_dict['email'] = request.data.get("email")
-        if request.data.get("first_name"):
-            user_info_dict['first_name'] = request.data.get("first_name")
-        if request.data.get('phone'):
-            user_info_dict['phone'] = request.data.get("phone")
+        if serializer.data.get("email"):
+            user_info_dict['email'] = serializer.data.get("email")
+        if serializer.data.get("first_name"):
+            user_info_dict['first_name'] = serializer.data.get("first_name")
+        if serializer.data.get('phone'):
+            user_info_dict['phone'] = serializer.data.get("phone")
 
-        staff_info = request.data.get('staff_info', {})
+        staff_info = {}
+        if request.data.get('shift_start'):
+            staff_info['shift_start'] = request.data.get('shift_start')
+        if request.data.get('shift_end'):
+            staff_info['shift_end'] = request.data.get('shift_end')
+
+        if request.data.get('nid'):
+            staff_info['nid'] = request.data.get('nid')
+        if request.data.get('shift_days'):
+            staff_info['shift_days'] = request.data.get('shift_days')
+
+        if request.data.get('image'):
+            staff_info['image'] = request.data.get('image')
+
         # request.data._mutable = False
 
         restaurant_qs = Restaurant.objects.filter(pk=restaurant_id).first()
@@ -171,12 +184,14 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
             return ResponseWrapper(error_code=404, error_msg=[{"restaurant_id": "restaurant not found"}])
         phone = request.data["phone"]
         user_qs = User.objects.filter(phone=phone).first()
+        password = make_password(password=password)
         if not user_qs:
-            password = make_password(password=password)
             user_qs = User.objects.create_user(
                 password=password,
                 **user_info_dict
             )
+        else:
+            User.objects.filter(phone=phone).update(**user_info_dict)
 
         staff_qs = HotelStaffInformation.objects.filter(
             user=user_qs, restaurant=restaurant_qs).first()
@@ -189,7 +204,7 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
                                                                     is_manager=is_manager, is_owner=is_owner, is_waiter=is_waiter)
 
                 staff_qs = staff_serializer.update(
-                    staff_qs, serializer.validated_data)
+                    staff_qs, staff_serializer.validated_data)
 
         user_serializer = UserAccountSerializer(instance=user_qs, many=False)
 
@@ -270,7 +285,6 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
 #     #         # # self.serializer_class.update(instance=request.user,validated_data=request.data)
 #     #         # if user_primary_traveller_serializer.is_valid():
 #     #         #     return ResponseWrapper(data=user_primary_traveller_serializer.data, status=200)
-
 
     def destroy(self, request, *args, **kwargs):
         if request.user is not None:
@@ -393,4 +407,3 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
 
     def get_otp(self, request, phone, **kwargs):
         return ResponseWrapper(msg='otp sent', status=200)
-

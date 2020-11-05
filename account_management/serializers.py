@@ -1,3 +1,4 @@
+from django.http import request
 from rest_framework import fields
 from rest_framework.serializers import Serializer
 import restaurant
@@ -58,19 +59,21 @@ class UserSignupSerializer(serializers.ModelSerializer):
 
 
 class StaffInfoSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = HotelStaffInformation
-        fields = ['shift_start', 'shift_end', 'nid', 'shift_days', 'image']
+        fields = ['shift_start', 'shift_end', 'nid', 'image']
 
 
 class RestaurantUserSignUpSerializer(serializers.Serializer):
     restaurant_id = serializers.IntegerField()
     email = serializers.EmailField(required=False, allow_blank=True)
     first_name = serializers.CharField()
-    staff_info = StaffInfoSerializer(required=False)
     phone = serializers.CharField()
     password = serializers.CharField(required=False)
+    shift_start = serializers.TimeField(required=False)
+    shift_end = serializers.TimeField(required=False)
+    nid = serializers.CharField(required=False)
+    image = serializers.ImageField()
 
 
 class UserAccountPatchSerializer(serializers.ModelSerializer):

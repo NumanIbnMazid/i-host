@@ -88,8 +88,8 @@ class HotelStaffInformation(models.Model):
     shift_start = models.TimeField(null=True, blank=True)
     shift_end = models.TimeField(null=True, blank=True)
     nid = models.CharField(max_length=50, null=True, blank=True)
-    shift_days = models.CharField(
-        choices=DAYS_OF_WEEK, max_length=20, null=True, blank=True)
+    # shift_days = models.CharField(
+    #     choices=DAYS_OF_WEEK, max_length=20, null=True, blank=True)
     restaurant = models.ForeignKey(
         to='restaurant.Restaurant', on_delete=models.CASCADE, null=True, blank=True, related_name='hotel_staff')
 
