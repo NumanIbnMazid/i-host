@@ -61,7 +61,7 @@ class UserSignupSerializer(serializers.ModelSerializer):
 class StaffInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelStaffInformation
-        fields = ['shift_start', 'shift_end', 'nid', 'image']
+        fields = ['shift_start', 'shift_end', 'nid' , 'image']
 
 
 class RestaurantUserSignUpSerializer(serializers.Serializer):

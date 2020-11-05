@@ -55,7 +55,7 @@ class UserAccount(AbstractUser):
         ("DEL", "Deleted"),
     ]
     username = None
-    email = models.CharField(max_length=35, null=True, blank=True)
+    email = models.EmailField(max_length=35, null=True, blank=True)
     phone = models.CharField(max_length=35, unique=True)
     status = models.CharField(max_length=25,
                               choices=USERS_IN_STATUS_CHOICES, default='UNV')
