@@ -5,6 +5,8 @@ from restaurant.models import Restaurant, models
 from rest_framework import serializers
 from .models import HotelStaffInformation, UserAccount
 
+from drf_extra_fields.fields import Base64ImageField
+
 
 class UserSignupSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,6 +15,8 @@ class UserSignupSerializer(serializers.ModelSerializer):
 
 
 class StaffInfoSerializer(serializers.ModelSerializer):
+    image = Base64ImageField(required=False)
+
     class Meta:
         model = HotelStaffInformation
         fields = ['shift_start', 'shift_end', 'nid', 'shift_days', 'image']

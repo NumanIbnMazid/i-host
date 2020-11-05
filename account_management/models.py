@@ -81,7 +81,7 @@ class HotelStaffInformation(models.Model):
     )
     user = models.ForeignKey(
         to=UserAccount,  on_delete=models.CASCADE, related_name='hotel_staff')
-    image = models.FileField(null=True,blank=True)
+    image = models.ImageField(null=True,blank=True)
     is_manager = models.BooleanField(default=False)
     is_owner = models.BooleanField(default=False)
     is_waiter = models.BooleanField(default=False)
