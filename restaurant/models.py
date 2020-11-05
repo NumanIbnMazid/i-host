@@ -102,6 +102,8 @@ class Table(models.Model):
     restaurant = models.ForeignKey(
         Restaurant, on_delete=models.CASCADE, related_name='tables')
     name = models.CharField(max_length=50, null=True, blank=True)
+    staff_assigned = models.ManyToManyField(
+        to='account_management.HotelStaffInformation', blank=True)
 
 
 class FoodOrder(models.Model):

@@ -24,7 +24,7 @@ from account_management.models import HotelStaffInformation
 from account_management.models import UserAccount
 from account_management.models import UserAccount as User
 from account_management.serializers import (OtpLoginSerializer,
-                                            RestaurantUserSignUpSerializer, StaffInfoGetSerializer,
+                                            RestaurantUserSignUpSerializer, StaffInfoGetSerializer, StaffInfoSerializer,
                                             UserAccountPatchSerializer,
                                             UserAccountSerializer,
                                             UserSignupSerializer)
@@ -127,7 +127,7 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
             # else:
             # permissions.DjangoObjectPermissions.has_permission()
             permission_classes = [permissions.IsAdminUser]
-        elif self.action in ["manager_info","waiter_info"]:
+        elif self.action in ["manager_info", "waiter_info"]:
             permission_classes = [permissions.AllowAny]
         else:
             permission_classes = [permissions.IsAuthenticated]
@@ -174,6 +174,8 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
         if staff_qs:
             updated = staff_qs.update(is_manager=is_manager, is_owner=is_owner,
                                       is_waiter=is_waiter, **staff_info)
+            # staff_qs = StaffInfoSerializer
+
             if not updated:
                 return ResponseWrapper(error_code=400, error_msg=['failed to update'])
             staff_qs = staff_qs.first()
@@ -195,24 +197,23 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
         else:
             return ResponseWrapper(data="No User found", status=400)
 
-    def owner_info(self,request,id, *args, **kwargs):
-        owner_qs= HotelStaffInformation.objects.filter(restaurant_id=id, is_owner=True)
-        serializer =StaffInfoGetSerializer(instance=owner_qs,many=True)
+    def owner_info(self, request, id, *args, **kwargs):
+        owner_qs = HotelStaffInformation.objects.filter(
+            restaurant_id=id, is_owner=True)
+        serializer = StaffInfoGetSerializer(instance=owner_qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
-
-    def waiter_info(self,request,id, *args, **kwargs):
-        waiter_qs= HotelStaffInformation.objects.filter(restaurant_id=id,is_waiter=True)
-        serializer = StaffInfoGetSerializer(instance=waiter_qs,many=True)
+    def waiter_info(self, request, id, *args, **kwargs):
+        waiter_qs = HotelStaffInformation.objects.filter(
+            restaurant_id=id, is_waiter=True)
+        serializer = StaffInfoGetSerializer(instance=waiter_qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
-    def manager_info(self,request,id, *args , **kwargs):
-        manager_qs = HotelStaffInformation.objects.filter(restaurant_id=id, is_manager=True)
-        serializer = StaffInfoGetSerializer(instance=manager_qs,many=True)
+    def manager_info(self, request, id, *args, **kwargs):
+        manager_qs = HotelStaffInformation.objects.filter(
+            restaurant_id=id, is_manager=True)
+        serializer = StaffInfoGetSerializer(instance=manager_qs, many=True)
         return ResponseWrapper(data=serializer.data)
-
-
-
 
 
 #     # @swagger_auto_schema(request_body=TravellerAccountDetailSerializer)
@@ -262,6 +263,7 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
 #     #         # # self.serializer_class.update(instance=request.user,validated_data=request.data)
 #     #         # if user_primary_traveller_serializer.is_valid():
 #     #         #     return ResponseWrapper(data=user_primary_traveller_serializer.data, status=200)
+
 
     def destroy(self, request, *args, **kwargs):
         if request.user is not None:
