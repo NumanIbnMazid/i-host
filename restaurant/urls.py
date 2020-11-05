@@ -21,10 +21,17 @@ router.register('food', FoodViewSet,
                 basename="food")
 
 # router.register('foods', FoodByRestaurantViewSet,
+<<<<<<< HEAD
 #             basename ="foods")
+=======
+#                 basename="foods")
+>>>>>>> 75ee20d9ef5395c0de180bfc40d839d08ecc9034
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('foods/<int:restaurant>/',
+         FoodByRestaurantViewSet.as_view({'get': 'list'}), name='foods'),
+
     path('restaurant/',
          RestaurantViewSet.as_view({'post': 'create', 'get': 'list'}), name='restaurant_create_and_list'),
     path('restaurant/<int:pk>/',

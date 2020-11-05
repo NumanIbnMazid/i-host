@@ -127,6 +127,8 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
             # else:
             # permissions.DjangoObjectPermissions.has_permission()
             permission_classes = [permissions.IsAdminUser]
+        elif self.action in ["manager_info","waiter_info"]:
+            permission_classes = [permissions.AllowAny]
         else:
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
@@ -150,8 +152,10 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
             return ResponseWrapper(error_code=400, error_msg=serializer.errors)
         password = request.data.pop("password")
         restaurant_id = request.data.pop('restaurant_id')
+
         staff_info = request.data.pop('staff_info', {})
         restaurant_qs = Restaurant.objects.filter(pk=restaurant_id).first()
+
         if not restaurant_qs:
             return ResponseWrapper(error_code=404, error_msg=[{"restaurant_id": "restaurant not found"}])
         phone = request.data["phone"]
@@ -172,11 +176,15 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
                                       is_waiter=is_waiter, **staff_info)
             if not updated:
                 return ResponseWrapper(error_code=400, error_msg=['failed to update'])
+            staff_qs = staff_qs.first()
         else:
             staff_qs = HotelStaffInformation.objects.create(
                 user=user_qs, is_manager=is_manager, is_owner=is_owner, is_waiter=is_waiter, restaurant=restaurant_qs, **staff_info)
+            # staff_qs = staff_qs.first()
+
         user_serializer = UserAccountSerializer(instance=user_qs, many=False)
-        staff_serializer = HotelStaffInformationSerializer(instance=staff_qs.first())
+
+        staff_serializer = HotelStaffInformationSerializer(instance=staff_qs)
         return ResponseWrapper(data={"user": user_serializer.data, "staff_info": staff_serializer.data}, status=200)
 
     def retrieve(self, request, *args, **kwargs):
@@ -186,6 +194,26 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
             return ResponseWrapper(data=user_serializer.data, status=200)
         else:
             return ResponseWrapper(data="No User found", status=400)
+
+    def owner_info(self,request,id, *args, **kwargs):
+        owner_qs= HotelStaffInformation.objects.filter(restaurant_id=id, is_owner=True)
+        serializer =StaffInfoGetSerializer(instance=owner_qs,many=True)
+        return ResponseWrapper(data=serializer.data)
+
+
+    def waiter_info(self,request,id, *args, **kwargs):
+        waiter_qs= HotelStaffInformation.objects.filter(restaurant_id=id,is_waiter=True)
+        serializer = StaffInfoGetSerializer(instance=waiter_qs,many=True)
+        return ResponseWrapper(data=serializer.data)
+
+    def manager_info(self,request,id, *args , **kwargs):
+        manager_qs = HotelStaffInformation.objects.filter(restaurant_id=id, is_manager=True)
+        serializer = StaffInfoGetSerializer(instance=manager_qs,many=True)
+        return ResponseWrapper(data=serializer.data)
+
+
+
+
 
 #     # @swagger_auto_schema(request_body=TravellerAccountDetailSerializer)
 #     # def update(self, request, *args, **kwargs):
