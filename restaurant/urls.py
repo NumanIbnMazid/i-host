@@ -20,8 +20,8 @@ router.register('table', TableViewSet,
 router.register('food', FoodViewSet,
                 basename="food")
 
-router.register('foods', FoodByRestaurantViewSet,
-                basename="foods")
+# router.register('foods', FoodByRestaurantViewSet,
+#             basename ="foods")
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -34,6 +34,15 @@ urlpatterns = [
     path("food_category/<int:pk>/",
          FoodCategoryViewSet.as_view({"patch": "update", "delete": "destroy"})),
 
-    path('restaurant_under_owner/',
-         RestaurantViewSet.as_view({'get': 'restaurant_under_owner'}), name='restaurant_under_owner'),
+    #path('restaurant_under_owner/',
+    #     RestaurantViewSet.as_view({'get': 'restaurant_under_owner'}), name='restaurant_under_owner'),
+
+    path('restuarent/<int:restaurant>/foods/',
+         FoodByRestaurantViewSet.as_view({'get': 'list'}), name='foods'),
+
+    path('restuarent/<int:restaurant>/top_foods/',
+         FoodByRestaurantViewSet.as_view({'get': 'top_foods'}), name='top_foods'),
+
+    path('restuarent/<int:restaurant>recommended_foods/',
+         FoodByRestaurantViewSet.as_view({'get': 'recommended_foods'}), name='recommended_foods'),
 ]

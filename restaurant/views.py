@@ -185,3 +185,24 @@ class FoodByRestaurantViewSet(CustomViewSet):
     queryset = Food.objects.all()
     lookup_field = 'restaurant'
     http_method_names = ['get']
+
+    def top_foods(self,request,restaurant,*args,**kwargs):
+        qs = self.queryset.filter(restaurant=restaurant,is_top=True)
+        # qs = qs.filter(is_top = True)
+        serializer = self.serializer_class(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
+    def recommended_foods(self,request,restaurant,*args,**kwargs):
+        qs = self.queryset.filter(restaurant=restaurant,is_recommended=True)
+        # qs = qs.filter(is_top = True)
+        serializer = self.serializer_class(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
+
+
+
+    def list(self,request,restaurant,*args,**kwargs):
+        qs = self.queryset.filter(restaurant=restaurant)
+        # qs = qs.filter(is_top = True)
+        serializer = self.serializer_class(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
