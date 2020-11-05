@@ -6,6 +6,7 @@ from rest_framework import serializers
 from .models import HotelStaffInformation, UserAccount
 
 from drf_extra_fields.fields import Base64ImageField
+from drf_extra_fields.fields import HybridImageField
 
 
 class UserSignupSerializer(serializers.ModelSerializer):
@@ -15,7 +16,7 @@ class UserSignupSerializer(serializers.ModelSerializer):
 
 
 class StaffInfoSerializer(serializers.ModelSerializer):
-    image = Base64ImageField(required=False)
+    image = HybridImageField(required=False)
 
     class Meta:
         model = HotelStaffInformation
