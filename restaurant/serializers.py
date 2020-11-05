@@ -70,6 +70,20 @@ class FoodSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class FoodBasicSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Food
+        fields = '__all__'
+
+
+class FoodsByCategorySerializer(serializers.ModelSerializer):
+    foods = FoodBasicSerializer(many=True)
+
+    class Meta:
+        model = FoodCategory
+        fields = ['id', 'name', 'image', 'foods']
+
+
 class FoodDetailSerializer(serializers.ModelSerializer):
     category = FoodCategorySerializer(read_only=True)
     food_extras = FoodExtraSerializer(read_only=True, many=True)

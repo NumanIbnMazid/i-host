@@ -8,7 +8,7 @@ from rest_framework.serializers import Serializer
 from restaurant.models import Food, FoodCategory, FoodExtra, FoodOption, FoodOptionExtraType, FoodOrder, Restaurant, Table
 from utils.response_wrapper import ResponseWrapper
 from rest_framework import permissions, status, viewsets
-from .serializers import FoodCategorySerializer, FoodDetailSerializer, FoodExtraSerializer, FoodOptionExtraTypeSerializer, FoodOptionSerializer, FoodOrderSerializer, FoodSerializer, RestaurantSerializer, RestaurantContactPerson, RestaurantUpdateSerialier, TableSerializer
+from .serializers import FoodCategorySerializer, FoodDetailSerializer, FoodExtraSerializer, FoodOptionExtraTypeSerializer, FoodOptionSerializer, FoodOrderSerializer, FoodSerializer, FoodsByCategorySerializer, RestaurantSerializer, RestaurantContactPerson, RestaurantUpdateSerialier, TableSerializer
 from django.db.models import Q
 from utils.custom_viewset import CustomViewSet
 
@@ -210,4 +210,30 @@ class FoodByRestaurantViewSet(CustomViewSet):
         qs = self.queryset.filter(restaurant=restaurant)
         # qs = qs.filter(is_top = True)
         serializer = self.serializer_class(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
+    def top_foods_by_category(self, request, restaurant, *args, **kwargs):
+        qs = FoodCategory.objects.filter(
+            foods__restaurant=restaurant,
+            foods__is_top=True
+        ).prefetch_related('foods')
+        # qs = qs.filter(is_top = True)
+        serializer = FoodsByCategorySerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
+    def recommended_foods_by_category(self, request, restaurant, *args, **kwargs):
+        qs = FoodCategory.objects.filter(
+            foods__restaurant=restaurant,
+            foods__is_recommended=True
+        ).prefetch_related('foods')
+        # qs = qs.filter(is_top = True)
+        serializer = FoodsByCategorySerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
+    def list_by_category(self, request, restaurant, *args, **kwargs):
+        qs = FoodCategory.objects.filter(
+            foods__restaurant=restaurant,
+        ).prefetch_related('foods')
+        # qs = qs.filter(is_top = True)
+        serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
