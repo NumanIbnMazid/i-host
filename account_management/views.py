@@ -384,3 +384,4 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
 
     def get_otp(self, request, phone, **kwargs):
         return ResponseWrapper(msg='otp sent', status=200)
+

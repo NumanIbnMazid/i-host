@@ -1,7 +1,7 @@
 
 from os import read
 from django.db.models.fields.related import RelatedField
-from account_management.models import HotelStaffInformation
+from account_management.models import HotelStaffInformation, UserManager
 from utils.response_wrapper import ResponseWrapper
 from django.db.models import fields
 from rest_framework.serializers import Serializer

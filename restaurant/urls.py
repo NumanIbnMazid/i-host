@@ -14,24 +14,17 @@ router.register('food_extra', FoodExtraViewSet,
 router.register('food_option', FoodOptionViewSet,
                 basename="food_option")
 
-router.register('table', TableViewSet,
-                basename="table")
+#router.register('table', TableViewSet,
+#                basename="table")
 
 router.register('food', FoodViewSet,
                 basename="food")
 
 # router.register('foods', FoodByRestaurantViewSet,
-<<<<<<< HEAD
 #             basename ="foods")
-=======
-#                 basename="foods")
->>>>>>> 75ee20d9ef5395c0de180bfc40d839d08ecc9034
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('foods/<int:restaurant>/',
-         FoodByRestaurantViewSet.as_view({'get': 'list'}), name='foods'),
-
     path('restaurant/',
          RestaurantViewSet.as_view({'post': 'create', 'get': 'list'}), name='restaurant_create_and_list'),
     path('restaurant/<int:pk>/',
@@ -41,15 +34,21 @@ urlpatterns = [
     path("food_category/<int:pk>/",
          FoodCategoryViewSet.as_view({"patch": "update", "delete": "destroy"})),
 
+    path('restaurant/<int:restaurant>/tables/',
+         TableViewSet.as_view({'get': 'table_list'}), name='tables'),
+
+    #path('manager/<int:manager>/tables/',
+    #    TableViewSetManager.as_view({'get': 'manager_table_list'}), name='manager_tables'),
+
     #path('restaurant_under_owner/',
     #     RestaurantViewSet.as_view({'get': 'restaurant_under_owner'}), name='restaurant_under_owner'),
 
-    path('restuarent/<int:restaurant>/foods/',
+    path('restaurant/<int:restaurant>/foods/',
          FoodByRestaurantViewSet.as_view({'get': 'list'}), name='foods'),
 
-    path('restuarent/<int:restaurant>/top_foods/',
+    path('restaurant/<int:restaurant>/top_foods/',
          FoodByRestaurantViewSet.as_view({'get': 'top_foods'}), name='top_foods'),
 
-    path('restuarent/<int:restaurant>recommended_foods/',
+    path('restaurant/<int:restaurant>recommended_foods/',
          FoodByRestaurantViewSet.as_view({'get': 'recommended_foods'}), name='recommended_foods'),
 ]
