@@ -1,21 +1,27 @@
-from django.db.models import query_utils
-from django.http import request
-from account_management.models import HotelStaffInformation, UserAccount
-from account_management.serializers import ListOfIdSerializer, StaffInfoSerializer
 from account_management import serializers
+from account_management.models import HotelStaffInformation, UserAccount
+from account_management.serializers import (ListOfIdSerializer,
+                                            StaffInfoSerializer)
+from django.db.models import Q, query_utils
+from django.http import request
 from drf_yasg2.utils import get_serializer_class, swagger_auto_schema
+from rest_framework import permissions, status, viewsets
 from rest_framework.permissions import IsAdminUser
 from rest_framework.serializers import Serializer
-from restaurant.models import Food, FoodCategory, FoodExtra, FoodOption, FoodOptionExtraType, FoodOrder, Restaurant, Table
-from utils.response_wrapper import ResponseWrapper
-from rest_framework import permissions, status, viewsets
-<<<<<<< HEAD
-from .serializers import FoodCategorySerializer, FoodDetailSerializer, FoodExtraSerializer, FoodOptionExtraTypeSerializer, FoodOptionSerializer, FoodOrderSerializer, FoodSerializer, RestaurantSerializer, RestaurantContactPerson, RestaurantUpdateSerialier, TableSerializer, HotelStaffInformationSerializer
-=======
-from .serializers import FoodCategorySerializer, FoodDetailSerializer, FoodExtraSerializer, FoodOptionExtraTypeSerializer, FoodOptionSerializer, FoodOrderSerializer, FoodSerializer, FoodsByCategorySerializer, RestaurantSerializer, RestaurantContactPerson, RestaurantUpdateSerialier, TableSerializer
->>>>>>> b2750ae79797839d1f24a2e7dc56d914888cde32
-from django.db.models import Q
 from utils.custom_viewset import CustomViewSet
+from utils.response_wrapper import ResponseWrapper
+
+from restaurant.models import (Food, FoodCategory, FoodExtra, FoodOption,
+                               FoodOptionExtraType, FoodOrder, Restaurant,
+                               Table)
+
+from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
+                          FoodExtraSerializer, FoodOptionExtraTypeSerializer,
+                          FoodOptionSerializer, FoodOrderSerializer,
+                          FoodsByCategorySerializer, FoodSerializer,
+                          HotelStaffInformationSerializer,
+                          RestaurantContactPerson, RestaurantSerializer,
+                          RestaurantUpdateSerialier, TableSerializer)
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
@@ -161,6 +167,7 @@ class FoodOptionViewSet(CustomViewSet):
     queryset = FoodOption.objects.all()
     lookup_field = 'pk'
 
+
 """
 class TableViewSet(CustomViewSet):
     serializer_class = TableSerializer
@@ -183,15 +190,6 @@ class TableViewSet(CustomViewSet):
         serializer = self.serializer_class(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
-<<<<<<< HEAD
-"""
-class TableViewSetManager(CustomViewSet):
-    serializer_class = HotelStaffInformationSerializer
-    # permission_classes = [permissions.IsAuthenticated]
-    queryset = HotelStaffInformation.objects.all()
-    lookup_field = 'manager'
-    http_method_names = ['get']
-=======
     @swagger_auto_schema(request_body=ListOfIdSerializer)
     def add_staff(self, request, *args, **kwargs):
         qs = self.get_object()
@@ -207,15 +205,13 @@ class TableViewSetManager(CustomViewSet):
         else:
             return ResponseWrapper(error_code=400, error_msg='wrong table id')
 
->>>>>>> b2750ae79797839d1f24a2e7dc56d914888cde32
-
-    def manager_table_list(self, request, manager, *args, **kwargs):
-        qs = self.queryset.filter(manager=manager)
+    def staff_table_list(self, request, staff_id, *args, **kwargs):
+        qs = self.queryset.filter(staff_assigned=staff_id)
         # qs = qs.filter(is_top = True)
         serializer = self.serializer_class(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
-"""
+
 class FoodOrderViewSet(CustomViewSet):
     serializer_class = FoodOrderSerializer
     # permission_classes = [permissions.IsAuthenticated]
@@ -242,10 +238,7 @@ class FoodByRestaurantViewSet(CustomViewSet):
     # queryset = Food.objects.all()
 
     # permission_classes = [permissions.IsAuthenticated]
-<<<<<<< HEAD
 
-=======
->>>>>>> b2750ae79797839d1f24a2e7dc56d914888cde32
     queryset = Food.objects.all()
     lookup_field = 'restaurant'
     http_method_names = ['get']
@@ -262,23 +255,12 @@ class FoodByRestaurantViewSet(CustomViewSet):
         serializer = self.serializer_class(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
-<<<<<<< HEAD
-    def list(self,request,restaurant,*args,**kwargs):
-=======
     def list(self, request, restaurant, *args, **kwargs):
->>>>>>> b2750ae79797839d1f24a2e7dc56d914888cde32
         qs = self.queryset.filter(restaurant=restaurant)
         # qs = qs.filter(is_top = True)
         serializer = self.serializer_class(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
-<<<<<<< HEAD
-
-
-
-
-
-=======
     def top_foods_by_category(self, request, restaurant, *args, **kwargs):
         qs = FoodCategory.objects.filter(
             foods__restaurant=restaurant,
@@ -304,4 +286,5 @@ class FoodByRestaurantViewSet(CustomViewSet):
         # qs = qs.filter(is_top = True)
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
->>>>>>> b2750ae79797839d1f24a2e7dc56d914888cde32
+
+
