@@ -150,12 +150,20 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
         serializer = RestaurantUserSignUpSerializer(data=request.data)
         if not serializer.is_valid():
             return ResponseWrapper(error_code=400, error_msg=serializer.errors)
-        request.data._mutable = True
-        password = request.data.pop("password")[0]
-        restaurant_id = request.data.pop('restaurant_id')[0]
-        staff_info = request.data.pop('staff_info', [{}])[0]
+        # request.data._mutable = True
+        password = request.data.get("password")
+        restaurant_id = request.data.get('restaurant_id')
+        user_info_dict = {}
 
-        request.data._mutable = False
+        if request.data.get("email"):
+            user_info_dict['email'] = request.data.get("email")
+        if request.data.get("first_name"):
+            user_info_dict['first_name'] = request.data.get("first_name")
+        if request.data.get('phone'):
+            user_info_dict['phone'] = request.data.get("phone")
+
+        staff_info = request.data.get('staff_info', {})
+        # request.data._mutable = False
 
         restaurant_qs = Restaurant.objects.filter(pk=restaurant_id).first()
 
@@ -166,26 +174,22 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
         if not user_qs:
             password = make_password(password=password)
             user_qs = User.objects.create_user(
-                # email=email,
                 password=password,
-                # verification_id=verification_id,
-                **request.data
+                **user_info_dict
             )
 
         staff_qs = HotelStaffInformation.objects.filter(
-            user=user_qs, restaurant=restaurant_qs)
-        if staff_qs:
-            updated = staff_qs.update(is_manager=is_manager, is_owner=is_owner,
-                                      is_waiter=is_waiter, **staff_info)
-            # staff_qs = StaffInfoSerializer
-
-            if not updated:
-                return ResponseWrapper(error_code=400, error_msg=['failed to update'])
-            staff_qs = staff_qs.first()
-        else:
-            staff_qs = HotelStaffInformation.objects.create(
-                user=user_qs, is_manager=is_manager, is_owner=is_owner, is_waiter=is_waiter, restaurant=restaurant_qs, **staff_info)
-            # staff_qs = staff_qs.first()
+            user=user_qs, restaurant=restaurant_qs).first()
+        if staff_info:
+            staff_serializer = StaffInfoSerializer(
+                data=staff_info, partial=True)
+            if staff_serializer.is_valid():
+                if staff_qs:
+                    staff_qs = staff_serializer.update(
+                        staff_qs, serializer.validated_data)
+                else:
+                    staff_qs = staff_serializer.create(
+                        staff_serializer.validated_data)
 
         user_serializer = UserAccountSerializer(instance=user_qs, many=False)
 
@@ -266,7 +270,6 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
 #     #         # # self.serializer_class.update(instance=request.user,validated_data=request.data)
 #     #         # if user_primary_traveller_serializer.is_valid():
 #     #         #     return ResponseWrapper(data=user_primary_traveller_serializer.data, status=200)
-
 
     def destroy(self, request, *args, **kwargs):
         if request.user is not None:
