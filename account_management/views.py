@@ -184,12 +184,12 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
             staff_serializer = StaffInfoSerializer(
                 data=staff_info, partial=True)
             if staff_serializer.is_valid():
-                if staff_qs:
-                    staff_qs = staff_serializer.update(
-                        staff_qs, serializer.validated_data)
-                else:
-                    staff_qs = staff_serializer.create(
-                        staff_serializer.validated_data)
+                if not staff_qs:
+                    staff_qs = HotelStaffInformation.objects.create(user=user_qs, restaurant=restaurant_qs,
+                                                                    is_manager=is_manager, is_owner=is_owner, is_waiter=is_waiter)
+
+                staff_qs = staff_serializer.update(
+                    staff_qs, serializer.validated_data)
 
         user_serializer = UserAccountSerializer(instance=user_qs, many=False)
 
@@ -270,6 +270,7 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
 #     #         # # self.serializer_class.update(instance=request.user,validated_data=request.data)
 #     #         # if user_primary_traveller_serializer.is_valid():
 #     #         #     return ResponseWrapper(data=user_primary_traveller_serializer.data, status=200)
+
 
     def destroy(self, request, *args, **kwargs):
         if request.user is not None:
