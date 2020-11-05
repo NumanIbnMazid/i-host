@@ -17,16 +17,15 @@ router.register('food_option', FoodOptionViewSet,
 router.register('table', TableViewSet,
                 basename="table")
 
-router.register('food', FoodViewSet,
-                basename="food")
-
-# router.register('foods', FoodByRestaurantViewSet,
-#                 basename="foods")
+# router.register('food', FoodViewSet,
+#                 basename="food")
 
 urlpatterns = [
     path('', include(router.urls)),
     path('foods/<int:restaurant>/',
          FoodByRestaurantViewSet.as_view({'get': 'list'}), name='foods'),
+    path('table/<int:pk>/add_staff/',
+         TableViewSet.as_view({'post': 'add_staff'}), name='add_staff'),
 
     path('restaurant/',
          RestaurantViewSet.as_view({'post': 'create', 'get': 'list'}), name='restaurant_create_and_list'),
@@ -46,7 +45,7 @@ urlpatterns = [
     path('restaurant/<int:restaurant>/top_foods/',
          FoodByRestaurantViewSet.as_view({'get': 'top_foods'}), name='top_foods'),
 
-    path('restaurant/<int:restaurant>recommended_foods/',
+    path('restaurant/<int:restaurant>/recommended_foods/',
          FoodByRestaurantViewSet.as_view({'get': 'recommended_foods'}), name='recommended_foods'),
 
     path('restaurant/<int:restaurant>/foods_by_category/',
@@ -55,6 +54,6 @@ urlpatterns = [
     path('restaurant/<int:restaurant>/top_foods_by_category/',
          FoodByRestaurantViewSet.as_view({'get': 'top_foods_by_category'}), name='top_foods_by_category'),
 
-    path('restaurant/<int:restaurant>recommended_foods_by_category/',
+    path('restaurant/<int:restaurant>/recommended_foods_by_category/',
          FoodByRestaurantViewSet.as_view({'get': 'recommended_foods_by_category'}), name='recommended_foods_by_category'),
 ]

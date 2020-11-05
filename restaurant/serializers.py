@@ -123,3 +123,4 @@ class HotelStaffInformationSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelStaffInformation
         fields = '__all__'
+

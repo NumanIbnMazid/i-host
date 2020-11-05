@@ -1,8 +1,9 @@
+from django.db.models import query_utils
 from django.http import request
 from account_management.models import HotelStaffInformation, UserAccount
-from account_management.serializers import StaffInfoSerializer
+from account_management.serializers import ListOfIdSerializer, StaffInfoSerializer
 from account_management import serializers
-from drf_yasg2.utils import get_serializer_class
+from drf_yasg2.utils import get_serializer_class, swagger_auto_schema
 from rest_framework.permissions import IsAdminUser
 from rest_framework.serializers import Serializer
 from restaurant.models import Food, FoodCategory, FoodExtra, FoodOption, FoodOptionExtraType, FoodOrder, Restaurant, Table
@@ -162,6 +163,21 @@ class TableViewSet(CustomViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     queryset = Table.objects.all()
     lookup_field = 'pk'
+
+    @swagger_auto_schema(request_body=ListOfIdSerializer)
+    def add_staff(self, request, *args, **kwargs):
+        qs = self.get_object()
+        id_list = request.data.get('id', [])
+        id_list = list(HotelStaffInformation.objects.filter(
+            pk__in=id_list).values_list('pk', flat=True))
+        if qs:
+            for id in id_list:
+                qs.staff_assigned.add(id)
+            qs.save()
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_code=400, error_msg='wrong table id')
 
 
 class FoodOrderViewSet(CustomViewSet):

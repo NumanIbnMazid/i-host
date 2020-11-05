@@ -50,6 +50,11 @@ class StaffInfoGetSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ListOfIdSerializer(serializers.Serializer):
+    id = serializers.ListSerializer(
+        child=serializers.IntegerField(), required=False)
+
+
 class OtpLoginSerializer(serializers.Serializer):
     phone = serializers.CharField()
     otp = serializers.IntegerField(default=1234)
