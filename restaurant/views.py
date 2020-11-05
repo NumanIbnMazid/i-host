@@ -190,36 +190,24 @@ class FoodByRestaurantViewSet(CustomViewSet):
     # queryset = Food.objects.all()
 
     # permission_classes = [permissions.IsAuthenticated]
-<<<<<<< HEAD
     queryset = Food.objects.all()
     lookup_field = 'restaurant'
     http_method_names = ['get']
 
-    def top_foods(self,request,restaurant,*args,**kwargs):
-        qs = self.queryset.filter(restaurant=restaurant,is_top=True)
+    def top_foods(self, request, restaurant, *args, **kwargs):
+        qs = self.queryset.filter(restaurant=restaurant, is_top=True)
         # qs = qs.filter(is_top = True)
         serializer = self.serializer_class(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
-    def recommended_foods(self,request,restaurant,*args,**kwargs):
-        qs = self.queryset.filter(restaurant=restaurant,is_recommended=True)
+    def recommended_foods(self, request, restaurant, *args, **kwargs):
+        qs = self.queryset.filter(restaurant=restaurant, is_recommended=True)
         # qs = qs.filter(is_top = True)
         serializer = self.serializer_class(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
-
-
-
-    def list(self,request,restaurant,*args,**kwargs):
+    def list(self, request, restaurant, *args, **kwargs):
         qs = self.queryset.filter(restaurant=restaurant)
         # qs = qs.filter(is_top = True)
         serializer = self.serializer_class(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
-=======
-    # http_method_names = ['get']
-
-    def list(self, request, **kwargs):
-        qs = Food.objects.filter(**kwargs)
-        serializer = self.serializer_class(instance=qs, many=True)
-        return ResponseWrapper(data=serializer.data)
->>>>>>> 75ee20d9ef5395c0de180bfc40d839d08ecc9034
