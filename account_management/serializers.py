@@ -19,8 +19,6 @@ class StaffInfoSerializer(serializers.ModelSerializer):
 
 
 
-
-
 class RestaurantUserSignUpSerializer(serializers.Serializer):
     restaurant_id = serializers.IntegerField()
     email = serializers.EmailField(required=False, allow_blank=True)
@@ -49,6 +47,8 @@ class StaffInfoGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelStaffInformation
         fields = '__all__'
+
+
 
 class OtpLoginSerializer(serializers.Serializer):
     phone = serializers.CharField()

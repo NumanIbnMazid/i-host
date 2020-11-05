@@ -25,6 +25,18 @@ restaurant_account_management = [
     path("restaurant/staff/", RestaurantAccountManagerViewSet.as_view({
         "get": "retrieve",
     }), name="staff_info"),
+
+    path("resturant/<int:id>/owner_info/", RestaurantAccountManagerViewSet.as_view({
+        "get": "owner_info"
+    }),name="owner_info"),
+
+    path("resturant/<int:id>/waiter_info/", RestaurantAccountManagerViewSet.as_view({
+        "get": "waiter_info"
+    }),name="waiter_info"),
+
+    path("resturant/<int:id>/manager_info/", RestaurantAccountManagerViewSet.as_view({
+        "get": "manager_info"
+    }),name="manager_info"),
 ]
 
 auth_urlpatterns = [
