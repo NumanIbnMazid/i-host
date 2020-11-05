@@ -184,9 +184,9 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
             return ResponseWrapper(error_code=404, error_msg=[{"restaurant_id": "restaurant not found"}])
         phone = request.data["phone"]
         user_qs = User.objects.filter(phone=phone).first()
-        password = make_password(password=password)
         if not user_qs:
-            user_qs = User.objects.create_user(
+            password = make_password(password=password)
+            user_qs = User.objects.create(
                 password=password,
                 **user_info_dict
             )
@@ -353,8 +353,8 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
                 return ResponseWrapper(
                     data="Please use different Phone, it’s already been in use", status=400
                 )
-
-            user = User.objects.create_user(
+            password = make_password(password=password)
+            user = User.objects.create(
                 # email=email,
                 password=password,
                 # verification_id=verification_id,
