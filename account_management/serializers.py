@@ -16,11 +16,15 @@ class UserSignupSerializer(serializers.ModelSerializer):
 
 
 class StaffInfoSerializer(serializers.ModelSerializer):
-    image = HybridImageField(required=False)
+    image = Base64ImageField(required=False)
 
     class Meta:
         model = HotelStaffInformation
         fields = ['shift_start', 'shift_end', 'nid', 'shift_days', 'image']
+
+    def create(self, validated_data):
+        image = validated_data.pop('image')
+        return HotelStaffInformation.objects.create(image=image, **validated_data)
 
 
 class RestaurantUserSignUpSerializer(serializers.Serializer):
