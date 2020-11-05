@@ -14,11 +14,11 @@ router.register('food_extra', FoodExtraViewSet,
 router.register('food_option', FoodOptionViewSet,
                 basename="food_option")
 
-#router.register('table', TableViewSet,
+# router.register('table', TableViewSet,
 #                basename="table")
 
-# router.register('food', FoodViewSet,
-#                 basename="food")
+router.register('food', FoodViewSet,
+                basename="food")
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -39,10 +39,10 @@ urlpatterns = [
     path('restaurant/<int:restaurant>/tables/',
          TableViewSet.as_view({'get': 'table_list'}), name='tables'),
 
-    #path('manager/<int:manager>/tables/',
+    # path('manager/<int:manager>/tables/',
     #    TableViewSetManager.as_view({'get': 'manager_table_list'}), name='manager_tables'),
 
-    #path('restaurant_under_owner/',
+    # path('restaurant_under_owner/',
     #     RestaurantViewSet.as_view({'get': 'restaurant_under_owner'}), name='restaurant_under_owner'),
 
     path('restaurant/<int:restaurant>/foods/',
