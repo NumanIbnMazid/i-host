@@ -122,9 +122,5 @@ class RestaurantContactPersonSerializer(serializers.ModelSerializer):
 class HotelStaffInformationSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelStaffInformation
-<<<<<<< HEAD
-        fields = '__all__'
-=======
         fields = '__all__'
 
->>>>>>> b2750ae79797839d1f24a2e7dc56d914888cde32

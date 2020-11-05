@@ -17,16 +17,6 @@ router.register('food_option', FoodOptionViewSet,
 #router.register('table', TableViewSet,
 #                basename="table")
 
-<<<<<<< HEAD
-router.register('food', FoodViewSet,
-                basename="food")
-
-# router.register('foods', FoodByRestaurantViewSet,
-#             basename ="foods")
-
-urlpatterns = [
-    path('', include(router.urls)),
-=======
 # router.register('food', FoodViewSet,
 #                 basename="food")
 
@@ -37,7 +27,6 @@ urlpatterns = [
     path('table/<int:pk>/add_staff/',
          TableViewSet.as_view({'post': 'add_staff'}), name='add_staff'),
 
->>>>>>> b2750ae79797839d1f24a2e7dc56d914888cde32
     path('restaurant/',
          RestaurantViewSet.as_view({'post': 'create', 'get': 'list'}), name='restaurant_create_and_list'),
     path('restaurant/<int:pk>/',
@@ -47,7 +36,6 @@ urlpatterns = [
     path("food_category/<int:pk>/",
          FoodCategoryViewSet.as_view({"patch": "update", "delete": "destroy"})),
 
-<<<<<<< HEAD
     path('restaurant/<int:restaurant>/tables/',
          TableViewSet.as_view({'get': 'table_list'}), name='tables'),
 
@@ -55,9 +43,6 @@ urlpatterns = [
     #    TableViewSetManager.as_view({'get': 'manager_table_list'}), name='manager_tables'),
 
     #path('restaurant_under_owner/',
-=======
-    # path('restaurant_under_owner/',
->>>>>>> b2750ae79797839d1f24a2e7dc56d914888cde32
     #     RestaurantViewSet.as_view({'get': 'restaurant_under_owner'}), name='restaurant_under_owner'),
 
     path('restaurant/<int:restaurant>/foods/',
@@ -66,11 +51,7 @@ urlpatterns = [
     path('restaurant/<int:restaurant>/top_foods/',
          FoodByRestaurantViewSet.as_view({'get': 'top_foods'}), name='top_foods'),
 
-<<<<<<< HEAD
-    path('restaurant/<int:restaurant>recommended_foods/',
-=======
     path('restaurant/<int:restaurant>/recommended_foods/',
->>>>>>> b2750ae79797839d1f24a2e7dc56d914888cde32
          FoodByRestaurantViewSet.as_view({'get': 'recommended_foods'}), name='recommended_foods'),
 
     path('restaurant/<int:restaurant>/foods_by_category/',
