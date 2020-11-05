@@ -1,14 +1,19 @@
+from django.db.models import query_utils
 from django.http import request
 from account_management.models import HotelStaffInformation, UserAccount
-from account_management.serializers import StaffInfoSerializer
+from account_management.serializers import ListOfIdSerializer, StaffInfoSerializer
 from account_management import serializers
-from drf_yasg2.utils import get_serializer_class
+from drf_yasg2.utils import get_serializer_class, swagger_auto_schema
 from rest_framework.permissions import IsAdminUser
 from rest_framework.serializers import Serializer
 from restaurant.models import Food, FoodCategory, FoodExtra, FoodOption, FoodOptionExtraType, FoodOrder, Restaurant, Table
 from utils.response_wrapper import ResponseWrapper
 from rest_framework import permissions, status, viewsets
+<<<<<<< HEAD
 from .serializers import FoodCategorySerializer, FoodDetailSerializer, FoodExtraSerializer, FoodOptionExtraTypeSerializer, FoodOptionSerializer, FoodOrderSerializer, FoodSerializer, RestaurantSerializer, RestaurantContactPerson, RestaurantUpdateSerialier, TableSerializer, HotelStaffInformationSerializer
+=======
+from .serializers import FoodCategorySerializer, FoodDetailSerializer, FoodExtraSerializer, FoodOptionExtraTypeSerializer, FoodOptionSerializer, FoodOrderSerializer, FoodSerializer, FoodsByCategorySerializer, RestaurantSerializer, RestaurantContactPerson, RestaurantUpdateSerialier, TableSerializer
+>>>>>>> b2750ae79797839d1f24a2e7dc56d914888cde32
 from django.db.models import Q
 from utils.custom_viewset import CustomViewSet
 
@@ -178,6 +183,7 @@ class TableViewSet(CustomViewSet):
         serializer = self.serializer_class(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
+<<<<<<< HEAD
 """
 class TableViewSetManager(CustomViewSet):
     serializer_class = HotelStaffInformationSerializer
@@ -185,6 +191,23 @@ class TableViewSetManager(CustomViewSet):
     queryset = HotelStaffInformation.objects.all()
     lookup_field = 'manager'
     http_method_names = ['get']
+=======
+    @swagger_auto_schema(request_body=ListOfIdSerializer)
+    def add_staff(self, request, *args, **kwargs):
+        qs = self.get_object()
+        id_list = request.data.get('id', [])
+        id_list = list(HotelStaffInformation.objects.filter(
+            pk__in=id_list).values_list('pk', flat=True))
+        if qs:
+            for id in id_list:
+                qs.staff_assigned.add(id)
+            qs.save()
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_code=400, error_msg='wrong table id')
+
+>>>>>>> b2750ae79797839d1f24a2e7dc56d914888cde32
 
     def manager_table_list(self, request, manager, *args, **kwargs):
         qs = self.queryset.filter(manager=manager)
@@ -219,31 +242,66 @@ class FoodByRestaurantViewSet(CustomViewSet):
     # queryset = Food.objects.all()
 
     # permission_classes = [permissions.IsAuthenticated]
+<<<<<<< HEAD
 
+=======
+>>>>>>> b2750ae79797839d1f24a2e7dc56d914888cde32
     queryset = Food.objects.all()
     lookup_field = 'restaurant'
     http_method_names = ['get']
 
-    def top_foods(self,request,restaurant,*args,**kwargs):
-        qs = self.queryset.filter(restaurant=restaurant,is_top=True)
+    def top_foods(self, request, restaurant, *args, **kwargs):
+        qs = self.queryset.filter(restaurant=restaurant, is_top=True)
         # qs = qs.filter(is_top = True)
         serializer = self.serializer_class(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
-    def recommended_foods(self,request,restaurant,*args,**kwargs):
-        qs = self.queryset.filter(restaurant=restaurant,is_recommended=True)
+    def recommended_foods(self, request, restaurant, *args, **kwargs):
+        qs = self.queryset.filter(restaurant=restaurant, is_recommended=True)
         # qs = qs.filter(is_top = True)
         serializer = self.serializer_class(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
+<<<<<<< HEAD
     def list(self,request,restaurant,*args,**kwargs):
+=======
+    def list(self, request, restaurant, *args, **kwargs):
+>>>>>>> b2750ae79797839d1f24a2e7dc56d914888cde32
         qs = self.queryset.filter(restaurant=restaurant)
         # qs = qs.filter(is_top = True)
         serializer = self.serializer_class(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
+<<<<<<< HEAD
 
 
 
 
 
+=======
+    def top_foods_by_category(self, request, restaurant, *args, **kwargs):
+        qs = FoodCategory.objects.filter(
+            foods__restaurant=restaurant,
+            foods__is_top=True
+        ).prefetch_related('foods')
+        # qs = qs.filter(is_top = True)
+        serializer = FoodsByCategorySerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
+    def recommended_foods_by_category(self, request, restaurant, *args, **kwargs):
+        qs = FoodCategory.objects.filter(
+            foods__restaurant=restaurant,
+            foods__is_recommended=True
+        ).prefetch_related('foods')
+        # qs = qs.filter(is_top = True)
+        serializer = FoodsByCategorySerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
+    def list_by_category(self, request, restaurant, *args, **kwargs):
+        qs = FoodCategory.objects.filter(
+            foods__restaurant=restaurant,
+        ).prefetch_related('foods')
+        # qs = qs.filter(is_top = True)
+        serializer = FoodsByCategorySerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
+>>>>>>> b2750ae79797839d1f24a2e7dc56d914888cde32

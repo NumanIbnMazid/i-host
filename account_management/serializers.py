@@ -5,6 +5,9 @@ from restaurant.models import Restaurant, models
 from rest_framework import serializers
 from .models import HotelStaffInformation, UserAccount
 
+from drf_extra_fields.fields import Base64ImageField
+from drf_extra_fields.fields import HybridImageField
+
 
 class UserSignupSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,10 +16,11 @@ class UserSignupSerializer(serializers.ModelSerializer):
 
 
 class StaffInfoSerializer(serializers.ModelSerializer):
+    image = HybridImageField(required=False)
+
     class Meta:
         model = HotelStaffInformation
-        fields = ['shift_start', 'shift_end', 'nid', 'shift_days']
-
+        fields = ['shift_start', 'shift_end', 'nid', 'shift_days', 'image']
 
 
 class RestaurantUserSignUpSerializer(serializers.Serializer):
@@ -42,12 +46,18 @@ class UserAccountSerializer(serializers.ModelSerializer):
         model = UserAccount
         fields = ['phone', 'first_name', 'last_name', 'date_of_birth', 'email']
 
+
 class StaffInfoGetSerializer(serializers.ModelSerializer):
     user = UserAccountSerializer(read_only=True)
+
     class Meta:
         model = HotelStaffInformation
         fields = '__all__'
 
+
+class ListOfIdSerializer(serializers.Serializer):
+    id = serializers.ListSerializer(
+        child=serializers.IntegerField(), required=False)
 
 
 class OtpLoginSerializer(serializers.Serializer):

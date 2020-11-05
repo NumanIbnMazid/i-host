@@ -22,7 +22,7 @@ class Restaurant(models.Model):
     RESTAURANT_STATUS = [('ACTIVE', 'ACTIVE'), ('INACTIVE', 'INACTIVE')]
 
     name = models.CharField(max_length=250)
-    logo = models.FileField(blank=True)
+    logo = models.ImageField(blank=True)
     address = models.CharField(max_length=500, null=True, blank=True)
     latitude = models.DecimalField(
         max_digits=50, decimal_places=45, null=True, blank=True)
@@ -63,7 +63,7 @@ class FoodCategory(models.Model):
 
 class Food(models.Model):
     name = models.CharField(max_length=200)
-    image = models.FileField(null=True, blank=True)
+    image = models.ImageField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     restaurant = models.ForeignKey(
         Restaurant, on_delete=models.CASCADE, related_name='food')
@@ -102,6 +102,8 @@ class Table(models.Model):
     restaurant = models.ForeignKey(
         Restaurant, on_delete=models.CASCADE, related_name='tables')
     name = models.CharField(max_length=50, null=True, blank=True)
+    staff_assigned = models.ManyToManyField(
+        to='account_management.HotelStaffInformation', blank=True)
 
 
 class FoodOrder(models.Model):

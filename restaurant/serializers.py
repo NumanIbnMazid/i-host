@@ -1,4 +1,5 @@
 
+from account_management.serializers import StaffInfoGetSerializer
 from os import read
 from django.db.models.fields.related import RelatedField
 from account_management.models import HotelStaffInformation, UserManager
@@ -45,6 +46,8 @@ class RestaurantSerializer(serializers.ModelSerializer):
 
 
 class TableSerializer(serializers.ModelSerializer):
+    staff_assigned = StaffInfoGetSerializer(read_only=True, many=True)
+
     class Meta:
         model = Table
         fields = '__all__'
@@ -68,6 +71,20 @@ class FoodSerializer(serializers.ModelSerializer):
     class Meta:
         model = Food
         fields = '__all__'
+
+
+class FoodBasicSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Food
+        fields = '__all__'
+
+
+class FoodsByCategorySerializer(serializers.ModelSerializer):
+    foods = FoodBasicSerializer(many=True)
+
+    class Meta:
+        model = FoodCategory
+        fields = ['id', 'name', 'image', 'foods']
 
 
 class FoodDetailSerializer(serializers.ModelSerializer):
@@ -105,4 +122,9 @@ class RestaurantContactPersonSerializer(serializers.ModelSerializer):
 class HotelStaffInformationSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelStaffInformation
+<<<<<<< HEAD
         fields = '__all__'
+=======
+        fields = '__all__'
+
+>>>>>>> b2750ae79797839d1f24a2e7dc56d914888cde32

@@ -46,6 +46,7 @@ LIBRARY_APPS = [
     "drf_yasg2",
     "storages",
     'corsheaders',
+    'drf_extra_fields',
 ]
 DJANOG_APPS = [
     'account_management',
