@@ -2,7 +2,7 @@ from account_management import serializers
 from account_management.models import HotelStaffInformation, UserAccount
 from account_management.serializers import (ListOfIdSerializer,
                                             StaffInfoSerializer)
-from django.db.models import Q, query_utils
+from django.db.models import Q, query_utils, Min
 from django.http import request
 from drf_yasg2.utils import get_serializer_class, swagger_auto_schema
 from rest_framework import permissions, status, viewsets
@@ -310,6 +310,17 @@ class FoodByRestaurantViewSet(CustomViewSet):
         qs = FoodCategory.objects.filter(
             foods__restaurant=restaurant,
         ).prefetch_related('foods')
-        # qs = qs.filter(is_top = True)
-        serializer = FoodsByCategorySerializer(instance=qs, many=True)
+
+        food_price = FoodOption.objects.all().values_list('food__category__name','food__name').annotate(Min('price')).order_by('price')[0:].prefetch_related('foods')
+        new_price= Food.objects.filter().annotate(Min('food_options__price')).order_by('food_options__price')[0:].prefetch_related('food_options')
+
+
+
+        print(food_price)
+        print(new_price)
+
+
+        serializer = FoodsByCategorySerializer(instance=qs,many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
+    
+

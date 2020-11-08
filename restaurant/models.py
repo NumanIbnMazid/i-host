@@ -17,6 +17,9 @@ class Subscription(models.Model):
     code = models.CharField(max_length=5, unique=True)
     details = models.TextField(null=True, blank=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Restaurant(models.Model):
     RESTAURANT_STATUS = [('ACTIVE', 'ACTIVE'), ('INACTIVE', 'INACTIVE')]
@@ -41,6 +44,8 @@ class Restaurant(models.Model):
         Subscription, on_delete=models.SET_NULL, null=True, related_name='restaurants')
     subscription_ends = models.DateField()
 
+    def __str__(self):
+        return self.name
 
 class RestaurantContactPerson(models.Model):
     name = models.CharField(max_length=150)
@@ -50,16 +55,22 @@ class RestaurantContactPerson(models.Model):
     restaurant = models.ForeignKey(
         Restaurant, on_delete=models.CASCADE, related_name='contact_persons')
 
+    def __str__(self):
+        return self.name
 
 class RestaurantPromoCategory(models.Model):
     category_name = models.CharField(max_length=80)
 
+    def __str__(self):
+        return self.category_name
 
 class FoodCategory(models.Model):
     name = models.CharField(max_length=250)
     image = models.ImageField(null=True, blank=True)
     # restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE,related_name='food_category')
 
+    def __str__(self):
+        return self.name
 
 class Food(models.Model):
     name = models.CharField(max_length=200)
@@ -75,10 +86,15 @@ class Food(models.Model):
     is_recommended = models.BooleanField(default=False)
     ingredients = models.TextField(null=True, blank=True)
 
+    def __str__(self):
+        return self.name
+
 
 class FoodOptionExtraType(models.Model):
     name = models.CharField(max_length=50)
 
+    def __str__(self):
+        return self.name
 
 class FoodExtra(models.Model):
     name = models.CharField(max_length=50)
@@ -88,6 +104,8 @@ class FoodExtra(models.Model):
     extra_type = models.ForeignKey(
         FoodOptionExtraType, on_delete=models.CASCADE, related_name='food_extras')
 
+    def __str__(self):
+        return self.name
 
 class FoodOption(models.Model):
     name = models.CharField(max_length=50)
@@ -97,6 +115,8 @@ class FoodOption(models.Model):
     option_type = models.ForeignKey(
         FoodOptionExtraType, on_delete=models.CASCADE, related_name='food_options')
 
+    def __str__(self):
+        return self.name
 
 class Table(models.Model):
     table_no = models.IntegerField(null=True, blank=True)
@@ -107,6 +127,8 @@ class Table(models.Model):
         to='account_management.HotelStaffInformation', blank=True)
     is_occupied = models.BooleanField(default=False)
 
+    def __str__(self):
+        return self.name
 
 class FoodOrder(models.Model):
     ORDER_STATUS = [
@@ -125,6 +147,8 @@ class FoodOrder(models.Model):
     status = models.CharField(choices=ORDER_STATUS,
                               default="0_ORDER_INITIALIZED", max_length=120)
 
+    def __str__(self):
+        return self.table
 
 class OrderedItem(models.Model):
     ITEM_STATUS = [
