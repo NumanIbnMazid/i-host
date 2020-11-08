@@ -65,8 +65,11 @@ urlpatterns = [
 
     path('restaurant/<int:restaurant>/recommended_foods_by_category/',
          FoodByRestaurantViewSet.as_view({'get': 'recommended_foods_by_category'}), name='recommended_foods_by_category'),
-    path('create_order/',
+    path('order/create_order/',
          FoodOrderViewSet.as_view({'post': 'create_order'}, name='create_order')),
-    path('create_order/<int:pk>/',
+    path('order/add_items/',
+         FoodOrderViewSet.as_view({'post': 'add_items'}, name='add_items')),
+
+    path('order/create_order/<int:pk>/',
          FoodOrderViewSet.as_view({'patch': 'update', 'get': 'retrieve'}, name='create_order'))
 ]

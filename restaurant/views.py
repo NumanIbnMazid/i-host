@@ -15,7 +15,7 @@ from restaurant.models import (Food, FoodCategory, FoodExtra, FoodOption,
                                FoodOptionExtraType, FoodOrder, Restaurant,
                                Table)
 
-from .serializers import (FoodBasicSerializer, FoodCategorySerializer, FoodDetailSerializer, FoodExtraPostPatchSerializer,
+from .serializers import (AddItemsSerializer, FoodBasicSerializer, FoodCategorySerializer, FoodDetailSerializer, FoodExtraPostPatchSerializer,
                           FoodExtraSerializer, FoodOptionExtraTypeSerializer,
                           FoodOptionSerializer, FoodOrderSerializer, FoodOrderUserPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
@@ -231,6 +231,8 @@ class FoodOrderViewSet(CustomViewSet):
     def get_serializer_class(self):
         if self.action in ['create_order']:
             self.serializer_class = FoodOrderUserPostSerializer
+        elif self.action in ['add_items']:
+            self.serializer_class = AddItemsSerializer
         else:
             self.serializer_class = FoodOrderUserPostSerializer
 
@@ -255,7 +257,13 @@ class FoodOrderViewSet(CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    # def add_items(self, request):
+    def add_items(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
 
 class FoodViewSet(CustomViewSet):
