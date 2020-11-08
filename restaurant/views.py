@@ -15,7 +15,7 @@ from restaurant.models import (Food, FoodCategory, FoodExtra, FoodOption,
                                FoodOptionExtraType, FoodOrder, Restaurant,
                                Table)
 
-from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
+from .serializers import (FoodCategorySerializer, FoodDetailSerializer, FoodExtraPostPatchSerializer,
                           FoodExtraSerializer, FoodOptionExtraTypeSerializer,
                           FoodOptionSerializer, FoodOrderSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
@@ -155,10 +155,20 @@ class FoodOptionExtraTypeViewSet(CustomViewSet):
 
 
 class FoodExtraViewSet(CustomViewSet):
-    serializer_class = FoodExtraSerializer
+
     # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodExtra.objects.all()
     lookup_field = 'pk'
+
+    def get_serializer_class(self):
+        if self.action == 'create' or self.action == 'update':
+            self.serializer_class = FoodExtraPostPatchSerializer
+        else:
+            self.serializer_class = FoodExtraSerializer
+
+        return self.serializer_class
+
+    http_method_names = ['post', 'patch', 'get']
 
 
 class FoodOptionViewSet(CustomViewSet):
@@ -229,7 +239,7 @@ class FoodViewSet(CustomViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     queryset = Food.objects.all()
     lookup_field = 'pk'
-    # http_method_names = ['post', 'patch', 'put']
+    http_method_names = ['post', 'patch', 'put']
 
 
 class FoodByRestaurantViewSet(CustomViewSet):
@@ -286,5 +296,3 @@ class FoodByRestaurantViewSet(CustomViewSet):
         # qs = qs.filter(is_top = True)
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
-
-

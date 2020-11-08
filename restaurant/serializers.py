@@ -23,6 +23,12 @@ class FoodExtraSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class FoodExtraPostPatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodExtra
+        fields = '__all__'
+
+
 class FoodCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodCategory
@@ -122,4 +128,3 @@ class HotelStaffInformationSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelStaffInformation
         fields = '__all__'
-

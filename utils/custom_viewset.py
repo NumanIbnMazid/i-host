@@ -10,12 +10,15 @@ class CustomViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         qs = self.get_queryset()
-        serializer = self.serializer_class(instance=qs, many=True)
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(instance=qs, many=True)
+        # serializer = self.serializer_class(instance=qs, many=True)
         # serializer.is_valid()
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def create(self, request):
-        serializer = self.serializer_class(data=request.data)
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
         if serializer.is_valid():
             qs = serializer.save()
             serializer = self.serializer_class(instance=qs)
@@ -24,7 +27,8 @@ class CustomViewSet(viewsets.ModelViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def update(self, request, **kwargs):
-        serializer = self.serializer_class(data=request.data)
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
         if serializer.is_valid():
             qs = serializer.update(instance=self.get_object(
             ), validated_data=serializer.validated_data)
