@@ -58,9 +58,6 @@ class TableSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
-
-
 class OrderedItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderedItem
@@ -73,11 +70,13 @@ class FoodOrderSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class FoodOrderPostSerializer(serializers.ModelSerializer):
+class FoodOrderUserPostSerializer(serializers.ModelSerializer):
+    ordered_items = OrderedItemSerializer(
+        many=True, read_only=True, required=False)
+
     class Meta:
         model = FoodOrder
-        fields = ['remarks','table','']
-
+        fields = ['ordered_items', 'table', 'remarks']
 
 
 

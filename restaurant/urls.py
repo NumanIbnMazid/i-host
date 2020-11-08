@@ -42,10 +42,10 @@ urlpatterns = [
     path('restaurant_staff/<int:staff_id>/tables/',
          TableViewSet.as_view({'get': 'staff_table_list'}), name='staff_table_list'),
 
-    #path('restaurant/waiter/<int:staff_assigned>/tables/',
-     #    TableViewSet.as_view({'get': 'waiter_table_list'}), name='waiter_table_list'),
+    # path('restaurant/waiter/<int:staff_assigned>/tables/',
+    #    TableViewSet.as_view({'get': 'waiter_table_list'}), name='waiter_table_list'),
 
-    #path('restaurant_under_owner/',
+    # path('restaurant_under_owner/',
     #     RestaurantViewSet.as_view({'get': 'restaurant_under_owner'}), name='restaurant_under_owner'),
 
     path('restaurant/<int:restaurant>/foods/',
@@ -65,4 +65,8 @@ urlpatterns = [
 
     path('restaurant/<int:restaurant>/recommended_foods_by_category/',
          FoodByRestaurantViewSet.as_view({'get': 'recommended_foods_by_category'}), name='recommended_foods_by_category'),
+    path('create_order/',
+         FoodOrderViewSet.as_view({'post': 'create_order'}, name='create_order')),
+    path('create_order/<int:pk>/',
+         FoodOrderViewSet.as_view({'patch': 'update'}, name='create_order'))
 ]

@@ -1,3 +1,4 @@
+# from restaurant.serializers import RestaurantSerializer
 from django.http import request
 from rest_framework import fields
 from rest_framework.serializers import Serializer
@@ -98,6 +99,24 @@ class StaffInfoGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelStaffInformation
         fields = '__all__'
+
+
+class StaffLoginInfoGetSerializer(serializers.ModelSerializer):
+    # restaurant = restaurant_serializer(read_only=True)
+
+    class Meta:
+        model = HotelStaffInformation
+        fields = [
+            "user",
+            "image",
+            "is_manager",
+            "is_owner",
+            "is_waiter",
+            "shift_start",
+            "shift_end",
+            "nid",
+            "restaurant",
+        ]
 
 
 class ListOfIdSerializer(serializers.Serializer):

@@ -109,22 +109,30 @@ class Table(models.Model):
 
 
 class FoodOrder(models.Model):
-    ITEM_STATUS = [
-        ("0_ORDER_PLACED", "ORDER_PLACED"),
-        ("1_PROCESSING", "PROCESSING"),
-        ("2_IN_TABLE", "IN_TABLE"),
+    ORDER_STATUS = [
+        ("0_ORDER_INITIALIZED", "ORDER_INITIALIZED"),
+        ("1_ORDER_PLACED", "ORDER_PLACED"),
+        ("2_ORDER_CONFIRMED", "ORDER_CONFIRMED"),
+        ("3_PROCESSING", "PROCESSING"),
+        ("4_IN_TABLE", "IN_TABLE"),
+        ("5_PAID", "PAID"),
+        
+
     ]
     remarks = models.TextField(null=True, blank=True)
     table = models.ForeignKey(
         Table, on_delete=models.SET_NULL, null=True, related_name='food_orders')
+    status = models.CharField(choices=ORDER_STATUS,
+                              default="0_ORDER_INITIALIZED", max_length=120)
 
 
 class OrderedItem(models.Model):
     ITEM_STATUS = [
         ("0_ORDER_INITIALIZED", "ORDER_INITIALIZED"),
         ("1_ORDER_PLACED", "ORDER_PLACED"),
-        ("2_PROCESSING", "PROCESSING"),
-        ("3_IN_TABLE", "IN_TABLE"),
+        ("2_ORDER_CONFIRMED", "ORDER_CONFIRMED"),
+        ("3_PROCESSING", "PROCESSING"),
+        ("4_IN_TABLE", "IN_TABLE"),
     ]
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     food_option = models.ForeignKey(

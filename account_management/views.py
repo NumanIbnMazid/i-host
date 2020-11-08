@@ -24,7 +24,7 @@ from account_management.models import HotelStaffInformation
 from account_management.models import UserAccount
 from account_management.models import UserAccount as User
 from account_management.serializers import (OtpLoginSerializer,
-                                            RestaurantUserSignUpSerializer, StaffInfoGetSerializer, StaffInfoSerializer,
+                                            RestaurantUserSignUpSerializer, StaffInfoGetSerializer, StaffInfoSerializer, StaffLoginInfoGetSerializer,
                                             UserAccountPatchSerializer,
                                             UserAccountSerializer,
                                             UserSignupSerializer)
@@ -56,7 +56,13 @@ class LoginView(KnoxLoginView):
                             request=request, user=request.user)
         data = self.get_post_response_data(request, token, instance)
         user_serializer = UserAccountSerializer(instance=user)
-        return ResponseWrapper(data={'auth': data, 'user': user_serializer.data})
+        staff_info = {}
+        if user.hotel_staff.first():
+            staff_info_serializer = StaffLoginInfoGetSerializer(
+                instance=user.hotel_staff.all(), many=True)
+            staff_info = staff_info_serializer.data
+
+        return ResponseWrapper(data={'auth': data, 'user': user_serializer.data, 'staff_info': staff_info})
 
 
 class OtpSignUpView(KnoxLoginView):
@@ -285,6 +291,7 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
 #     #         # # self.serializer_class.update(instance=request.user,validated_data=request.data)
 #     #         # if user_primary_traveller_serializer.is_valid():
 #     #         #     return ResponseWrapper(data=user_primary_traveller_serializer.data, status=200)
+
 
     def destroy(self, request, *args, **kwargs):
         if request.user is not None:

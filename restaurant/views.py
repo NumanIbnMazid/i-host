@@ -17,7 +17,7 @@ from restaurant.models import (Food, FoodCategory, FoodExtra, FoodOption,
 
 from .serializers import (FoodBasicSerializer, FoodCategorySerializer, FoodDetailSerializer, FoodExtraPostPatchSerializer,
                           FoodExtraSerializer, FoodOptionExtraTypeSerializer,
-                          FoodOptionSerializer, FoodOrderSerializer,
+                          FoodOptionSerializer, FoodOrderSerializer, FoodOrderUserPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
                           HotelStaffInformationSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
@@ -223,10 +223,26 @@ class TableViewSet(CustomViewSet):
 
 
 class FoodOrderViewSet(CustomViewSet):
-    serializer_class = FoodOrderSerializer
+    serializer_class = FoodOrderUserPostSerializer
     # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodOrder.objects.all()
-    lookup_field = 'pk'
+
+    def create_order(self, request):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+        if serializer.is_valid():
+            table_qs = Table.objects.filter(
+                pk=serializer.data.get('table')).last()
+            if not table_qs.is_occupied:
+                table_qs.is_occupied = True
+                table_qs.save()
+                qs = serializer.save()
+                serializer = self.serializer_class(instance=qs)
+            else:
+                return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
 
 class FoodViewSet(CustomViewSet):
