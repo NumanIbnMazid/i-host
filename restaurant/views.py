@@ -227,12 +227,13 @@ class FoodOrderViewSet(CustomViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodOrder.objects.all()
 
+    # def list(self,request,)
     def create_order(self, request):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
             table_qs = Table.objects.filter(
-                pk=serializer.data.get('table')).last()
+                pk=request.data.get('table')).last()
             if not table_qs.is_occupied:
                 table_qs.is_occupied = True
                 table_qs.save()
