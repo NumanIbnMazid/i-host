@@ -68,5 +68,5 @@ urlpatterns = [
     path('create_order/',
          FoodOrderViewSet.as_view({'post': 'create_order'}, name='create_order')),
     path('create_order/<int:pk>/',
-         FoodOrderViewSet.as_view({'patch': 'update'}, name='create_order'))
+         FoodOrderViewSet.as_view({'patch': 'update', 'get': 'retrieve'}, name='create_order'))
 ]

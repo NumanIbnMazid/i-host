@@ -80,6 +80,10 @@ class FoodOrderUserPostSerializer(serializers.ModelSerializer):
         fields = ['ordered_items', 'table', 'remarks']
 
 
+class AddItemsSerializer(serializers.ModelSerializer):
+    ordered_items = OrderedItemSerializer(
+        many=True, required=True)
+
 
 class FoodSerializer(serializers.ModelSerializer):
     category = FoodCategorySerializer(read_only=True)

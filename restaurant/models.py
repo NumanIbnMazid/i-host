@@ -138,7 +138,7 @@ class FoodOrder(models.Model):
         ("3_PROCESSING", "PROCESSING"),
         ("4_IN_TABLE", "IN_TABLE"),
         ("5_PAID", "PAID"),
-        
+        ("6_CANCELLED", "CANCELLED"),
 
     ]
     remarks = models.TextField(null=True, blank=True)
@@ -157,6 +157,8 @@ class OrderedItem(models.Model):
         ("2_ORDER_CONFIRMED", "ORDER_CONFIRMED"),
         ("3_PROCESSING", "PROCESSING"),
         ("4_IN_TABLE", "IN_TABLE"),
+        ("5_CANCELLED", "CANCELLED"),
+
     ]
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     food_option = models.ForeignKey(

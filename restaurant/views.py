@@ -223,14 +223,24 @@ class TableViewSet(CustomViewSet):
 
 
 class FoodOrderViewSet(CustomViewSet):
-    serializer_class = FoodOrderUserPostSerializer
+
     # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodOrder.objects.all()
+    lookup_field = 'pk'
+
+    def get_serializer_class(self):
+        if self.action in ['create_order']:
+            self.serializer_class = FoodOrderUserPostSerializer
+        else:
+            self.serializer_class = FoodOrderUserPostSerializer
+
+        return self.serializer_class
 
     # def list(self,request,)
+
     def create_order(self, request):
-        serializer_class = self.get_serializer_class()
-        serializer = serializer_class(data=request.data)
+        # serializer_class = self.get_serializer_class()
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             table_qs = Table.objects.filter(
                 pk=request.data.get('table')).last()
@@ -244,6 +254,8 @@ class FoodOrderViewSet(CustomViewSet):
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    # def add_items(self, request):
 
 
 class FoodViewSet(CustomViewSet):
@@ -311,16 +323,13 @@ class FoodByRestaurantViewSet(CustomViewSet):
             foods__restaurant=restaurant,
         ).prefetch_related('foods')
 
-        food_price = FoodOption.objects.all().values_list('food__category__name','food__name').annotate(Min('price')).order_by('price')[0:].prefetch_related('foods')
-        new_price= Food.objects.filter().annotate(Min('food_options__price')).order_by('food_options__price')[0:].prefetch_related('food_options')
-
-
+        food_price = FoodOption.objects.all().values_list('food__category__name',
+                                                          'food__name').annotate(Min('price')).order_by('price')[0:].prefetch_related('foods')
+        new_price = Food.objects.filter().annotate(Min('food_options__price')).order_by(
+            'food_options__price')[0:].prefetch_related('food_options')
 
         print(food_price)
         print(new_price)
 
-
-        serializer = FoodsByCategorySerializer(instance=qs,many=True)
+        serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
-    
-
