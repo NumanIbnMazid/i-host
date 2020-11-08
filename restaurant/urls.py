@@ -39,10 +39,13 @@ urlpatterns = [
     path('restaurant/<int:restaurant>/tables/',
          TableViewSet.as_view({'get': 'table_list'}), name='tables'),
 
-    # path('manager/<int:manager>/tables/',
-    #    TableViewSetManager.as_view({'get': 'manager_table_list'}), name='manager_tables'),
+    path('restaurant_staff/<int:staff_id>/tables/',
+         TableViewSet.as_view({'get': 'staff_table_list'}), name='staff_table_list'),
 
-    # path('restaurant_under_owner/',
+    #path('restaurant/waiter/<int:staff_assigned>/tables/',
+     #    TableViewSet.as_view({'get': 'waiter_table_list'}), name='waiter_table_list'),
+
+    #path('restaurant_under_owner/',
     #     RestaurantViewSet.as_view({'get': 'restaurant_under_owner'}), name='restaurant_under_owner'),
 
     path('restaurant/<int:restaurant>/foods/',

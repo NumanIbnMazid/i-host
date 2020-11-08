@@ -205,8 +205,8 @@ class TableViewSet(CustomViewSet):
         else:
             return ResponseWrapper(error_code=400, error_msg='wrong table id')
 
-    def manager_table_list(self, request, manager, *args, **kwargs):
-        qs = self.queryset.filter(manager=manager)
+    def staff_table_list(self, request, staff_id, *args, **kwargs):
+        qs = self.queryset.filter(staff_assigned=staff_id)
         # qs = qs.filter(is_top = True)
         serializer = self.serializer_class(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
@@ -286,3 +286,5 @@ class FoodByRestaurantViewSet(CustomViewSet):
         # qs = qs.filter(is_top = True)
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
+
+
