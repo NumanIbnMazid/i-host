@@ -58,16 +58,27 @@ class TableSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class FoodOrderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FoodOrder
-        fields = '__all__'
+
 
 
 class OrderedItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderedItem
         fields = '__all__'
+
+
+class FoodOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodOrder
+        fields = '__all__'
+
+
+class FoodOrderPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodOrder
+        fields = ['remarks','table','']
+
+
 
 
 class FoodSerializer(serializers.ModelSerializer):
@@ -109,6 +120,7 @@ class FoodDetailSerializer(serializers.ModelSerializer):
             "is_recommended",
             "food_extras",
             "food_options",
+            'ingredients',
         ]
 
 

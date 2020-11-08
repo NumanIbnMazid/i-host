@@ -73,6 +73,7 @@ class Food(models.Model):
     #     RestaurantPromoCategory, blank=True)
     is_top = models.BooleanField(default=False)
     is_recommended = models.BooleanField(default=False)
+    ingredients = models.TextField(null=True, blank=True)
 
 
 class FoodOptionExtraType(models.Model):
@@ -108,11 +109,23 @@ class Table(models.Model):
 
 
 class FoodOrder(models.Model):
+    ITEM_STATUS = [
+        ("0_ORDER_PLACED", "ORDER_PLACED"),
+        ("1_PROCESSING", "PROCESSING"),
+        ("2_IN_TABLE", "IN_TABLE"),
+    ]
+    remarks = models.TextField(null=True, blank=True)
     table = models.ForeignKey(
         Table, on_delete=models.SET_NULL, null=True, related_name='food_orders')
 
 
 class OrderedItem(models.Model):
+    ITEM_STATUS = [
+        ("0_ORDER_INITIALIZED", "ORDER_INITIALIZED"),
+        ("1_ORDER_PLACED", "ORDER_PLACED"),
+        ("2_PROCESSING", "PROCESSING"),
+        ("3_IN_TABLE", "IN_TABLE"),
+    ]
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     food_option = models.ForeignKey(
         FoodOption, on_delete=models.PROTECT, related_name='ordered_items')
@@ -120,3 +133,6 @@ class OrderedItem(models.Model):
         FoodExtra, blank=True, related_name='ordered_items')
     food_order = models.ForeignKey(
         FoodOrder, on_delete=models.CASCADE, related_name='ordered_items')
+
+    status = models.CharField(
+        choices=ITEM_STATUS, default="0_ORDER_INITIALIZED", max_length=120)

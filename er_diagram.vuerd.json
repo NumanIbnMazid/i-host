@@ -2,8 +2,8 @@
   "canvas": {
     "width": 20000,
     "height": 20000,
-    "scrollTop": 390,
-    "scrollLeft": 521,
+    "scrollTop": 436,
+    "scrollLeft": 392,
     "show": {
       "tableComment": true,
       "columnComment": true,
@@ -789,13 +789,36 @@
               "widthDefault": 60
             },
             "id": "f1ef5da4-5017-c8f0-cd12-d8ff0d4747b6"
+          },
+          {
+            "name": "is_occupied",
+            "comment": "",
+            "dataType": "",
+            "default": "",
+            "option": {
+              "autoIncrement": false,
+              "primaryKey": false,
+              "unique": false,
+              "notNull": false
+            },
+            "ui": {
+              "active": false,
+              "pk": false,
+              "fk": false,
+              "pfk": false,
+              "widthName": 71,
+              "widthComment": 60,
+              "widthDataType": 60,
+              "widthDefault": 60
+            },
+            "id": "e32204d7-10ee-8715-b572-75830faa8d1b"
           }
         ],
         "ui": {
           "active": false,
           "left": 596,
           "top": 777,
-          "zIndex": 527,
+          "zIndex": 609,
           "widthName": 60,
           "widthComment": 60
         },
@@ -2079,7 +2102,7 @@
             "f1ef5da4-5017-c8f0-cd12-d8ff0d4747b6"
           ],
           "x": 596,
-          "y": 852.5,
+          "y": 862.75,
           "direction": "left"
         },
         "id": "8793abfd-9fda-423c-0303-0ddc5dcb117c",
@@ -2207,7 +2230,7 @@
           "columnIds": [
             "1e4b40e3-c08d-3d5d-d439-618c6098b42e"
           ],
-          "x": 770,
+          "x": 775,
           "y": 777,
           "direction": "top"
         },
@@ -2460,8 +2483,8 @@
           "columnIds": [
             "1e4b40e3-c08d-3d5d-d439-618c6098b42e"
           ],
-          "x": 944,
-          "y": 852.5,
+          "x": 954,
+          "y": 862.75,
           "direction": "right"
         },
         "end": {
