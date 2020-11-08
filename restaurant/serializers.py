@@ -80,7 +80,7 @@ class FoodOrderUserPostSerializer(serializers.ModelSerializer):
         fields = ['ordered_items', 'table', 'remarks']
 
 
-class AddItemsSerializer(serializers.ModelSerializer):
+class AddItemsSerializer(serializers.Serializer):
     ordered_items = OrderedItemSerializer(
         many=True, required=True)
 
