@@ -104,6 +104,7 @@ class Table(models.Model):
     name = models.CharField(max_length=50, null=True, blank=True)
     staff_assigned = models.ManyToManyField(
         to='account_management.HotelStaffInformation', blank=True)
+    is_occupied = models.BooleanField(default=False)
 
 
 class FoodOrder(models.Model):
