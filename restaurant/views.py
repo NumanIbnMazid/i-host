@@ -200,6 +200,8 @@ class TableViewSet(CustomViewSet):
     def get_serializer_class(self):
         if self.action in ['add_staff']:
             self.serializer_class = StaffIdListSerializer
+        elif self.action in ['remove_staff']:
+            self.serializer_class = StaffIdListSerializer
         else:
             self.serializer_class = TableSerializer
         return self.serializer_class
@@ -231,14 +233,19 @@ class TableViewSet(CustomViewSet):
         serializer = self.serializer_class(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
-    def remove_staff(self, request, pk, *args, **kwargs):
-        qs = self.queryset.filter(staff_assigned=pk)
+    def remove_staff(self, request, table_id, *args, **kwargs):
+        qs = self.get_queryset().filter(pk=table_id).first()
+        id_list = request.data.get('staff_list', [])
+        id_list = list(HotelStaffInformation.objects.filter(
+            pk__in=id_list).values_list('pk', flat=True))
         if qs:
-            qs.remove(pk)
-            return ResponseWrapper(status=200, msg='remove')
+            for id in id_list:
+                qs.staff_assigned.remove(id)
+            qs.save()
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(msg='removed')
         else:
-            return ResponseWrapper(error_msg="failed to remove staff", error_code=400)
-
+            return ResponseWrapper(error_code=400, error_msg='wrong table id')
 
 class FoodOrderViewSet(CustomViewSet):
 

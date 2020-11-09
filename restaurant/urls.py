@@ -30,8 +30,8 @@ urlpatterns = [
          TableViewSet.as_view({'post': 'create', }), name='table'),
     path('table/<int:pk>/',
          TableViewSet.as_view({'patch': 'update', }), name='table'),
-    path('table/<int:pk>/staff_remove',
-         TableViewSet.as_view({'delete': 'remove_staff', }), name='remove_staff'),
+    path('table/<int:table_id>/staff_remove/',
+         TableViewSet.as_view({'post': 'remove_staff', }), name='remove_staff'),
 
     path('restaurant/',
          RestaurantViewSet.as_view({'post': 'create', 'get': 'list'}), name='restaurant_create_and_list'),
