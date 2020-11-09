@@ -65,6 +65,13 @@ class OrderedItemSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class OrderedItemUserPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderedItem
+        # fields = '__all__'
+        exclude = ['status']
+
+
 class FoodOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOrder
@@ -81,7 +88,7 @@ class FoodOrderUserPostSerializer(serializers.ModelSerializer):
 
 
 class AddItemsSerializer(serializers.Serializer):
-    ordered_items = OrderedItemSerializer(
+    ordered_items = OrderedItemUserPostSerializer(
         many=True, required=True)
 
 

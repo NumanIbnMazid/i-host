@@ -15,11 +15,11 @@ from restaurant.models import (Food, FoodCategory, FoodExtra, FoodOption,
                                FoodOptionExtraType, FoodOrder, Restaurant,
                                Table)
 
-from .serializers import (AddItemsSerializer, FoodBasicSerializer, FoodCategorySerializer, FoodDetailSerializer, FoodExtraPostPatchSerializer,
+from .serializers import (FoodBasicSerializer, FoodCategorySerializer, FoodDetailSerializer, FoodExtraPostPatchSerializer,
                           FoodExtraSerializer, FoodOptionExtraTypeSerializer,
                           FoodOptionSerializer, FoodOrderSerializer, FoodOrderUserPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
-                          HotelStaffInformationSerializer,
+                          HotelStaffInformationSerializer, OrderedItemSerializer, OrderedItemUserPostSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
                           RestaurantUpdateSerialier, TableSerializer)
 
@@ -232,7 +232,7 @@ class FoodOrderViewSet(CustomViewSet):
         if self.action in ['create_order']:
             self.serializer_class = FoodOrderUserPostSerializer
         elif self.action in ['add_items']:
-            self.serializer_class = AddItemsSerializer
+            self.serializer_class = OrderedItemUserPostSerializer
         else:
             self.serializer_class = FoodOrderUserPostSerializer
 
@@ -258,10 +258,11 @@ class FoodOrderViewSet(CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def add_items(self, request):
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=request.data, many=True)
         if serializer.is_valid():
-
-            return ResponseWrapper(data=serializer.data, msg='created')
+            qs = serializer.save()
+            serializer = OrderedItemSerializer(qs, many=True)
+            return ResponseWrapper(data=serializer.data, msg='item added')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
@@ -276,7 +277,7 @@ class FoodViewSet(CustomViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     queryset = Food.objects.all()
     lookup_field = 'pk'
-    http_method_names = ['post', 'patch', 'put']
+    http_method_names = ['post', 'patch', 'get']
 
 
 class FoodByRestaurantViewSet(CustomViewSet):
