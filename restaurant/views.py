@@ -229,9 +229,8 @@ class FoodOrderViewSet(CustomViewSet):
     lookup_field = 'pk'
 
     def get_serializer_class(self):
-        if self.action in ['book_table']:
-            # self.serializer_class = FoodOrderUserPostSerializer
-            self.serializer_class = BookTableSerializer
+        if self.action in ['create_order']:
+            self.serializer_class = FoodOrderUserPostSerializer
         elif self.action in ['add_items']:
             self.serializer_class = OrderedItemUserPostSerializer
         elif self.action in ['cencel_order']:
@@ -243,18 +242,35 @@ class FoodOrderViewSet(CustomViewSet):
 
     # def list(self,request,)
 
-    def book_table(self, request):
+    # def book_table(self, request):
+    #     # serializer_class = self.get_serializer_class()
+    #     serializer = self.get_serializer(data=request.data)
+    #     if serializer.is_valid():
+    #         table_qs = Table.objects.filter(
+    #             pk=request.data.get('table')).last()
+    #         if not table_qs:
+    #             return ResponseWrapper(error_msg=['table does not exists'], error_code=400)
+    #         if not table_qs.is_occupied:
+    #             table_qs.is_occupied = True
+    #             table_qs.save()
+    #             serializer = TableSerializer(instance=table_qs)
+    #         else:
+    #             return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
+    #         return ResponseWrapper(data=serializer.data, msg='created')
+    #     else:
+    #         return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def create_order(self, request):
         # serializer_class = self.get_serializer_class()
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             table_qs = Table.objects.filter(
                 pk=request.data.get('table')).last()
-            if not table_qs:
-                return ResponseWrapper(error_msg=['table does not exists'], error_code=400)
             if not table_qs.is_occupied:
                 table_qs.is_occupied = True
                 table_qs.save()
-                serializer = TableSerializer(instance=table_qs)
+                qs = serializer.save()
+                serializer = self.serializer_class(instance=qs)
             else:
                 return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
             return ResponseWrapper(data=serializer.data, msg='created')
@@ -264,12 +280,12 @@ class FoodOrderViewSet(CustomViewSet):
     def add_items(self, request):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-
+            serializer.save()
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def cencel_order(self, request, pk, *args, **kwargs):
+    def cancel_order(self, request, pk, *args, **kwargs):
         serializer = self.get_serializer_class()
         if serializer.is_valid():
             table_qs = Table.objects.filter(
