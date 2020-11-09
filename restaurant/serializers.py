@@ -126,6 +126,7 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
             "is_recommended",
             'price',
             'ingredients',
+            'category',
         ]
 
     def get_price(self, obj):
