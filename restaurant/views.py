@@ -1,16 +1,29 @@
-from django.http import request
-from account_management.models import HotelStaffInformation, UserAccount
-from account_management.serializers import StaffInfoSerializer
 from account_management import serializers
-from drf_yasg2.utils import get_serializer_class
+from account_management.models import HotelStaffInformation, UserAccount
+from account_management.serializers import (ListOfIdSerializer,
+                                            StaffInfoSerializer)
+from django.db.models import Min, Q, query_utils
+from django.http import request
+from drf_yasg2.utils import get_serializer_class, swagger_auto_schema
+from rest_framework import permissions, status, viewsets
 from rest_framework.permissions import IsAdminUser
 from rest_framework.serializers import Serializer
-from restaurant.models import Food, FoodCategory, FoodExtra, FoodOption, FoodOptionExtraType, FoodOrder, Restaurant, Table
-from utils.response_wrapper import ResponseWrapper
-from rest_framework import permissions, status, viewsets
-from .serializers import FoodCategorySerializer, FoodDetailSerializer, FoodExtraSerializer, FoodOptionExtraTypeSerializer, FoodOptionSerializer, FoodOrderSerializer, FoodSerializer, FoodsByCategorySerializer, RestaurantSerializer, RestaurantContactPerson, RestaurantUpdateSerialier, TableSerializer
-from django.db.models import Q
 from utils.custom_viewset import CustomViewSet
+from utils.response_wrapper import ResponseWrapper
+
+from restaurant.models import (Food, FoodCategory, FoodExtra, FoodOption,
+                               FoodOptionExtraType, FoodOrder, Restaurant,
+                               Table)
+
+from .serializers import (FoodWithPriceSerializer, FoodCategorySerializer, FoodDetailSerializer,
+                          FoodExtraPostPatchSerializer,
+                          FoodExtraSerializer, FoodOptionExtraTypeSerializer,
+                          FoodOptionSerializer, FoodOrderSerializer, FoodOrderUserPostSerializer,
+                          FoodsByCategorySerializer, FoodSerializer,
+                          FoodWithPriceSerializer,
+                          OrderedItemSerializer, OrderedItemUserPostSerializer,
+                          RestaurantContactPerson, RestaurantSerializer,
+                          RestaurantUpdateSerialier, StaffIdListSerializer, TableSerializer)
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
@@ -144,10 +157,20 @@ class FoodOptionExtraTypeViewSet(CustomViewSet):
 
 
 class FoodExtraViewSet(CustomViewSet):
-    serializer_class = FoodExtraSerializer
+
     # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodExtra.objects.all()
     lookup_field = 'pk'
+
+    def get_serializer_class(self):
+        if self.action == 'create' or self.action == 'update':
+            self.serializer_class = FoodExtraPostPatchSerializer
+        else:
+            self.serializer_class = FoodExtraSerializer
+
+        return self.serializer_class
+
+    http_method_names = ['post', 'patch', 'get']
 
 
 class FoodOptionViewSet(CustomViewSet):
@@ -157,22 +180,155 @@ class FoodOptionViewSet(CustomViewSet):
     lookup_field = 'pk'
 
 
+"""
 class TableViewSet(CustomViewSet):
     serializer_class = TableSerializer
     # permission_classes = [permissions.IsAuthenticated]
     queryset = Table.objects.all()
     lookup_field = 'pk'
+"""
 
+
+class TableViewSet(CustomViewSet):
+    serializer_class = TableSerializer
+
+    # permission_classes = [permissions.IsAuthenticated]
+    queryset = Table.objects.all()
+    lookup_field = 'pk'
+    # http_method_names = ['get', 'post', 'patch']
+
+    def get_serializer_class(self):
+        if self.action in ['add_staff']:
+            self.serializer_class = StaffIdListSerializer
+        elif self.action in ['remove_staff']:
+            self.serializer_class = StaffIdListSerializer
+        else:
+            self.serializer_class = TableSerializer
+        return self.serializer_class
+
+    def table_list(self, request, restaurant, *args, **kwargs):
+        qs = self.queryset.filter(restaurant=restaurant)
+        # qs = qs.filter(is_top = True)
+        serializer = self.serializer_class(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
+    # @swagger_auto_schema(request_body=ListOfIdSerializer)
+    def add_staff(self, request, table_id, *args, **kwargs):
+        qs = self.get_queryset().filter(pk=table_id).first()
+        id_list = request.data.get('staff_list', [])
+        id_list = list(HotelStaffInformation.objects.filter(
+            pk__in=id_list).values_list('pk', flat=True))
+        if qs:
+            for id in id_list:
+                qs.staff_assigned.add(id)
+            qs.save()
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_code=400, error_msg='wrong table id')
+
+    def staff_table_list(self, request, staff_id, *args, **kwargs):
+        qs = self.queryset.filter(staff_assigned=staff_id)
+        # qs = qs.filter(is_top = True)
+        serializer = self.serializer_class(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
+    def remove_staff(self, request, table_id, *args, **kwargs):
+        qs = self.get_queryset().filter(pk=table_id).first()
+        id_list = request.data.get('staff_list', [])
+        id_list = list(HotelStaffInformation.objects.filter(
+            pk__in=id_list).values_list('pk', flat=True))
+        if qs:
+            for id in id_list:
+                qs.staff_assigned.remove(id)
+            qs.save()
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(msg='removed')
+        else:
+            return ResponseWrapper(error_code=400, error_msg='wrong table id')
 
 class FoodOrderViewSet(CustomViewSet):
-    serializer_class = FoodOrderSerializer
+
     # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodOrder.objects.all()
     lookup_field = 'pk'
 
+    def get_serializer_class(self):
+        if self.action in ['create_order']:
+            self.serializer_class = FoodOrderUserPostSerializer
+        elif self.action in ['add_items']:
+            self.serializer_class = OrderedItemUserPostSerializer
+        elif self.action in ['cancel_order']:
+            self.serializer_class = FoodOrderSerializer
+        else:
+            self.serializer_class = FoodOrderUserPostSerializer
+
+        return self.serializer_class
+
+    # def list(self,request,)
+
+    # def book_table(self, request):
+    #     # serializer_class = self.get_serializer_class()
+    #     serializer = self.get_serializer(data=request.data)
+    #     if serializer.is_valid():
+    #         table_qs = Table.objects.filter(
+    #             pk=request.data.get('table')).last()
+    #         if not table_qs:
+    #             return ResponseWrapper(error_msg=['table does not exists'], error_code=400)
+    #         if not table_qs.is_occupied:
+    #             table_qs.is_occupied = True
+    #             table_qs.save()
+    #             serializer = TableSerializer(instance=table_qs)
+    #         else:
+    #             return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
+    #         return ResponseWrapper(data=serializer.data, msg='created')
+    #     else:
+    #         return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def create_order(self, request):
+        # serializer_class = self.get_serializer_class()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            table_qs = Table.objects.filter(
+                pk=request.data.get('table')).last()
+            if not table_qs.is_occupied:
+                table_qs.is_occupied = True
+                table_qs.save()
+                qs = serializer.save()
+                serializer = self.serializer_class(instance=qs)
+            else:
+                return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def add_items(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def cancel_order(self, request, pk, *args, **kwargs):
+        serializer = self.get_serializer_class()
+        if serializer.is_valid():
+            table_qs = Table.objects.filter(
+                pk=request.data.get('table')).fast()
+            if table_qs.is_occupied:
+                table_qs.is_occupied = False
+                table_qs.save()
+                qs = serializer.save()
+                serializer = self.serializer_class(instance=qs)
+            else:
+                return ResponseWrapper(error_msg=['Order is already cancel'], error_code=400)
+            return ResponseWrapper(data=serializer.data, msg='Cancel')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
 
 class FoodViewSet(CustomViewSet):
-    serializer_class = FoodSerializer
+    serializer_class = FoodWithPriceSerializer
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -181,15 +337,16 @@ class FoodViewSet(CustomViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     queryset = Food.objects.all()
     lookup_field = 'pk'
-    # http_method_names = ['post', 'patch', 'put']
+    http_method_names = ['post', 'patch', 'get']
 
 
 class FoodByRestaurantViewSet(CustomViewSet):
-    serializer_class = FoodSerializer
+    serializer_class = FoodsByCategorySerializer
 
     # queryset = Food.objects.all()
 
     # permission_classes = [permissions.IsAuthenticated]
+
     queryset = Food.objects.all()
     lookup_field = 'restaurant'
     http_method_names = ['get']
@@ -207,9 +364,10 @@ class FoodByRestaurantViewSet(CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def list(self, request, restaurant, *args, **kwargs):
-        qs = self.queryset.filter(restaurant=restaurant)
+        qs = self.queryset.filter(
+            restaurant=restaurant).prefetch_related('food_options', 'food_extras')
         # qs = qs.filter(is_top = True)
-        serializer = self.serializer_class(instance=qs, many=True)
+        serializer = FoodDetailSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def top_foods_by_category(self, request, restaurant, *args, **kwargs):
@@ -234,6 +392,14 @@ class FoodByRestaurantViewSet(CustomViewSet):
         qs = FoodCategory.objects.filter(
             foods__restaurant=restaurant,
         ).prefetch_related('foods')
-        # qs = qs.filter(is_top = True)
+
+        # food_price = FoodOption.objects.all().values_list('food__category__name',
+        #                                                   'food__name').annotate(Min('price')).order_by('price')[0:].prefetch_related('foods')
+        # new_price = Food.objects.filter().annotate(Min('food_options__price')).order_by(
+        #     'food_options__price')[0:].prefetch_related('food_options')
+
+        # print(food_price)
+        # print(new_price)
+
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
