@@ -2,7 +2,7 @@ from account_management import serializers
 from account_management.models import HotelStaffInformation, UserAccount
 from account_management.serializers import (ListOfIdSerializer,
                                             StaffInfoSerializer)
-from django.db.models import Q, query_utils, Min
+from django.db.models import Min, Q, query_utils
 from django.http import request
 from drf_yasg2.utils import get_serializer_class, swagger_auto_schema
 from rest_framework import permissions, status, viewsets
@@ -15,13 +15,15 @@ from restaurant.models import (Food, FoodCategory, FoodExtra, FoodOption,
                                FoodOptionExtraType, FoodOrder, Restaurant,
                                Table)
 
-from .serializers import (BookTableSerializer, FoodWithPriceSerializer, FoodCategorySerializer, FoodDetailSerializer, FoodExtraPostPatchSerializer,
-                          FoodExtraSerializer, FoodOptionExtraTypeSerializer,
-                          FoodOptionSerializer, FoodOrderSerializer, FoodOrderUserPostSerializer,
+from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
+                          FoodExtraPostPatchSerializer, FoodExtraSerializer,
+                          FoodOptionExtraTypeSerializer, FoodOptionSerializer,
+                          FoodOrderSerializer, FoodOrderUserPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
-                          HotelStaffInformationSerializer, OrderedItemSerializer, OrderedItemUserPostSerializer,
+                          FoodWithPriceSerializer,
+                          OrderedItemSerializer, OrderedItemUserPostSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
-                          RestaurantUpdateSerialier, TableSerializer, FoodOrderSerializer)
+                          RestaurantUpdateSerialier, TableSerializer)
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
@@ -233,7 +235,7 @@ class FoodOrderViewSet(CustomViewSet):
             self.serializer_class = FoodOrderUserPostSerializer
         elif self.action in ['add_items']:
             self.serializer_class = OrderedItemUserPostSerializer
-        elif self.action in ['cencel_order']:
+        elif self.action in ['cancel_order']:
             self.serializer_class = FoodOrderSerializer
         else:
             self.serializer_class = FoodOrderUserPostSerializer
