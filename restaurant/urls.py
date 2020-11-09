@@ -14,8 +14,8 @@ router.register('food_extra', FoodExtraViewSet,
 router.register('food_option', FoodOptionViewSet,
                 basename="food_option")
 
-# router.register('table', TableViewSet,
-#                basename="table")
+router.register('table', TableViewSet,
+               basename="table")
 
 router.register('food', FoodViewSet,
                 basename="food")

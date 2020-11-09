@@ -15,11 +15,11 @@ from restaurant.models import (Food, FoodCategory, FoodExtra, FoodOption,
                                FoodOptionExtraType, FoodOrder, Restaurant,
                                Table)
 
-from .serializers import (AddItemsSerializer, FoodBasicSerializer, FoodCategorySerializer, FoodDetailSerializer, FoodExtraPostPatchSerializer,
+from .serializers import (FoodWithPriceSerializer, FoodCategorySerializer, FoodDetailSerializer, FoodExtraPostPatchSerializer,
                           FoodExtraSerializer, FoodOptionExtraTypeSerializer,
                           FoodOptionSerializer, FoodOrderSerializer, FoodOrderUserPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
-                          HotelStaffInformationSerializer,
+                          HotelStaffInformationSerializer, OrderedItemSerializer, OrderedItemUserPostSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
                           RestaurantUpdateSerialier, TableSerializer, FoodOrderSerializer)
 
@@ -192,7 +192,7 @@ class TableViewSet(CustomViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     queryset = Table.objects.all()
     lookup_field = 'restaurant'
-    http_method_names = ['get']
+    http_method_names = ['get', 'post', 'patch']
 
     def table_list(self, request, restaurant, *args, **kwargs):
         qs = self.queryset.filter(restaurant=restaurant)
@@ -232,7 +232,7 @@ class FoodOrderViewSet(CustomViewSet):
         if self.action in ['create_order']:
             self.serializer_class = FoodOrderUserPostSerializer
         elif self.action in ['add_items']:
-            self.serializer_class = AddItemsSerializer
+            self.serializer_class = OrderedItemUserPostSerializer
         elif self.action in ['cencel_order']:
             self.serializer_class = FoodOrderSerializer
         else:
@@ -298,7 +298,7 @@ class FoodOrderViewSet(CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 """
 class FoodViewSet(CustomViewSet):
-    serializer_class = FoodBasicSerializer
+    serializer_class = FoodWithPriceSerializer
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -307,7 +307,7 @@ class FoodViewSet(CustomViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     queryset = Food.objects.all()
     lookup_field = 'pk'
-    http_method_names = ['post', 'patch', 'put']
+    http_method_names = ['post', 'patch', 'get']
 
 
 class FoodByRestaurantViewSet(CustomViewSet):
@@ -362,13 +362,13 @@ class FoodByRestaurantViewSet(CustomViewSet):
             foods__restaurant=restaurant,
         ).prefetch_related('foods')
 
-        food_price = FoodOption.objects.all().values_list('food__category__name',
-                                                          'food__name').annotate(Min('price')).order_by('price')[0:].prefetch_related('foods')
-        new_price = Food.objects.filter().annotate(Min('food_options__price')).order_by(
-            'food_options__price')[0:].prefetch_related('food_options')
+        # food_price = FoodOption.objects.all().values_list('food__category__name',
+        #                                                   'food__name').annotate(Min('price')).order_by('price')[0:].prefetch_related('foods')
+        # new_price = Food.objects.filter().annotate(Min('food_options__price')).order_by(
+        #     'food_options__price')[0:].prefetch_related('food_options')
 
-        print(food_price)
-        print(new_price)
+        # print(food_price)
+        # print(new_price)
 
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')

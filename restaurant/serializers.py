@@ -65,6 +65,13 @@ class OrderedItemSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class OrderedItemUserPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderedItem
+        # fields = '__all__'
+        exclude = ['status']
+
+
 class FoodOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOrder
@@ -81,7 +88,7 @@ class FoodOrderUserPostSerializer(serializers.ModelSerializer):
 
 
 class AddItemsSerializer(serializers.Serializer):
-    ordered_items = OrderedItemSerializer(
+    ordered_items = OrderedItemUserPostSerializer(
         many=True, required=True)
 
 
@@ -93,14 +100,32 @@ class FoodSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class FoodBasicSerializer(serializers.ModelSerializer):
+class FoodWithPriceSerializer(serializers.ModelSerializer):
+    price = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Food
-        fields = '__all__'
+        fields = [
+            "name",
+            "image",
+            "description",
+            "restaurant",
+            "is_top",
+            "is_recommended",
+            'price',
+            'ingredients',
+        ]
+
+    def get_price(self, obj):
+        option_qs = obj.food_options.order_by('price').first()
+        if option_qs:
+            return option_qs.price
+        else:
+            return None
 
 
 class FoodsByCategorySerializer(serializers.ModelSerializer):
-    foods = FoodBasicSerializer(many=True)
+    foods = FoodWithPriceSerializer(many=True)
 
     class Meta:
         model = FoodCategory

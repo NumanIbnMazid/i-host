@@ -47,6 +47,7 @@ class Restaurant(models.Model):
     def __str__(self):
         return self.name
 
+
 class RestaurantContactPerson(models.Model):
     name = models.CharField(max_length=150)
     designation = models.CharField(max_length=150, null=True, blank=True)
@@ -58,11 +59,13 @@ class RestaurantContactPerson(models.Model):
     def __str__(self):
         return self.name
 
+
 class RestaurantPromoCategory(models.Model):
     category_name = models.CharField(max_length=80)
 
     def __str__(self):
         return self.category_name
+
 
 class FoodCategory(models.Model):
     name = models.CharField(max_length=250)
@@ -71,6 +74,7 @@ class FoodCategory(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Food(models.Model):
     name = models.CharField(max_length=200)
@@ -96,6 +100,7 @@ class FoodOptionExtraType(models.Model):
     def __str__(self):
         return self.name
 
+
 class FoodExtra(models.Model):
     name = models.CharField(max_length=50)
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0)
@@ -106,6 +111,7 @@ class FoodExtra(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class FoodOption(models.Model):
     name = models.CharField(max_length=50)
@@ -118,6 +124,7 @@ class FoodOption(models.Model):
     def __str__(self):
         return self.name
 
+
 class Table(models.Model):
     table_no = models.IntegerField(null=True, blank=True)
     restaurant = models.ForeignKey(
@@ -129,6 +136,7 @@ class Table(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class FoodOrder(models.Model):
     ORDER_STATUS = [
@@ -150,6 +158,7 @@ class FoodOrder(models.Model):
     def __str__(self):
        return self.status
 
+
 class OrderedItem(models.Model):
     ITEM_STATUS = [
         ("0_ORDER_INITIALIZED", "ORDER_INITIALIZED"),
@@ -160,7 +169,7 @@ class OrderedItem(models.Model):
         ("5_CANCELLED", "CANCELLED"),
 
     ]
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.IntegerField()
     food_option = models.ForeignKey(
         FoodOption, on_delete=models.PROTECT, related_name='ordered_items')
     food_extra = models.ManyToManyField(
