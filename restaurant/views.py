@@ -268,17 +268,20 @@ class FoodOrderViewSet(CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def cencel_order(self, request, pk, *args, **kwargs):
-        serializer = self.get_serializer_class()
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             table_qs = Table.objects.filter(
-                pk=request.data.get('table')).fast()
-            if table_qs.is_occupied:
+                pk=request.data.get('table')).first()
+            food_order_qs = FoodOrder.objects.filter(pk=pk).first()
+
+            if table_qs.is_occupied or not food_order_qs.status=='6_CANCELLED':
                 table_qs.is_occupied = False
                 table_qs.save()
-                qs = serializer.save()
-                serializer = self.serializer_class(instance=qs)
+                food_order_qs.status='6_CANCELLED'
+                food_order_qs.save()
+                serializer = FoodOrderUserPostSerializer(instance=food_order_qs)
             else:
-                return ResponseWrapper(error_msg=['Order is already cencel'], error_code=400)
+                return ResponseWrapper(error_msg=['Order is already cencelled'], error_code=400)
             return ResponseWrapper(data=serializer.data, msg='Cencel')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
