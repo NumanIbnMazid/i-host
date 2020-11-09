@@ -248,7 +248,9 @@ class FoodOrderViewSet(CustomViewSet):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             table_qs = Table.objects.filter(
-                pk=request.data.get('id')).last()
+                pk=request.data.get('table')).last()
+            if not table_qs:
+                return ResponseWrapper(error_msg=['table does not exists'], error_code=400)
             if not table_qs.is_occupied:
                 table_qs.is_occupied = True
                 table_qs.save()
