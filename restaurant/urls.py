@@ -74,9 +74,9 @@ urlpatterns = [
     path('order/create_order/',
          FoodOrderViewSet.as_view({'post': 'create_order'}, name='create_order')),
 
-    path('order/items/',
+    path('order/cart/items/',
          OrderedItemViewSet.as_view({'post': 'create'}, name='items')),
-    path('order/items/<int:pk>/',
+    path('order/cart/items/<int:pk>/',
          OrderedItemViewSet.as_view({'patch': 'update', 'delete': 'destroy'}, name='items')),
 
     path('order/create_order/<int:pk>/',
