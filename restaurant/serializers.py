@@ -87,7 +87,7 @@ class FoodOrderUserPostSerializer(serializers.ModelSerializer):
         fields = ['ordered_items', 'table', 'remarks', 'status']
 
 
-class BookTableSerializer(serializers.ModelField):
+class BookTableSerializer(serializers.ModelSerializer):
     class Meta:
         models = Table
         fields = ['id']
