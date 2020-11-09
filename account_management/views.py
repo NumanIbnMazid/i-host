@@ -212,10 +212,10 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
                 staff_qs = staff_serializer.update(
                     staff_qs, staff_serializer.validated_data)
 
-        user_serializer = UserAccountSerializer(instance=user_qs, many=False)
+        # user_serializer = UserAccountSerializer(instance=user_qs, many=False)
 
         staff_serializer = StaffInfoGetSerializer(instance=staff_qs)
-        return ResponseWrapper(data={"user": user_serializer.data, "staff_info": staff_serializer.data}, status=200)
+        return ResponseWrapper(data=staff_serializer.data, status=200)
 
     def retrieve(self, request, *args, **kwargs):
         if request.user is not None:
