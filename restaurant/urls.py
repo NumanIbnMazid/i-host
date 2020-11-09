@@ -14,8 +14,8 @@ router.register('food_extra', FoodExtraViewSet,
 router.register('food_option', FoodOptionViewSet,
                 basename="food_option")
 
-router.register('table', TableViewSet,
-               basename="table")
+# router.register('table', TableViewSet,
+#                basename="table")
 
 router.register('food', FoodViewSet,
                 basename="food")
@@ -26,6 +26,10 @@ urlpatterns = [
          FoodByRestaurantViewSet.as_view({'get': 'list'}), name='foods'),
     path('table/<int:pk>/add_staff/',
          TableViewSet.as_view({'post': 'add_staff'}), name='add_staff'),
+    path('table/',
+         TableViewSet.as_view({'post': 'create', }), name='table'),
+    path('table/<int:pk>/',
+         TableViewSet.as_view({'patch': 'update', }), name='table'),
 
     path('restaurant/',
          RestaurantViewSet.as_view({'post': 'create', 'get': 'list'}), name='restaurant_create_and_list'),
