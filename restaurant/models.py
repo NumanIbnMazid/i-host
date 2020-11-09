@@ -169,7 +169,7 @@ class OrderedItem(models.Model):
         ("5_CANCELLED", "CANCELLED"),
 
     ]
-    amount = models.IntegerField()
+    quantity = models.IntegerField()
     food_option = models.ForeignKey(
         FoodOption, on_delete=models.PROTECT, related_name='ordered_items')
     food_extra = models.ManyToManyField(
