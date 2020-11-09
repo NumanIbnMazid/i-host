@@ -23,7 +23,7 @@ from .serializers import (FoodWithPriceSerializer, FoodCategorySerializer, FoodD
                           FoodWithPriceSerializer,
                           OrderedItemSerializer, OrderedItemUserPostSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
-                          RestaurantUpdateSerialier, TableSerializer)
+                          RestaurantUpdateSerialier, StaffIdListSerializer, TableSerializer)
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
