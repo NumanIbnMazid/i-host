@@ -192,7 +192,7 @@ class TableViewSet(CustomViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     queryset = Table.objects.all()
     lookup_field = 'restaurant'
-    http_method_names = ['get']
+    http_method_names = ['get', 'post', 'patch']
 
     def table_list(self, request, restaurant, *args, **kwargs):
         qs = self.queryset.filter(restaurant=restaurant)
