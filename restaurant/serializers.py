@@ -44,6 +44,13 @@ class FoodOptionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class FoodOptionBaseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FoodOption
+        fields = '__all__'
+
+
 class RestaurantSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -58,8 +65,10 @@ class TableSerializer(serializers.ModelSerializer):
         model = Table
         fields = '__all__'
 
+
 class StaffIdListSerializer(serializers.Serializer):
     staff_list = serializers.ListSerializer(child=serializers.IntegerField())
+
 
 class OrderedItemSerializer(serializers.ModelSerializer):
     class Meta:
@@ -87,9 +96,6 @@ class FoodOrderUserPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOrder
         fields = ['ordered_items', 'table', 'remarks', 'status']
-
-
-
 
 
 class AddItemsSerializer(serializers.Serializer):

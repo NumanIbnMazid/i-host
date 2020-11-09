@@ -22,8 +22,8 @@ router.register('food', FoodViewSet,
 
 urlpatterns = [
     path('', include(router.urls)),
-#     path('foods/<int:restaurant>/',
-#          FoodByRestaurantViewSet.as_view({'get': 'list'}), name='foods'),
+    #     path('foods/<int:restaurant>/',
+    #          FoodByRestaurantViewSet.as_view({'get': 'list'}), name='foods'),
     path('table/<int:table_id>/add_staff/',
          TableViewSet.as_view({'post': 'add_staff'}), name='add_staff'),
     path('table/',
@@ -73,8 +73,11 @@ urlpatterns = [
          FoodByRestaurantViewSet.as_view({'get': 'recommended_foods_by_category'}), name='recommended_foods_by_category'),
     path('order/create_order/',
          FoodOrderViewSet.as_view({'post': 'create_order'}, name='create_order')),
-    path('order/add_items/',
-         FoodOrderViewSet.as_view({'post': 'add_items'}, name='add_items')),
+
+    path('order/items/',
+         OrderedItemViewSet.as_view({'post': 'create'}, name='items')),
+    path('order/items/<int:pk>/',
+         OrderedItemViewSet.as_view({'patch': 'update', 'delete': 'destroy'}, name='items')),
 
     path('order/create_order/<int:pk>/',
          FoodOrderViewSet.as_view({'patch': 'update', 'get': 'retrieve'}, name='create_order')),

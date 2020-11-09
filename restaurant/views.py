@@ -12,10 +12,10 @@ from utils.custom_viewset import CustomViewSet
 from utils.response_wrapper import ResponseWrapper
 
 from restaurant.models import (Food, FoodCategory, FoodExtra, FoodOption,
-                               FoodOptionExtraType, FoodOrder, Restaurant,
+                               FoodOptionExtraType, FoodOrder, OrderedItem, Restaurant,
                                Table)
 
-from .serializers import (FoodWithPriceSerializer, FoodCategorySerializer, FoodDetailSerializer,
+from .serializers import (FoodOptionBaseSerializer, FoodWithPriceSerializer, FoodCategorySerializer, FoodDetailSerializer,
                           FoodExtraPostPatchSerializer,
                           FoodExtraSerializer, FoodOptionExtraTypeSerializer,
                           FoodOptionSerializer, FoodOrderSerializer, FoodOrderUserPostSerializer,
@@ -174,7 +174,14 @@ class FoodExtraViewSet(CustomViewSet):
 
 
 class FoodOptionViewSet(CustomViewSet):
-    serializer_class = FoodOptionSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update']:
+            self.serializer_class = FoodOptionBaseSerializer
+        else:
+            self.serializer_class = FoodOptionSerializer
+        return self.serializer_class
+
     # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodOption.objects.all()
     lookup_field = 'pk'
@@ -316,6 +323,27 @@ class FoodOrderViewSet(CustomViewSet):
             else:
                 return ResponseWrapper(error_msg=['Order is already cancel'], error_code=400)
             return ResponseWrapper(data=serializer.data, msg='Cancel')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+
+class OrderedItemViewSet(CustomViewSet):
+    queryset = OrderedItem.objects.all()
+    lookup_field = 'pk'
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update']:
+            self.serializer_class = OrderedItemUserPostSerializer
+        else:
+            self.serializer_class = OrderedItemSerializer
+
+        return self.serializer_class
+
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data, many=True)
+        if serializer.is_valid():
+            serializer.save()
+            return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
