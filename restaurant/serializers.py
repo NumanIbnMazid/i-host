@@ -58,6 +58,8 @@ class TableSerializer(serializers.ModelSerializer):
         model = Table
         fields = '__all__'
 
+class StaffIdListSerializer(serializers.Serializer):
+    staff_list = serializers.ListSerializer(child=serializers.IntegerField())
 
 class OrderedItemSerializer(serializers.ModelSerializer):
     class Meta:
