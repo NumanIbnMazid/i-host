@@ -92,10 +92,11 @@ class FoodOrderSerializer(serializers.ModelSerializer):
 class FoodOrderUserPostSerializer(serializers.ModelSerializer):
     ordered_items = OrderedItemSerializer(
         many=True, read_only=True, required=False)
+    status = serializers.CharField(read_only=True)
 
     class Meta:
         model = FoodOrder
-        fields = ['ordered_items', 'table', 'remarks', 'status']
+        fields = ['ordered_items', 'table', 'remarks', 'status', 'id']
 
 
 class AddItemsSerializer(serializers.Serializer):

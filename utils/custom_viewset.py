@@ -28,7 +28,7 @@ class CustomViewSet(viewsets.ModelViewSet):
 
     def update(self, request, **kwargs):
         serializer_class = self.get_serializer_class()
-        serializer = serializer_class(data=request.data)
+        serializer = serializer_class(data=request.data, partial=True)
         if serializer.is_valid():
             qs = serializer.update(instance=self.get_object(
             ), validated_data=serializer.validated_data)
