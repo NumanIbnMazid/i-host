@@ -71,6 +71,9 @@ urlpatterns = [
          FoodByRestaurantViewSet.as_view({'get': 'recommended_foods_by_category'}), name='recommended_foods_by_category'),
     path('order/create_order/',
          FoodOrderViewSet.as_view({'post': 'create_order'}, name='create_order')),
+    path('order/book_table/',
+         FoodOrderViewSet.as_view({'post': 'book_table'}, name='book_table')),
+
     path('order/add_items/',
          FoodOrderViewSet.as_view({'post': 'add_items'}, name='add_items')),
 

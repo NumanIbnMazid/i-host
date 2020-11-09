@@ -15,7 +15,7 @@ from restaurant.models import (Food, FoodCategory, FoodExtra, FoodOption,
                                FoodOptionExtraType, FoodOrder, Restaurant,
                                Table)
 
-from .serializers import (FoodWithPriceSerializer, FoodCategorySerializer, FoodDetailSerializer, FoodExtraPostPatchSerializer,
+from .serializers import (BookTableSerializer, FoodWithPriceSerializer, FoodCategorySerializer, FoodDetailSerializer, FoodExtraPostPatchSerializer,
                           FoodExtraSerializer, FoodOptionExtraTypeSerializer,
                           FoodOptionSerializer, FoodOrderSerializer, FoodOrderUserPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
@@ -229,8 +229,9 @@ class FoodOrderViewSet(CustomViewSet):
     lookup_field = 'pk'
 
     def get_serializer_class(self):
-        if self.action in ['create_order']:
-            self.serializer_class = FoodOrderUserPostSerializer
+        if self.action in ['book_table']:
+            # self.serializer_class = FoodOrderUserPostSerializer
+            self.serializer_class = BookTableSerializer
         elif self.action in ['add_items']:
             self.serializer_class = OrderedItemUserPostSerializer
         elif self.action in ['cencel_order']:
@@ -242,7 +243,7 @@ class FoodOrderViewSet(CustomViewSet):
 
     # def list(self,request,)
 
-    def create_order(self, request):
+    def book_table(self, request):
         # serializer_class = self.get_serializer_class()
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -251,8 +252,7 @@ class FoodOrderViewSet(CustomViewSet):
             if not table_qs.is_occupied:
                 table_qs.is_occupied = True
                 table_qs.save()
-                qs = serializer.save()
-                serializer = self.serializer_class(instance=qs)
+                serializer = TableSerializer(instance=table_qs)
             else:
                 return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
             return ResponseWrapper(data=serializer.data, msg='created')
