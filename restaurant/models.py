@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from os import name, truncate
 import restaurant
 from django.db import models
@@ -169,7 +170,7 @@ class OrderedItem(models.Model):
         ("5_CANCELLED", "CANCELLED"),
 
     ]
-    quantity = models.IntegerField()
+    quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     food_option = models.ForeignKey(
         FoodOption, on_delete=models.PROTECT, related_name='ordered_items')
     food_extra = models.ManyToManyField(
