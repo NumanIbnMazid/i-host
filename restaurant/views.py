@@ -332,13 +332,13 @@ class FoodByRestaurantViewSet(CustomViewSet):
             foods__restaurant=restaurant,
         ).prefetch_related('foods')
 
-        food_price = FoodOption.objects.all().values_list('food__category__name',
-                                                          'food__name').annotate(Min('price')).order_by('price')[0:].prefetch_related('foods')
-        new_price = Food.objects.filter().annotate(Min('food_options__price')).order_by(
-            'food_options__price')[0:].prefetch_related('food_options')
+        # food_price = FoodOption.objects.all().values_list('food__category__name',
+        #                                                   'food__name').annotate(Min('price')).order_by('price')[0:].prefetch_related('foods')
+        # new_price = Food.objects.filter().annotate(Min('food_options__price')).order_by(
+        #     'food_options__price')[0:].prefetch_related('food_options')
 
-        print(food_price)
-        print(new_price)
+        # print(food_price)
+        # print(new_price)
 
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')

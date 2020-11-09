@@ -112,7 +112,6 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
             "restaurant",
             "is_top",
             "is_recommended",
-            # "food_options",
             'price',
             'ingredients',
         ]
