@@ -335,7 +335,8 @@ class FoodByRestaurantViewSet(CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def list(self, request, restaurant, *args, **kwargs):
-        qs = self.queryset.filter(restaurant=restaurant)
+        qs = self.queryset.filter(
+            restaurant=restaurant).prefetch_related('food_options', 'food_extras')
         # qs = qs.filter(is_top = True)
         serializer = FoodDetailSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
