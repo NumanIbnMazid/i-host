@@ -21,7 +21,7 @@ from .serializers import (AddItemsSerializer, FoodBasicSerializer, FoodCategoryS
                           FoodsByCategorySerializer, FoodSerializer,
                           HotelStaffInformationSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
-                          RestaurantUpdateSerialier, TableSerializer)
+                          RestaurantUpdateSerialier, TableSerializer, FoodOrderSerializer)
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
@@ -233,6 +233,8 @@ class FoodOrderViewSet(CustomViewSet):
             self.serializer_class = FoodOrderUserPostSerializer
         elif self.action in ['add_items']:
             self.serializer_class = AddItemsSerializer
+        elif self.action in ['cencel_order']:
+            self.serializer_class = FoodOrderSerializer
         else:
             self.serializer_class = FoodOrderUserPostSerializer
 
@@ -265,7 +267,36 @@ class FoodOrderViewSet(CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
+    def cencel_order(self, request, pk, *args, **kwargs):
+        serializer = self.get_serializer_class()
+        if serializer.is_valid():
+            table_qs = Table.objects.filter(
+                pk=request.data.get('table')).fast()
+            if table_qs.is_occupied:
+                table_qs.is_occupied = False
+                table_qs.save()
+                qs = serializer.save()
+                serializer = self.serializer_class(instance=qs)
+            else:
+                return ResponseWrapper(error_msg=['Order is already cencel'], error_code=400)
+            return ResponseWrapper(data=serializer.data, msg='Cencel')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
+
+
+"""
+    def cencel_order(self, request, pk, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+        if serializer.is_valid():
+            qs = serializer.update(instance=self.get_object(
+            ), validated_data=serializer.validated_data)
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(msg='Succesfully Cencel')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+"""
 class FoodViewSet(CustomViewSet):
     serializer_class = FoodBasicSerializer
 

@@ -77,7 +77,7 @@ class FoodOrderUserPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FoodOrder
-        fields = ['ordered_items', 'table', 'remarks']
+        fields = ['ordered_items', 'table', 'remarks', 'status']
 
 
 class AddItemsSerializer(serializers.Serializer):

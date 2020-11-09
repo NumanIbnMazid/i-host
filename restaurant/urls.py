@@ -71,5 +71,8 @@ urlpatterns = [
          FoodOrderViewSet.as_view({'post': 'add_items'}, name='add_items')),
 
     path('order/create_order/<int:pk>/',
-         FoodOrderViewSet.as_view({'patch': 'update', 'get': 'retrieve'}, name='create_order'))
+         FoodOrderViewSet.as_view({'patch': 'update', 'get': 'retrieve'}, name='create_order')),
+
+    path('order/cencel_order/<int:pk>/',
+         FoodOrderViewSet.as_view({'post': 'cencel_order'}, name='cencel_order')),
 ]
