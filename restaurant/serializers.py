@@ -100,14 +100,33 @@ class FoodSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class FoodBasicSerializer(serializers.ModelSerializer):
+class FoodWithPriceSerializer(serializers.ModelSerializer):
+    price = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Food
-        fields = '__all__'
+        fields = [
+            "name",
+            "image",
+            "description",
+            "restaurant",
+            "is_top",
+            "is_recommended",
+            # "food_options",
+            'price',
+            'ingredients',
+        ]
+
+    def get_price(self, obj):
+        option_qs = obj.food_options.order_by('price').first()
+        if option_qs:
+            return option_qs.price
+        else:
+            return None
 
 
 class FoodsByCategorySerializer(serializers.ModelSerializer):
-    foods = FoodBasicSerializer(many=True)
+    foods = FoodWithPriceSerializer(many=True)
 
     class Meta:
         model = FoodCategory

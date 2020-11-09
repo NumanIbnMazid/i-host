@@ -15,7 +15,7 @@ from restaurant.models import (Food, FoodCategory, FoodExtra, FoodOption,
                                FoodOptionExtraType, FoodOrder, Restaurant,
                                Table)
 
-from .serializers import (FoodBasicSerializer, FoodCategorySerializer, FoodDetailSerializer, FoodExtraPostPatchSerializer,
+from .serializers import (FoodWithPriceSerializer, FoodCategorySerializer, FoodDetailSerializer, FoodExtraPostPatchSerializer,
                           FoodExtraSerializer, FoodOptionExtraTypeSerializer,
                           FoodOptionSerializer, FoodOrderSerializer, FoodOrderUserPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
@@ -268,7 +268,7 @@ class FoodOrderViewSet(CustomViewSet):
 
 
 class FoodViewSet(CustomViewSet):
-    serializer_class = FoodBasicSerializer
+    serializer_class = FoodWithPriceSerializer
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
