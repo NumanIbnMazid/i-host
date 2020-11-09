@@ -22,8 +22,8 @@ router.register('food', FoodViewSet,
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('foods/<int:restaurant>/',
-         FoodByRestaurantViewSet.as_view({'get': 'list'}), name='foods'),
+#     path('foods/<int:restaurant>/',
+#          FoodByRestaurantViewSet.as_view({'get': 'list'}), name='foods'),
     path('table/<int:pk>/add_staff/',
          TableViewSet.as_view({'post': 'add_staff'}), name='add_staff'),
     path('table/',

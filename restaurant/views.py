@@ -284,7 +284,6 @@ class FoodOrderViewSet(CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
 
-
 """
     def cencel_order(self, request, pk, *args, **kwargs):
         serializer_class = self.get_serializer_class()
@@ -297,6 +296,8 @@ class FoodOrderViewSet(CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 """
+
+
 class FoodViewSet(CustomViewSet):
     serializer_class = FoodWithPriceSerializer
 
@@ -311,7 +312,7 @@ class FoodViewSet(CustomViewSet):
 
 
 class FoodByRestaurantViewSet(CustomViewSet):
-    serializer_class = FoodSerializer
+    serializer_class = FoodsByCategorySerializer
 
     # queryset = Food.objects.all()
 
@@ -336,7 +337,7 @@ class FoodByRestaurantViewSet(CustomViewSet):
     def list(self, request, restaurant, *args, **kwargs):
         qs = self.queryset.filter(restaurant=restaurant)
         # qs = qs.filter(is_top = True)
-        serializer = self.serializer_class(instance=qs, many=True)
+        serializer = FoodDetailSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def top_foods_by_category(self, request, restaurant, *args, **kwargs):
