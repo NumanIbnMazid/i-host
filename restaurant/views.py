@@ -15,13 +15,14 @@ from restaurant.models import (Food, FoodCategory, FoodExtra, FoodOption,
                                FoodOptionExtraType, FoodOrder, Restaurant,
                                Table)
 
-from .serializers import (BookTableSerializer, FoodWithPriceSerializer, FoodCategorySerializer, FoodDetailSerializer, FoodExtraPostPatchSerializer,
+from .serializers import (BookTableSerializer, FoodWithPriceSerializer, FoodCategorySerializer, FoodDetailSerializer,
+                          FoodExtraPostPatchSerializer,
                           FoodExtraSerializer, FoodOptionExtraTypeSerializer,
                           FoodOptionSerializer, FoodOrderSerializer, FoodOrderUserPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
                           HotelStaffInformationSerializer, OrderedItemSerializer, OrderedItemUserPostSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
-                          RestaurantUpdateSerialier, TableSerializer, FoodOrderSerializer)
+                          RestaurantUpdateSerialier, TableSerializer, FoodOrderSerializer, StaffIdListSerializer)
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
@@ -189,10 +190,18 @@ class TableViewSet(CustomViewSet):
 
 class TableViewSet(CustomViewSet):
     serializer_class = TableSerializer
+
     # permission_classes = [permissions.IsAuthenticated]
     queryset = Table.objects.all()
     lookup_field = 'pk'
     # http_method_names = ['get', 'post', 'patch']
+
+    def get_serializer_class(self):
+        if self.action in ['add_staff']:
+            self.serializer_class =StaffIdListSerializer
+        else:
+            self.serializer_class = TableSerializer
+        return  self.serializer_class
 
     def table_list(self, request, restaurant, *args, **kwargs):
         qs = self.queryset.filter(restaurant=restaurant)
@@ -200,10 +209,10 @@ class TableViewSet(CustomViewSet):
         serializer = self.serializer_class(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
-    @swagger_auto_schema(request_body=ListOfIdSerializer)
-    def add_staff(self, request, *args, **kwargs):
-        qs = self.get_object()
-        id_list = request.data.get('id', [])
+    # @swagger_auto_schema(request_body=ListOfIdSerializer)
+    def add_staff(self, request,table_id, *args, **kwargs):
+        qs = self.get_queryset().filter(pk=table_id).first()
+        id_list = request.data.get('staff_list', [])
         id_list = list(HotelStaffInformation.objects.filter(
             pk__in=id_list).values_list('pk', flat=True))
         if qs:
@@ -221,6 +230,14 @@ class TableViewSet(CustomViewSet):
         serializer = self.serializer_class(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
+    def remove_staff(self, request, pk, *args, **kwargs):
+        qs = self.queryset.filter(staff_assigned=pk)
+        if qs:
+            qs.remove(pk)
+            return ResponseWrapper(status=200, msg='remove')
+        else:
+            return ResponseWrapper(error_msg="failed to remove staff", error_code=400)
+
 
 class FoodOrderViewSet(CustomViewSet):
 
@@ -234,7 +251,7 @@ class FoodOrderViewSet(CustomViewSet):
             self.serializer_class = BookTableSerializer
         elif self.action in ['add_items']:
             self.serializer_class = OrderedItemUserPostSerializer
-        elif self.action in ['cencel_order']:
+        elif self.action in ['cancel_order']:
             self.serializer_class = FoodOrderSerializer
         else:
             self.serializer_class = FoodOrderUserPostSerializer
@@ -269,7 +286,7 @@ class FoodOrderViewSet(CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def cencel_order(self, request, pk, *args, **kwargs):
+    def cancel_order(self, request, pk, *args, **kwargs):
         serializer = self.get_serializer_class()
         if serializer.is_valid():
             table_qs = Table.objects.filter(
@@ -280,24 +297,11 @@ class FoodOrderViewSet(CustomViewSet):
                 qs = serializer.save()
                 serializer = self.serializer_class(instance=qs)
             else:
-                return ResponseWrapper(error_msg=['Order is already cencel'], error_code=400)
-            return ResponseWrapper(data=serializer.data, msg='Cencel')
+                return ResponseWrapper(error_msg=['Order is already cancel'], error_code=400)
+            return ResponseWrapper(data=serializer.data, msg='Cancel')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-
-"""
-    def cencel_order(self, request, pk, *args, **kwargs):
-        serializer_class = self.get_serializer_class()
-        serializer = serializer_class(data=request.data)
-        if serializer.is_valid():
-            qs = serializer.update(instance=self.get_object(
-            ), validated_data=serializer.validated_data)
-            serializer = self.serializer_class(instance=qs)
-            return ResponseWrapper(msg='Succesfully Cencel')
-        else:
-            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
-"""
 
 
 class FoodViewSet(CustomViewSet):
