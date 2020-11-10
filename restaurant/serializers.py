@@ -199,9 +199,25 @@ class HotelStaffInformationSerializer(serializers.ModelSerializer):
 
 
 class TableStaffSerializer(serializers.ModelSerializer):
-    staff_assigned = StaffInfoGetSerializer(read_only=True, many=True)
-    order_item = OrderedItemSerializer(read_only=True, many=True)
+    # staff_assigned = StaffInfoGetSerializer(read_only=True, many=True)
+    #order_item = OrderedItemSerializer(read_only=True, many=True)
+    order_info = serializers.SerializerMethodField(read_only=True)
+    #id = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = FoodOrder
-        fields = ['remarks','status','staff_assigned','order_item']
+        model = Table
+        fields = [ 'table_no','restaurant','is_occupied' ,'name', 'order_info','id']
+
+    def get_order_info(self, obj):
+        if obj.is_occupied:
+            order_qs = obj.food_orders.exclude(status__in = ["5_PAID","6_CANCELLED"]).order_by('-id').first()
+            # item_qs = OrderedItem.objects.filter(food_order=order_qs)
+            if not order_qs:
+                return {}
+            serializer =  FoodOrderSerializer(order_qs)
+            temp_data_dict = serializer.data
+            temp_data_dict['total_price'] = 380
+            return  temp_data_dict
+        else:
+            return {}
+

@@ -217,7 +217,7 @@ class TableViewSet(CustomViewSet):
             self.serializer_class = StaffIdListSerializer
         elif self.action in ['remove_staff']:
             self.serializer_class = StaffIdListSerializer
-        elif self.action in ['table_list']:
+        elif self.action in ['staff_table_list']:
             self.serializer_class = TableStaffSerializer
         else:
             self.serializer_class = TableSerializer
@@ -247,8 +247,8 @@ class TableViewSet(CustomViewSet):
     def staff_table_list(self, request, staff_id, *args, **kwargs):
         qs = self.queryset.filter(staff_assigned=staff_id)
         # qs = qs.filter(is_top = True)
-        serializer = self.serializer_class(instance=qs, many=True)
-        return ResponseWrapper(data=serializer.data, msg='success')
+        serializer = self.get_serializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='successful')
 
     def remove_staff(self, request, table_id, *args, **kwargs):
         qs = self.get_queryset().filter(pk=table_id).first()
