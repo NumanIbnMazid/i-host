@@ -127,6 +127,7 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
             'price',
             'ingredients',
             'category',
+            'id'
         ]
 
     def get_price(self, obj):
@@ -191,3 +192,12 @@ class HotelStaffInformationSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelStaffInformation
         fields = '__all__'
+
+
+class TableStaffSerializer(serializers.ModelSerializer):
+    staff_assigned = StaffInfoGetSerializer(read_only=True, many=True)
+    order_item = OrderedItemSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = FoodOrder
+        fields = ['remarks','status','staff_assigned','order_item']

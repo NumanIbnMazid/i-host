@@ -23,7 +23,7 @@ from .serializers import (FoodOptionBaseSerializer, FoodWithPriceSerializer, Foo
                           FoodWithPriceSerializer,
                           OrderedItemSerializer, OrderedItemUserPostSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
-                          RestaurantUpdateSerialier, StaffIdListSerializer, TableSerializer)
+                          RestaurantUpdateSerialier, StaffIdListSerializer, TableSerializer,TableStaffSerializer)
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
@@ -209,6 +209,8 @@ class TableViewSet(CustomViewSet):
             self.serializer_class = StaffIdListSerializer
         elif self.action in ['remove_staff']:
             self.serializer_class = StaffIdListSerializer
+        elif self.action in ['table_list']:
+            self.serializer_class = TableStaffSerializer
         else:
             self.serializer_class = TableSerializer
         return self.serializer_class
@@ -431,3 +433,19 @@ class FoodByRestaurantViewSet(CustomViewSet):
 
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
+
+"""
+class FoodOrderViewSet(CustomViewSet):
+    serializer_class = TableOrderDetailseSrializer
+
+    queryset = FoodOrder.objects.all()
+    lookup_field = 'table'
+    http_method_names = ['get']
+    def order_list(self, request, table, *args, **kwargs):
+        qs = self.queryset.filter(
+            table=table).prefetch_related('ordered_items')
+        # qs = qs.filter(is_top = True)
+        serializer = OrderedItemSrializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
+"""

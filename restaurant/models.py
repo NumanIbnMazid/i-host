@@ -157,7 +157,7 @@ class FoodOrder(models.Model):
                               default="0_ORDER_INITIALIZED", max_length=120)
 
     def __str__(self):
-        return self.status
+        return self.table.name
 
 
 class OrderedItem(models.Model):
