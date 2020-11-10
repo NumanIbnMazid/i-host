@@ -123,6 +123,7 @@ class StaffLoginInfoGetSerializer(serializers.ModelSerializer):
             "shift_end",
             "nid",
             "restaurant",
+            "id"
         ]
 
 
