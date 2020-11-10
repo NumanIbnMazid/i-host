@@ -71,10 +71,16 @@ class FoodOptionSerializer(serializers.ModelSerializer):
 
 
 class FoodOptionBaseSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = FoodOption
         fields = '__all__'
+
+"""
+class FoodOptionTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodOptionType
+        fields = '__all__'
+"""
 
 
 class RestaurantSerializer(serializers.ModelSerializer):
