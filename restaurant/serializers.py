@@ -56,6 +56,13 @@ class FoodExtraPostPatchSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class FoodExtraTypeDetailSerializer(serializers.ModelSerializer):
+    extra_type = FoodExtraTypeSerializer(read_only=True)
+
+    class Meta:
+        model = FoodExtra
+        fields = '__all__'
+
 class FoodCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodCategory

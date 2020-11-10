@@ -24,7 +24,7 @@ from .serializers import (FoodOptionBaseSerializer, FoodWithPriceSerializer, Foo
                           FoodWithPriceSerializer,
                           OrderedItemSerializer, OrderedItemUserPostSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
-                          RestaurantUpdateSerialier, StaffIdListSerializer, TableSerializer, FoodExtraTypeSerializer,TableStaffSerializer)
+                          RestaurantUpdateSerialier, StaffIdListSerializer, TableSerializer, FoodExtraTypeSerializer,TableStaffSerializer,FoodExtraTypeDetailSerializer)
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
@@ -188,6 +188,26 @@ class FoodExtraViewSet(CustomViewSet):
         return self.serializer_class
 
     http_method_names = ['post', 'patch', 'get']
+    def create(self, request):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+        if serializer.is_valid():
+            qs = serializer.save()
+            serializer = FoodExtraTypeDetailSerializer(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def update(self, request, **kwargs):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data, partial=True)
+        if serializer.is_valid():
+            qs = serializer.update(instance=self.get_object(
+            ), validated_data=serializer.validated_data)
+            serializer = FoodExtraTypeDetailSerializer(instance=qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
 
 class FoodOptionViewSet(CustomViewSet):
