@@ -187,6 +187,7 @@ class FoodDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Food
         fields = [
+            'id',
             "name",
             "image",
             "description",
