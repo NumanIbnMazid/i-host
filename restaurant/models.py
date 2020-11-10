@@ -95,12 +95,17 @@ class Food(models.Model):
         return self.name
 
 
-class FoodOptionExtraType(models.Model):
+class FoodOptionType(models.Model):
     name = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name
 
+class FoodExtraType(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
 
 class FoodExtra(models.Model):
     name = models.CharField(max_length=50)
@@ -108,7 +113,7 @@ class FoodExtra(models.Model):
     food = models.ForeignKey(Food, on_delete=models.CASCADE,
                              related_name='food_extras')
     extra_type = models.ForeignKey(
-        FoodOptionExtraType, on_delete=models.CASCADE, related_name='food_extras')
+        FoodExtraType, on_delete=models.CASCADE, related_name='food_extras')
 
     def __str__(self):
         return self.name
@@ -120,7 +125,7 @@ class FoodOption(models.Model):
     food = models.ForeignKey(
         Food, on_delete=models.CASCADE, related_name='food_options')
     option_type = models.ForeignKey(
-        FoodOptionExtraType, on_delete=models.CASCADE, related_name='food_options')
+        FoodOptionType, on_delete=models.CASCADE, related_name='food_options')
 
     def __str__(self):
         return self.name
@@ -180,3 +185,14 @@ class OrderedItem(models.Model):
 
     status = models.CharField(
         choices=ITEM_STATUS, default="0_ORDER_INITIALIZED", max_length=120)
+
+
+
+    """
+    
+    
+    order - > extra sort type wise
+    food extra option type separate
+    customer table separate
+    
+    """

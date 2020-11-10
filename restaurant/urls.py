@@ -3,8 +3,13 @@ from .views import *
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
-router.register('food_option_extra_type', FoodOptionExtraTypeViewSet,
+router.register('food_option_type', FoodOptionTypeViewSet,
                 basename="food_option_extra_type")
+
+
+router.register('food_extra_type', FoodExtraTypeViewSet,
+                basename="food_option_extra_type")
+
 router.register('food_category', FoodCategoryViewSet,
                 basename="food_category")
 

@@ -8,7 +8,9 @@ admin.site.register(RestaurantPromoCategory)
 
 admin.site.register(FoodCategory)
 admin.site.register(Food)
-admin.site.register(FoodOptionExtraType)
+admin.site.register(FoodOptionType)
+admin.site.register(FoodExtraType)
+
 admin.site.register(FoodExtra)
 
 admin.site.register(FoodOption)

@@ -10,14 +10,18 @@ from django.db.models import Q, query_utils, Min
 from rest_framework import serializers
 
 
-class FoodOptionExtraTypeSerializer(serializers.ModelSerializer):
+class FoodOptionTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = FoodOptionExtraType
+        model = FoodOptionType
         fields = '__all__'
 
+class FoodExtraTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodExtraType
+        fields = '__all__'
 
 class FoodExtraSerializer(serializers.ModelSerializer):
-    extra_type = FoodOptionExtraTypeSerializer(read_only=True)
+    extra_type = FoodExtraTypeSerializer(read_only=True)
 
     class Meta:
         model = FoodExtra
@@ -37,7 +41,7 @@ class FoodCategorySerializer(serializers.ModelSerializer):
 
 
 class FoodOptionSerializer(serializers.ModelSerializer):
-    option_type = FoodOptionExtraTypeSerializer(read_only=True)
+    option_type = FoodOptionTypeSerializer(read_only=True)
 
     class Meta:
         model = FoodOption
