@@ -36,7 +36,7 @@ class GroupByListSerializer(serializers.ListSerializer):
         iterable = data.all() if isinstance(data, models.Manager) else data
         return {
             extra_type.name: super(GroupByListSerializer, self).to_representation(
-                FoodExtra.objects.filter(extra_type=extra_type))
+                FoodExtra.objects.filter(extra_type=extra_type, pk__in=list(data.values_list('id', flat=True))))
             for extra_type in FoodExtraType.objects.filter(pk__in=list(data.values_list('extra_type_id', flat=True)))
         }
 
@@ -234,18 +234,19 @@ class TableStaffSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Table
-        fields = [ 'table_no','restaurant','is_occupied' ,'name', 'order_info','id']
+        fields = ['table_no', 'restaurant',
+                  'is_occupied', 'name', 'order_info', 'id']
 
     def get_order_info(self, obj):
         if obj.is_occupied:
-            order_qs = obj.food_orders.exclude(status__in = ["5_PAID","6_CANCELLED"]).order_by('-id').first()
+            order_qs = obj.food_orders.exclude(
+                status__in=["5_PAID", "6_CANCELLED"]).order_by('-id').first()
             # item_qs = OrderedItem.objects.filter(food_order=order_qs)
             if not order_qs:
                 return {}
-            serializer =  FoodOrderSerializer(order_qs)
+            serializer = FoodOrderSerializer(order_qs)
             temp_data_dict = serializer.data
             temp_data_dict['total_price'] = 380
-            return  temp_data_dict
+            return temp_data_dict
         else:
             return {}
-
