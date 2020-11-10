@@ -11,19 +11,20 @@ from rest_framework.serializers import Serializer
 from utils.custom_viewset import CustomViewSet
 from utils.response_wrapper import ResponseWrapper
 
-from restaurant.models import (Food, FoodCategory, FoodExtra, FoodOption,
-                               FoodOptionExtraType, FoodOrder, OrderedItem, Restaurant,
+from restaurant.models import (Food, FoodCategory, FoodExtra,FoodExtraType, FoodOption,
+                               FoodOptionType, FoodOrder, OrderedItem, Restaurant,
                                Table)
 
-from .serializers import (FoodOptionBaseSerializer, FoodWithPriceSerializer, FoodCategorySerializer, FoodDetailSerializer,
+from .serializers import (FoodOptionBaseSerializer, FoodWithPriceSerializer, FoodCategorySerializer,
+                          FoodDetailSerializer,
                           FoodExtraPostPatchSerializer,
-                          FoodExtraSerializer, FoodOptionExtraTypeSerializer,
+                          FoodExtraSerializer, FoodOptionTypeSerializer,
                           FoodOptionSerializer, FoodOrderSerializer, FoodOrderUserPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
                           FoodWithPriceSerializer,
                           OrderedItemSerializer, OrderedItemUserPostSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
-                          RestaurantUpdateSerialier, StaffIdListSerializer, TableSerializer,TableStaffSerializer)
+                          RestaurantUpdateSerialier, StaffIdListSerializer, TableSerializer, FoodExtraTypeSerializer,TableStaffSerializer)
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
@@ -149,10 +150,17 @@ class FoodCategoryViewSet(CustomViewSet):
     lookup_field = 'pk'
 
 
-class FoodOptionExtraTypeViewSet(CustomViewSet):
-    serializer_class = FoodOptionExtraTypeSerializer
+class FoodOptionTypeViewSet(CustomViewSet):
+    serializer_class = FoodOptionTypeSerializer
     # permission_classes = [permissions.IsAuthenticated]
-    queryset = FoodOptionExtraType.objects.all()
+    queryset = FoodOptionType.objects.all()
+    lookup_field = 'pk'
+
+
+class FoodExtraTypeViewSet(CustomViewSet):
+    serializer_class = FoodExtraTypeSerializer
+    # permission_classes = [permissions.IsAuthenticated]
+    queryset = FoodExtraType.objects.all()
     lookup_field = 'pk'
 
 
