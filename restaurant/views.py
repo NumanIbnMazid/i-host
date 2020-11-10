@@ -156,6 +156,15 @@ class FoodOptionTypeViewSet(CustomViewSet):
     queryset = FoodOptionType.objects.all()
     lookup_field = 'pk'
 
+    def list(self, request):
+        qs = self.get_queryset().exclude(name='single_type')
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(instance=qs, many=True)
+        # serializer = self.serializer_class(instance=qs, many=True)
+        # serializer.is_valid()
+        return ResponseWrapper(data=serializer.data, msg='success')
+
+
 
 class FoodExtraTypeViewSet(CustomViewSet):
     serializer_class = FoodExtraTypeSerializer
