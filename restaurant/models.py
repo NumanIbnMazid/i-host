@@ -141,7 +141,7 @@ class Table(models.Model):
     is_occupied = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.name
+        return self.name+'  ' + self.id.__str__()
 
 
 class FoodOrder(models.Model):
@@ -162,7 +162,7 @@ class FoodOrder(models.Model):
                               default="0_ORDER_INITIALIZED", max_length=120)
 
     def __str__(self):
-        return self.status
+        return self.table.name
 
 
 class OrderedItem(models.Model):
