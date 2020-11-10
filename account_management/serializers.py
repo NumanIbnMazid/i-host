@@ -90,7 +90,7 @@ class UserAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAccount
         fields = ['phone', 'first_name', 'last_name',
-                  'date_of_birth', 'email_address']
+                  'date_of_birth', 'email_address','id']
 
 
 class StaffInfoGetSerializer(serializers.ModelSerializer):
@@ -123,6 +123,7 @@ class StaffLoginInfoGetSerializer(serializers.ModelSerializer):
             "shift_end",
             "nid",
             "restaurant",
+
         ]
 
 
