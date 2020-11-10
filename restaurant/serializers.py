@@ -4,7 +4,7 @@ from django.db.models.fields.related import RelatedField
 from account_management.models import HotelStaffInformation, UserManager
 from utils.response_wrapper import ResponseWrapper
 from django.db.models import fields
-from rest_framework.serializers import Serializer
+
 from .models import *
 from django.db.models import Q, query_utils, Min
 from rest_framework import serializers
@@ -15,10 +15,12 @@ class FoodOptionTypeSerializer(serializers.ModelSerializer):
         model = FoodOptionType
         fields = '__all__'
 
+
 class FoodExtraTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodExtraType
         fields = '__all__'
+
 
 class FoodExtraSerializer(serializers.ModelSerializer):
     extra_type = FoodExtraTypeSerializer(read_only=True)
@@ -26,6 +28,26 @@ class FoodExtraSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodExtra
         fields = '__all__'
+
+
+class GroupByListSerializer(serializers.ListSerializer):
+
+    def to_representation(self, data):
+        iterable = data.all() if isinstance(data, models.Manager) else data
+        return {
+            extra_type.name: super(GroupByListSerializer, self).to_representation(
+                FoodExtra.objects.filter(extra_type=extra_type))
+            for extra_type in FoodExtraType.objects.filter(pk__in=list(data.values_list('extra_type_id', flat=True)))
+        }
+
+
+class FoodExtraGroupByTypeSerializer(serializers.ModelSerializer):
+    # extra_type = FoodExtraTypeSerializer(read_only=True)
+
+    class Meta:
+        model = FoodExtra
+        fields = ['id', 'name', 'price']
+        list_serializer_class = GroupByListSerializer
 
 
 class FoodExtraPostPatchSerializer(serializers.ModelSerializer):
@@ -151,7 +173,7 @@ class FoodsByCategorySerializer(serializers.ModelSerializer):
 
 class FoodDetailSerializer(serializers.ModelSerializer):
     category = FoodCategorySerializer(read_only=True)
-    food_extras = FoodExtraSerializer(read_only=True, many=True)
+    food_extras = FoodExtraGroupByTypeSerializer(read_only=True, many=True)
     food_options = FoodOptionSerializer(read_only=True, many=True)
     price = serializers.SerializerMethodField(read_only=True)
 
