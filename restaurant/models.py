@@ -147,12 +147,11 @@ class Table(models.Model):
 class FoodOrder(models.Model):
     ORDER_STATUS = [
         ("0_ORDER_INITIALIZED", "ORDER_INITIALIZED"),
-        ("1_ORDER_PLACED", "ORDER_PLACED"),
-        ("2_ORDER_CONFIRMED", "ORDER_CONFIRMED"),
-        ("3_PROCESSING", "PROCESSING"),
-        ("4_IN_TABLE", "IN_TABLE"),
-        ("5_PAID", "PAID"),
-        ("6_CANCELLED", "CANCELLED"),
+        ("1_ORDER_PLACED", "Waiting for Verification"),
+        ("2_ORDER_CONFIRMED", "In Kitchen"),
+        ("3_IN_TABLE", "Served on Table"),
+        ("4_PAID", "Paid"),
+        ("5_CANCELLED", "Cancelled"),
 
     ]
     remarks = models.TextField(null=True, blank=True)
@@ -170,11 +169,10 @@ class FoodOrder(models.Model):
 class OrderedItem(models.Model):
     ITEM_STATUS = [
         ("0_ORDER_INITIALIZED", "ORDER_INITIALIZED"),
-        ("1_ORDER_PLACED", "ORDER_PLACED"),
-        ("2_ORDER_CONFIRMED", "ORDER_CONFIRMED"),
-        ("3_PROCESSING", "PROCESSING"),
-        ("4_IN_TABLE", "IN_TABLE"),
-        ("5_CANCELLED", "CANCELLED"),
+        ("1_ORDER_PLACED", "Waiting for Verification"),
+        ("2_ORDER_CONFIRMED", "In Kitchen"),
+        ("3_IN_TABLE", "Served on Table"),
+        ("4_CANCELLED", "Cancelled"),
 
     ]
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
