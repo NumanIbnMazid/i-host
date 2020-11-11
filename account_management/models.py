@@ -56,19 +56,23 @@ class UserAccount(AbstractUser):
     ]
     username = None
     email = None
-    email_address = models.EmailField(max_length=35, null=True, blank=True)
-
     # email = models.EmailField(max_length=35, null=True, blank=True)
     phone = models.CharField(max_length=35, unique=True)
     status = models.CharField(max_length=25,
                               choices=USERS_IN_STATUS_CHOICES, default='UNV')
-    date_of_birth = models.DateField(null=True, blank=True)
+
     USERNAME_FIELD = "phone"
     REQUIRED_FIELDS = []
     objects = UserManager()
 
     # class Meta(AbstractUser.Meta):
     #     swappable = 'AUTH_USER_MODEL'
+
+
+class CustomerInfo(models.Model):
+    email_address = models.EmailField(max_length=35, null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    user = models.OneToOneField(to=UserAccount, on_delete=models.CASCADE)
 
 
 class HotelStaffInformation(models.Model):
