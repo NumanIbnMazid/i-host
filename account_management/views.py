@@ -1,3 +1,4 @@
+from utils.custom_viewset import CustomViewSet
 from restaurant.serializers import HotelStaffInformationSerializer
 import uuid
 from uuid import uuid4
@@ -20,7 +21,7 @@ from rest_framework.response import Response
 from restaurant.models import Restaurant
 from utils.response_wrapper import ResponseWrapper
 
-from account_management.models import HotelStaffInformation
+from account_management.models import CustomerInfo, HotelStaffInformation
 from account_management.models import UserAccount
 from account_management.models import UserAccount as User
 from account_management.serializers import (OtpLoginSerializer,
@@ -292,7 +293,6 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
 #     #         # if user_primary_traveller_serializer.is_valid():
 #     #         #     return ResponseWrapper(data=user_primary_traveller_serializer.data, status=200)
 
-
     def destroy(self, request, *args, **kwargs):
         if request.user is not None:
             user_serializer = UserAccountSerializer(
@@ -414,3 +414,18 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
 
     def get_otp(self, request, phone, **kwargs):
         return ResponseWrapper(msg='otp sent', status=200)
+
+
+class CustomerInfoViewset(CustomViewSet):
+    queryset = CustomerInfo.objects.all()
+    lookup_field = 'pk'
+
+    def get_permissions(self):
+        if self.action == "list":
+            permission_classes = [permissions.IsAdminUser]
+        elif self.action in ["retrieve", "update", "create"]:
+            permission_classes = [permissions.IsAuthenticated]
+        else:
+            # permissions.DjangoObjectPermissions.has_permission()
+            permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
