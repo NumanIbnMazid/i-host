@@ -110,9 +110,12 @@ class StaffIdListSerializer(serializers.Serializer):
 
 
 class OrderedItemSerializer(serializers.ModelSerializer):
+    #total_quantity = serializers.SerializerMethodField()
     class Meta:
         model = OrderedItem
         fields = '__all__'
+
+
 
 
 class OrderedItemUserPostSerializer(serializers.ModelSerializer):
@@ -228,22 +231,57 @@ class RestaurantContactPersonSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+
 class HotelStaffInformationSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelStaffInformation
         fields = '__all__'
 
+class QuantitySerializer(serializers.ModelSerializer):
+    quantity_list = serializers.SerializerMethodField(read_only=True)
+    class Meta:
+        model = FoodOrder
+        fields = '__all__'
+
+    def get_quantity_list(self, obj):
+        quantity_qs = obj.ordered_items.exclude(
+            status__in=["0_ORDER_INITIALIZED","5_CANCELLED"]).order_by('id').first()
+
+        # item_qs = OrderedItem.objects.filter(food_order=order_qs)
+        if not quantity_qs:
+            return {}
+        serializer = OrderedItemSerializer(quantity_qs)
+        temp_data_dict = serializer.data
+        return temp_data_dict
+
 
 class TableStaffSerializer(serializers.ModelSerializer):
-    # staff_assigned = StaffInfoGetSerializer(read_only=True, many=True)
-    #order_item = OrderedItemSerializer(read_only=True, many=True)
+    quantity_list = serializers.SerializerMethodField(read_only=True)
+    class Meta:
+        model = FoodOrder
+        fields = '__all__'
+
+    def get_quantity_list(self, obj):
+        if obj.is_occupied:
+            quantity_qs = obj.ordered_items.exclude(
+                status__in=["5_PAID", "6_CANCELLED"]).order_by('-id').first()
+            # item_qs = OrderedItem.objects.filter(food_order=order_qs)
+            if not quantity_qs:
+                return {}
+            serializer = OrderedItemSerializer(quantity_qs)
+            temp_data_dict = serializer.data
+            return temp_data_dict
+
+
+    quantity_list = QuantitySerializer(read_only=True, many= True)
     order_info = serializers.SerializerMethodField(read_only=True)
-    #id = serializers.SerializerMethodField(read_only=True)
+
 
     class Meta:
         model = Table
-        fields = ['table_no', 'restaurant',
+        fields = ['quantity_list','table_no', 'restaurant',
                   'is_occupied', 'name', 'order_info', 'id']
+
 
     def get_order_info(self, obj):
         if obj.is_occupied:
@@ -255,6 +293,11 @@ class TableStaffSerializer(serializers.ModelSerializer):
             serializer = FoodOrderSerializer(order_qs)
             temp_data_dict = serializer.data
             temp_data_dict['total_price'] = 380
-            return temp_data_dict
+            temp_data_status = temp_data_dict
+            if 'status' == '0_ORDER_INITIALIZED':
+                temp_data_status['status'] = 'In Kitchen'
+                return temp_data_status
+            #return temp_data_status
+
         else:
             return {}

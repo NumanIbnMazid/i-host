@@ -24,7 +24,9 @@ from .serializers import (FoodOptionBaseSerializer, FoodWithPriceSerializer, Foo
                           FoodWithPriceSerializer,
                           OrderedItemSerializer, OrderedItemUserPostSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
-                          RestaurantUpdateSerialier, StaffIdListSerializer, TableSerializer, FoodExtraTypeSerializer,TableStaffSerializer,FoodExtraTypeDetailSerializer)
+                          RestaurantUpdateSerialier, StaffIdListSerializer, TableSerializer,
+                          FoodExtraTypeSerializer,TableStaffSerializer,FoodExtraTypeDetailSerializer,
+                          QuantitySerializer)
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
@@ -308,6 +310,12 @@ class TableViewSet(CustomViewSet):
         else:
             return ResponseWrapper(error_code=400, error_msg='wrong table id')
 
+    def quantity_list(self, request,table_id, *args, **kwargs):
+        qs = FoodOrder.objects.filter(
+        ).prefetch_related('ordered_items')
+        serializer = QuantitySerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
 class FoodOrderViewSet(CustomViewSet):
 
     # permission_classes = [permissions.IsAuthenticated]
@@ -471,7 +479,7 @@ class FoodByRestaurantViewSet(CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def list_by_category(self, request, restaurant, *args, **kwargs):
-        qs = FoodCategory.objects.filter(
+        qs = OrderedItem.objects.filter(
             foods__restaurant=restaurant,
         ).prefetch_related('foods')
 
@@ -484,6 +492,12 @@ class FoodByRestaurantViewSet(CustomViewSet):
         # print(new_price)
 
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
+    def quantity(self, request, *args, **kwargs):
+        qs = FoodOrder.objects.filter(
+        ).prefetch_related('ordered_items')
+        serializer = QuantitySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
 """
