@@ -1,3 +1,4 @@
+import decimal
 from account_management.serializers import StaffInfoGetSerializer
 from os import read
 from django.db.models.fields.related import RelatedField
@@ -63,6 +64,7 @@ class FoodExtraTypeDetailSerializer(serializers.ModelSerializer):
         model = FoodExtra
         fields = '__all__'
 
+
 class FoodCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodCategory
@@ -81,6 +83,7 @@ class FoodOptionBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOption
         fields = '__all__'
+
 
 """
 class FoodOptionTypeSerializer(serializers.ModelSerializer):
@@ -122,6 +125,7 @@ class OrderedItemUserPostSerializer(serializers.ModelSerializer):
         exclude = ['status']
 
 
+
 class FoodOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOrder
@@ -129,15 +133,45 @@ class FoodOrderSerializer(serializers.ModelSerializer):
 
 
 class FoodOrderForStaffSerializer(serializers.ModelSerializer):
-    # status = serializers.SerializerMethodField()
     status = serializers.CharField(source='get_status_display')
+    price_dict = serializers.SerializerMethodField()
 
     class Meta:
         model = FoodOrder
-        fields = '__all__'
+        fields = ['id',
+                  "remarks",
+                  "table",
+                  "status",
+                  "price_dict"
+                  ]
 
     # def get_status(self, obj):
     #     return obj.get_status_display()
+    def get_price_dict(self, obj):
+        ordered_items_qs = obj.ordered_items.exclude(
+            status__in=["5_PAID", "6_CANCELLED", "0_ORDER_INITIALIZED"])
+
+        food_price = decimal.Decimal(0.0)
+        tax_amount = decimal.Decimal(0.0)
+        total_price = decimal.Decimal(0.0)
+        service_charge = decimal.Decimal(0.0)
+        for ordered_item in ordered_items_qs:
+            item_price = ordered_item.quantity*ordered_item.food_option.price
+            extra_price = ordered_item.quantity * sum(
+                list(
+                    ordered_item.food_extra.values_list('price', flat=True)
+                )
+            )
+            food_price += item_price+extra_price
+        total_price += food_price
+        if obj.table.restaurant.service_charge_is_percentage:
+            service_charge = total_price * obj.table.restaurant.service_charge/100
+        else:
+            service_charge = total_price + obj.table.restaurant.service_charge
+        total_price += service_charge
+        tax_amount = total_price * obj.table.restaurant.tax_percentage/100
+        total_price += tax_amount
+        return {"total_price": total_price, "tax_amount": tax_amount, "service_charge": service_charge}
 
 
 class FoodOrderUserPostSerializer(serializers.ModelSerializer):
@@ -266,7 +300,9 @@ class TableStaffSerializer(serializers.ModelSerializer):
                 return {}
             serializer = FoodOrderForStaffSerializer(order_qs)
             temp_data_dict = serializer.data
-            temp_data_dict['total_price'] = 380
+            price_dict = temp_data_dict.pop('price_dict', {})
+            temp_data_dict.update(price_dict)
+            # temp_data_dict['total_price'] = 380
             return temp_data_dict
         else:
             return {}
