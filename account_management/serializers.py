@@ -5,7 +5,7 @@ from rest_framework import fields
 from rest_framework.serializers import Serializer
 
 from rest_framework import serializers
-from .models import HotelStaffInformation, UserAccount
+from .models import CustomerInfo, HotelStaffInformation, UserAccount, models
 
 from drf_extra_fields.fields import Base64ImageField
 from drf_extra_fields.fields import HybridImageField
@@ -14,6 +14,12 @@ import base64
 import six
 import uuid
 import imghdr
+
+
+class CustomerInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomerInfo
+        fields = '__all__'
 
 
 class UserSignupSerializer(serializers.ModelSerializer):
@@ -82,7 +88,7 @@ class UserAccountPatchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserAccount
-        fields = ["password", "first_name", "date_of_birth", "email_address"]
+        fields = ["password", "first_name"]
 
 
 class UserAccountSerializer(serializers.ModelSerializer):
@@ -90,15 +96,28 @@ class UserAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAccount
         fields = ['phone', 'first_name', 'last_name',
-                  'date_of_birth', 'email_address','id']
+                  'id']
 
 
 class StaffInfoGetSerializer(serializers.ModelSerializer):
     user = UserAccountSerializer(read_only=True)
+    first_name = serializers.CharField(source='user.first_name')
 
     class Meta:
         model = HotelStaffInformation
-        fields = '__all__'
+        fields = [
+            "id",
+            "first_name",
+            "user",
+            "image",
+            "is_manager",
+            "is_owner",
+            "is_waiter",
+            "shift_start",
+            "shift_end",
+            "nid",
+            "restaurant",
+        ]
 
 
 class RestaurantSerializer(serializers.ModelSerializer):

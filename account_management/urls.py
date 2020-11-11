@@ -1,7 +1,11 @@
 from account_management.views import *
 from django.urls import include, path
 from knox import views as knox_views
+from rest_framework.routers import DefaultRouter
 
+router = DefaultRouter()
+router.register('customer_info', CustomerInfoViewset,
+                basename="customer_info")
 user_account_get_post_patch_delete = UserAccountManagerViewSet.as_view(
     {
         "get": "retrieve",
@@ -28,20 +32,20 @@ restaurant_account_management = [
 
     path("resturant/<int:id>/owner_info/", RestaurantAccountManagerViewSet.as_view({
         "get": "owner_info"
-    }),name="owner_info"),
+    }), name="owner_info"),
 
     path("resturant/<int:id>/waiter_info/", RestaurantAccountManagerViewSet.as_view({
         "get": "waiter_info"
-    }),name="waiter_info"),
+    }), name="waiter_info"),
 
     path("resturant/<int:id>/manager_info/", RestaurantAccountManagerViewSet.as_view({
         "get": "manager_info"
-    }),name="manager_info"),
+    }), name="manager_info"),
 ]
 
 auth_urlpatterns = [
     path("login/", LoginView.as_view(), name="knox_login"),
-    
+
     path("otp_auth/", OtpSignUpView.as_view(), name="otp_login"),
     path("get_otp/<str:phone>/",
          UserAccountManagerViewSet.as_view({'get': 'get_otp'}), name="get_otp"),
@@ -54,6 +58,7 @@ auth_urlpatterns = [
     path("verify/", verify_login, name="verify_token"),
 ]
 urlpatterns = [
+    path('', include(router.urls)),
     path("auth/", include(auth_urlpatterns), name="auth"),
     path("user_account/", user_account_get_post_patch_delete),
 
