@@ -128,6 +128,18 @@ class FoodOrderSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class FoodOrderForStaffSerializer(serializers.ModelSerializer):
+    # status = serializers.SerializerMethodField()
+    status = serializers.CharField(source='get_status_display')
+
+    class Meta:
+        model = FoodOrder
+        fields = '__all__'
+
+    # def get_status(self, obj):
+    #     return obj.get_status_display()
+
+
 class FoodOrderUserPostSerializer(serializers.ModelSerializer):
     ordered_items = OrderedItemSerializer(
         many=True, read_only=True, required=False)
@@ -252,7 +264,7 @@ class TableStaffSerializer(serializers.ModelSerializer):
             # item_qs = OrderedItem.objects.filter(food_order=order_qs)
             if not order_qs:
                 return {}
-            serializer = FoodOrderSerializer(order_qs)
+            serializer = FoodOrderForStaffSerializer(order_qs)
             temp_data_dict = serializer.data
             temp_data_dict['total_price'] = 380
             return temp_data_dict
