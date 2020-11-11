@@ -23,7 +23,7 @@ router.register('food_extra', FoodExtraViewSet,
 
 router.register('food', FoodViewSet,
                 basename="food")
-router.register('food_ordered_item',FoodOrderedViewSet,basename="food_ordered_item")
+#router.register('food_ordered_item',FoodOrderedViewSet,basename="food_ordered_item")
 
 urlpatterns = [
     path('', include(router.urls)),
