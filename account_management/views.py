@@ -24,7 +24,7 @@ from utils.response_wrapper import ResponseWrapper
 from account_management.models import CustomerInfo, HotelStaffInformation
 from account_management.models import UserAccount
 from account_management.models import UserAccount as User
-from account_management.serializers import (OtpLoginSerializer,
+from account_management.serializers import (CustomerInfoSerializer, OtpLoginSerializer,
                                             RestaurantUserSignUpSerializer, StaffInfoGetSerializer, StaffInfoSerializer, StaffLoginInfoGetSerializer,
                                             UserAccountPatchSerializer,
                                             UserAccountSerializer,
@@ -419,6 +419,7 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
 class CustomerInfoViewset(CustomViewSet):
     queryset = CustomerInfo.objects.all()
     lookup_field = 'pk'
+    serializer_class = CustomerInfoSerializer
 
     def get_permissions(self):
         if self.action == "list":
