@@ -22,7 +22,6 @@ router.register('food_extra', FoodExtraViewSet,
 
 router.register('food', FoodViewSet,
                 basename="food")
-# router.register('food_ordered_item',FoodOrderedViewSet,basename="food_ordered_item")
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -89,7 +88,7 @@ urlpatterns = [
     path('order/cancel_order/<int:pk>/',
          FoodOrderViewSet.as_view({'post': 'cancel_order'}, name='cancel_order')),
 
-    path('ordered_item/<int:ordered_id>/details',
+    path('ordered_item/<int:ordered_id>/',
          FoodOrderedViewSet.as_view({'get': 'ordered_item_list'}, name='ordered_item_list')),
 
 
