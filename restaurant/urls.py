@@ -17,13 +17,12 @@ router.register('food_extra', FoodExtraViewSet,
                 basename="food_extra")
 
 
-
 # router.register('table', TableViewSet,
 #                basename="table")
 
 router.register('food', FoodViewSet,
                 basename="food")
-#router.register('food_ordered_item',FoodOrderedViewSet,basename="food_ordered_item")
+# router.register('food_ordered_item',FoodOrderedViewSet,basename="food_ordered_item")
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -93,5 +92,5 @@ urlpatterns = [
     path('ordered_item/<int:ordered_id>/details',
          FoodOrderedViewSet.as_view({'get': 'ordered_item_list'}, name='ordered_item_list')),
 
-    
+
 ]

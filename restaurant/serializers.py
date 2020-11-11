@@ -120,13 +120,28 @@ class OrderedItemSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
-    food_extra = FoodExtraSerializer(many=True,read_only=True)
-    food_options = FoodOptionSerializer(many=True,read_only=True)
+class FoodExtraBasicSerializer(serializers.ModelSerializer):
     class Meta:
-        model = OrderedItem
+        model = FoodExtra
         fields = '__all__'
 
+
+class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
+    food_extra = FoodExtraBasicSerializer(many=True, read_only=True)
+    food_option = FoodOptionSerializer(read_only=True)
+    food_name = serializers.CharField(source="food_option.food.name")
+
+    class Meta:
+        model = OrderedItem
+        fields = [
+            "id",
+            "quantity",
+            "food_option",
+            "food_extra",
+            "food_order",
+            "status",
+            "food_name",
+        ]
 
 
 class OrderedItemUserPostSerializer(serializers.ModelSerializer):
@@ -141,22 +156,18 @@ class FoodOrderCancelSerializer(serializers.ModelSerializer):
         model = FoodOrder
         fields = '__all__'
 
+
 class FoodOptionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOption
         fields = '__all__'
 
-class FoodExtraSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FoodExtra
-        fields = '__all__'
 
 class FoodOrderSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='get_status_display')
     price = serializers.SerializerMethodField()
-    ordered_items = OrderedItemGetDetailsSerializer(many=True,read_only=True)
-    
-    
+    ordered_items = OrderedItemGetDetailsSerializer(many=True, read_only=True)
+
     # TODO: write a ordered item serializer where each foreign key details are also shown in response
 
     class Meta:
@@ -167,7 +178,7 @@ class FoodOrderSerializer(serializers.ModelSerializer):
                   "status",
                   "price",
                   'ordered_items',
-                  
+
                   ]
 
     def get_price(self, obj):
