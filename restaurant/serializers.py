@@ -126,10 +126,29 @@ class OrderedItemUserPostSerializer(serializers.ModelSerializer):
         exclude = ['status']
 
 
-class FoodOrderSerializer(serializers.ModelSerializer):
+class FoodOrderCancelSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOrder
         fields = '__all__'
+
+
+class FoodOrderSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(source='get_status_display')
+    price = serializers.SerializerMethodField()
+    # TODO: write a ordered item serializer where each foreign key details are also shown in response
+
+    class Meta:
+        model = FoodOrder
+        fields = ['id',
+                  "remarks",
+                  "table",
+                  "status",
+                  "price",
+                  'ordered_items',
+                  ]
+
+    def get_price(self, obj):
+        return calculate_price(food_order_obj=obj)
 
 
 class FoodOrderForStaffSerializer(serializers.ModelSerializer):
