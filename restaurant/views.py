@@ -502,6 +502,7 @@ class FoodByRestaurantViewSet(CustomViewSet):
 """
 class FoodOrderViewSet(CustomViewSet):
     serializer_class = TableOrderDetailseSrializer
+
     queryset = FoodOrder.objects.all()
     lookup_field = 'table'
     http_method_names = ['get']
@@ -511,4 +512,5 @@ class FoodOrderViewSet(CustomViewSet):
         # qs = qs.filter(is_top = True)
         serializer = OrderedItemSrializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
+
 """
