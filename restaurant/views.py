@@ -24,7 +24,9 @@ from .serializers import (FoodOptionBaseSerializer, FoodWithPriceSerializer, Foo
                           FoodWithPriceSerializer,
                           OrderedItemSerializer, OrderedItemUserPostSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
-                          RestaurantUpdateSerialier, StaffIdListSerializer, TableSerializer, FoodExtraTypeSerializer,TableStaffSerializer,FoodExtraTypeDetailSerializer)
+                          RestaurantUpdateSerialier, StaffIdListSerializer, TableSerializer, 
+                          FoodExtraTypeSerializer,TableStaffSerializer,FoodExtraTypeDetailSerializer,
+                          FoodOrderSerializer)
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
@@ -164,6 +166,17 @@ class FoodOptionTypeViewSet(CustomViewSet):
         # serializer.is_valid()
         return ResponseWrapper(data=serializer.data, msg='success')
 
+class FoodOrderedViewSet(CustomViewSet):
+    serializer_class = FoodOrderSerializer
+    qureyset = FoodOrder.objects.all()
+    lookup_field = 'ordered_id'
+
+    def ordered_item_list(self,request, ordered_id,*args, **kwargs):
+        qs = FoodOrder.objects.filter(pk=ordered_id)
+        #qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
+        serializer = self.get_serializer(instance=qs,many=True)
+        return ResponseWrapper(data=serializer.data,msg="success")
+    
 
 
 class FoodExtraTypeViewSet(CustomViewSet):
