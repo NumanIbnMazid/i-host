@@ -269,7 +269,6 @@ class RestaurantContactPersonSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
 class HotelStaffInformationSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelStaffInformation
@@ -277,30 +276,14 @@ class HotelStaffInformationSerializer(serializers.ModelSerializer):
 
 
 class TableStaffSerializer(serializers.ModelSerializer):
-    quantity_list = serializers.SerializerMethodField(read_only=True)
-    class Meta:
-        model = FoodOrder
-        fields = '__all__'
-
-    def get_quantity_list(self, obj):
-        if obj.is_occupied:
-            quantity_qs = obj.ordered_items.exclude(
-                status__in=["5_PAID", "6_CANCELLED"]).order_by('-id').first()
-            # item_qs = OrderedItem.objects.filter(food_order=order_qs)
-            if not quantity_qs:
-                return {}
-            serializer = OrderedItemSerializer(quantity_qs)
-            temp_data_dict = serializer.data
-            return temp_data_dict
-
-
-    quantity_list = QuantitySerializer(read_only=True, many= True)
+    # staff_assigned = StaffInfoGetSerializer(read_only=True, many=True)
+    #order_item = OrderedItemSerializer(read_only=True, many=True)
     order_info = serializers.SerializerMethodField(read_only=True)
-
+    #id = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Table
-        fields = ['quantity_list','table_no', 'restaurant',
+        fields = ['table_no', 'restaurant',
                   'is_occupied', 'name', 'order_info', 'id']
 
     def get_order_info(self, obj):
