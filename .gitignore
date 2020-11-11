@@ -171,6 +171,7 @@ dmypy.json
 
 .vscode
 .vscode/settings.json
+.code-workspace
 .idea
 # project specific
 input/
