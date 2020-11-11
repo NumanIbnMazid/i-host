@@ -19,7 +19,7 @@ from .serializers import (FoodOptionBaseSerializer, FoodWithPriceSerializer, Foo
                           FoodDetailSerializer,
                           FoodExtraPostPatchSerializer,
                           FoodExtraSerializer, FoodOptionTypeSerializer,
-                          FoodOptionSerializer, FoodOrderSerializer, FoodOrderUserPostSerializer,
+                          FoodOptionSerializer, FoodOrderCancelSerializer, FoodOrderUserPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
                           FoodWithPriceSerializer,
                           OrderedItemSerializer, OrderedItemUserPostSerializer,
@@ -320,7 +320,7 @@ class FoodOrderViewSet(CustomViewSet):
         elif self.action in ['add_items']:
             self.serializer_class = OrderedItemUserPostSerializer
         elif self.action in ['cancel_order']:
-            self.serializer_class = FoodOrderSerializer
+            self.serializer_class = FoodOrderCancelSerializer
         else:
             self.serializer_class = FoodOrderUserPostSerializer
 
