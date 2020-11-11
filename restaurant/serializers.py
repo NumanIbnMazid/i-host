@@ -134,7 +134,7 @@ class FoodOrderSerializer(serializers.ModelSerializer):
 
 class FoodOrderForStaffSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='get_status_display')
-    price_dict = serializers.SerializerMethodField()
+    price = serializers.SerializerMethodField()
 
     class Meta:
         model = FoodOrder
@@ -142,12 +142,12 @@ class FoodOrderForStaffSerializer(serializers.ModelSerializer):
                   "remarks",
                   "table",
                   "status",
-                  "price_dict"
+                  "price"
                   ]
 
     # def get_status(self, obj):
     #     return obj.get_status_display()
-    def get_price_dict(self, obj):
+    def get_price(self, obj):
         ordered_items_qs = obj.ordered_items.exclude(
             status__in=["5_PAID", "6_CANCELLED", "0_ORDER_INITIALIZED"])
 
@@ -300,8 +300,8 @@ class TableStaffSerializer(serializers.ModelSerializer):
                 return {}
             serializer = FoodOrderForStaffSerializer(order_qs)
             temp_data_dict = serializer.data
-            price_dict = temp_data_dict.pop('price_dict', {})
-            temp_data_dict.update(price_dict)
+            price = temp_data_dict.pop('price', {})
+            temp_data_dict.update(price)
             # temp_data_dict['total_price'] = 380
             return temp_data_dict
         else:
