@@ -328,13 +328,8 @@ class TableStaffSerializer(serializers.ModelSerializer):
             order_qs = obj.food_orders.exclude(
                 status__in=["5_PAID", "6_CANCELLED"]).order_by('-id').first()
             # item_qs = OrderedItem.objects.filter(food_order=order_qs)
-<<<<<<< HEAD
-            
-        
-=======
 
 
->>>>>>> 95d5e3a7df20793876230eced922ecf5a8ad7736
             if not order_qs:
                 return {}
 
