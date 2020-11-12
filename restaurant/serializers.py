@@ -199,7 +199,7 @@ class FoodOrderSerializer(serializers.ModelSerializer):
         return calculate_price(food_order_obj=obj)
 
 class FoodOrderByTableSerializer(serializers.ModelSerializer):
-    status = serializers.CharField(source='get_status_display')
+    # status = serializers.CharField(source='get_status_display')
     table_name = serializers.CharField(source="table.name")
     table_no = serializers.CharField(source="table.table_no")
     price = serializers.SerializerMethodField()
@@ -223,7 +223,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
 
 
 class FoodOrderForStaffSerializer(serializers.ModelSerializer):
-    status = serializers.CharField(source='get_status_display')
+    # status = serializers.CharField(source='get_status_display')
     price = serializers.SerializerMethodField()
 
     class Meta:
