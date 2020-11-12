@@ -164,6 +164,8 @@ class FoodOrder(models.Model):
         return self.table.name
 
 
+
+
 class OrderedItem(models.Model):
     ITEM_STATUS = [
         ("0_ORDER_INITIALIZED", "ORDER_INITIALIZED"),
@@ -183,6 +185,9 @@ class OrderedItem(models.Model):
 
     status = models.CharField(
         choices=ITEM_STATUS, default="0_ORDER_INITIALIZED", max_length=120)
+
+
+
 
 
 

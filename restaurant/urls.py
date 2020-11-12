@@ -16,6 +16,8 @@ router.register('food_category', FoodCategoryViewSet,
 router.register('food_extra', FoodExtraViewSet,
                 basename="food_extra")
 
+router.register('food_option', FoodOptionViewSet, basename='food_option'
+                )
 
 # router.register('table', TableViewSet,
 #                basename="table")
@@ -35,6 +37,10 @@ urlpatterns = [
          TableViewSet.as_view({'patch': 'update', }), name='table'),
     path('table/<int:table_id>/staff_remove/',
          TableViewSet.as_view({'post': 'remove_staff', }), name='remove_staff'),
+    # New Add
+    path('table/<int:table_id>/quantity_list/',
+             TableViewSet.as_view({'get': 'quantity_list', }), name='quantity_list'),
+
 
     path('restaurant/',
          RestaurantViewSet.as_view({'post': 'create', 'get': 'list'}), name='restaurant_create_and_list'),
@@ -68,6 +74,9 @@ urlpatterns = [
 
     path('restaurant/<int:restaurant>/foods_by_category/',
          FoodByRestaurantViewSet.as_view({'get': 'list_by_category'}), name='foods_by_category'),
+# New Add
+    path('restaurant/quantity/',
+         FoodByRestaurantViewSet.as_view({'get': 'quantity'}), name='quantity'),
 
     path('restaurant/<int:restaurant>/top_foods_by_category/',
          FoodByRestaurantViewSet.as_view({'get': 'top_foods_by_category'}), name='top_foods_by_category'),
@@ -87,6 +96,9 @@ urlpatterns = [
 
     path('order/cancel_order/<int:pk>/',
          FoodOrderViewSet.as_view({'post': 'cancel_order'}, name='cancel_order')),
+
+    #path('order/update_status/<int:pk>/',
+         #FoodOrderViewSet.as_view({'post': 'update_status'}, name='update_status')),
 
     path('ordered_item/<int:ordered_id>/',
          FoodOrderedViewSet.as_view({'get': 'ordered_item_list'}, name='ordered_item_list')),

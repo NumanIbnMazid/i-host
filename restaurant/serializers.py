@@ -65,7 +65,6 @@ class FoodExtraTypeDetailSerializer(serializers.ModelSerializer):
         model = FoodExtra
         fields = '__all__'
 
-
 class FoodCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodCategory
@@ -322,19 +321,35 @@ class TableStaffSerializer(serializers.ModelSerializer):
                   'is_occupied', 'name', 'order_info', 'id']
 
     def get_order_info(self, obj):
+        total_items=0
+        total_served_items =0
+
         if obj.is_occupied:
             order_qs = obj.food_orders.exclude(
                 status__in=["5_PAID", "6_CANCELLED"]).order_by('-id').first()
             # item_qs = OrderedItem.objects.filter(food_order=order_qs)
+<<<<<<< HEAD
             
         
+=======
+
+
+>>>>>>> 95d5e3a7df20793876230eced922ecf5a8ad7736
             if not order_qs:
                 return {}
+
+            total_items += order_qs.ordered_items.count()
+
+            order_qs = obj.food_orders.filter(
+                ordered_items__status__in=["3_IN_TABLE"]).last()
+            if order_qs:
+                total_served_items += order_qs.ordered_items.count()
             serializer = FoodOrderForStaffSerializer(order_qs)
             temp_data_dict = serializer.data
             price = temp_data_dict.pop('price', {})
             temp_data_dict.update(price)
-            # temp_data_dict['total_price'] = 380
+            temp_data_dict['total_items'] = total_items
+            temp_data_dict['total_served_items'] = total_served_items
             return temp_data_dict
         else:
             return {}
