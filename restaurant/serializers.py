@@ -1,15 +1,10 @@
-from utils.calculate_price import calculate_price
-import decimal
-from account_management.serializers import StaffInfoGetSerializer
-from os import read
-from django.db.models.fields.related import RelatedField
-from account_management.models import HotelStaffInformation, UserManager
-from utils.response_wrapper import ResponseWrapper
-from django.db.models import fields
-
-from .models import *
-from django.db.models import Q, query_utils, Min
 from rest_framework import serializers
+from rest_framework.fields import CurrentUserDefault
+
+from account_management.models import HotelStaffInformation
+from account_management.serializers import StaffInfoGetSerializer
+from utils.calculate_price import calculate_price
+from .models import *
 
 
 class FoodOptionTypeSerializer(serializers.ModelSerializer):
@@ -102,12 +97,22 @@ class RestaurantSerializer(serializers.ModelSerializer):
 
 class TableSerializer(serializers.ModelSerializer):
     staff_assigned = StaffInfoGetSerializer(read_only=True, many=True)
-
+    my_table = serializers.SerializerMethodField(read_only=True,required=False)
     class Meta:
         model = Table
-        fields = '__all__'
-
-
+        fields = ['table_no',
+                  'restaurant',
+                  'name',
+                  'staff_assigned',
+                  'is_occupied',
+                  'my_table',
+                  ]
+    def get_my_table(self,obj):
+        user = self.context.get('user')
+        assigned_pk_list = obj.staff_assigned.values_list('pk',flat=True)
+        if user.pk in assigned_pk_list:
+            return True
+        return False
 class StaffIdListSerializer(serializers.Serializer):
     staff_list = serializers.ListSerializer(child=serializers.IntegerField())
 
@@ -135,11 +140,12 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "quantity",
-            "food_option",
-            "food_extra",
             "food_order",
             "status",
             "food_name",
+            "food_option",
+            "food_extra",
+
         ]
 
 
@@ -163,7 +169,7 @@ class FoodOptionsSerializer(serializers.ModelSerializer):
 
 
 class FoodOrderSerializer(serializers.ModelSerializer):
-    status = serializers.CharField(source='get_status_display')
+    status_detail = serializers.CharField(source='get_status_display')
     price = serializers.SerializerMethodField()
     ordered_items = OrderedItemGetDetailsSerializer(many=True, read_only=True)
 
@@ -173,15 +179,19 @@ class FoodOrderSerializer(serializers.ModelSerializer):
         model = FoodOrder
         fields = ['id',
                   "remarks",
+                  'status_detail',
                   "table",
                   "status",
                   "price",
                   'ordered_items',
 
+
                   ]
 
     def get_price(self, obj):
         return calculate_price(food_order_obj=obj)
+
+
 
 
 class FoodOrderForStaffSerializer(serializers.ModelSerializer):

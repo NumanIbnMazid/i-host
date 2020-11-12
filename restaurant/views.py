@@ -200,7 +200,7 @@ class FoodExtraViewSet(CustomViewSet):
 
         return self.serializer_class
 
-    http_method_names = ['post', 'patch', 'get']
+    #http_method_names = ['post', 'patch', 'get']
     def create(self, request):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
@@ -269,6 +269,13 @@ class TableViewSet(CustomViewSet):
     lookup_field = 'pk'
     # http_method_names = ['get', 'post', 'patch']
 
+    def get_permissions(self):
+        if self.action in ['table_list']:
+            permission_classes = [permissions.IsAuthenticated]
+        else:
+            permission_classes = [permissions.AllowAny]
+        return [permission() for permission in permission_classes]
+
     def get_serializer_class(self):
         if self.action in ['add_staff']:
             self.serializer_class = StaffIdListSerializer
@@ -276,6 +283,8 @@ class TableViewSet(CustomViewSet):
             self.serializer_class = StaffIdListSerializer
         elif self.action in ['staff_table_list']:
             self.serializer_class = TableStaffSerializer
+        elif self.action in ['order_item_list']:
+            self.serializer_class = FoodOrderSerializer
         else:
             self.serializer_class = TableSerializer
         return self.serializer_class
@@ -284,7 +293,7 @@ class TableViewSet(CustomViewSet):
 
         qs = self.queryset.filter(restaurant=restaurant)
         # qs = qs.filter(is_top = True)
-        serializer = self.serializer_class(instance=qs, many=True)
+        serializer = self.serializer_class(instance=qs, many=True,context={'user':request.user})
         return ResponseWrapper(data=serializer.data, msg='success')
 
     # @swagger_auto_schema(request_body=ListOfIdSerializer)
@@ -321,6 +330,12 @@ class TableViewSet(CustomViewSet):
             return ResponseWrapper(msg='removed')
         else:
             return ResponseWrapper(error_code=400, error_msg='wrong table id')
+
+    def order_item_list(self,request, table_id,*args, **kwargs):
+        qs = FoodOrder.objects.filter(pk=table_id)
+        #qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
+        serializer = self.get_serializer(instance=qs,many=True)
+        return ResponseWrapper(data=serializer.data,msg="success")
 
 class FoodOrderViewSet(CustomViewSet):
 
@@ -408,10 +423,10 @@ class FoodOrderViewSet(CustomViewSet):
         if serializer.is_valid():
             table_qs = Table.objects.filter(
                 pk=request.data.get('table')).fast()
-            order_qs = FoodOrder.objects.all()
+
             if table_qs.is_occupied:
-                #table_qs.is_occupied = True
-                order_qs.status ='2_ORDER_CONFIRMED'
+                table_qs.is_occupied = True
+                self.status ='2_ORDER_CONFIRMED'
                 order_qs.save()
                 qs = serializer.save()
                 serializer = self.serializer_class(instance=qs)
@@ -421,9 +436,9 @@ class FoodOrderViewSet(CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
+
+
 """
-
-
 class OrderedItemViewSet(CustomViewSet):
     queryset = OrderedItem.objects.all()
     lookup_field = 'pk'
