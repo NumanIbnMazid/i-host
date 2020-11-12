@@ -27,12 +27,12 @@ class FoodExtraSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class GroupByListSerializer(serializers.ListSerializer):
+class FoodExtraGroupByListSerializer(serializers.ListSerializer):
 
     def to_representation(self, data):
         iterable = data.all() if isinstance(data, models.Manager) else data
         return {
-            extra_type.name: super(GroupByListSerializer, self).to_representation(
+            extra_type.name: super(FoodExtraGroupByListSerializer, self).to_representation(
                 FoodExtra.objects.filter(extra_type=extra_type, pk__in=list(data.values_list('id', flat=True))))
             for extra_type in FoodExtraType.objects.filter(pk__in=list(data.values_list('extra_type_id', flat=True)))
         }
@@ -44,7 +44,7 @@ class FoodExtraGroupByTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodExtra
         fields = ['id', 'name', 'price']
-        list_serializer_class = GroupByListSerializer
+        list_serializer_class = FoodExtraGroupByListSerializer
 
 
 class FoodExtraPostPatchSerializer(serializers.ModelSerializer):
@@ -198,7 +198,24 @@ class FoodOrderSerializer(serializers.ModelSerializer):
     def get_price(self, obj):
         return calculate_price(food_order_obj=obj)
 
+class FoodOrderByTableSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(source='get_status_display')
+    price = serializers.SerializerMethodField()
+    ordered_items = OrderedItemGetDetailsSerializer(many=True, read_only=True)
 
+    class Meta:
+        model = FoodOrder
+        fields = ['id',
+                  "remarks",
+                  "table",
+                  "status",
+                  "price",
+                  'ordered_items',
+
+                  ]
+
+    def get_price(self, obj):
+        return calculate_price(food_order_obj=obj)
 
 
 class FoodOrderForStaffSerializer(serializers.ModelSerializer):
