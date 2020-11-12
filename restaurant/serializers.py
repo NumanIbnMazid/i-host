@@ -1,15 +1,10 @@
-from utils.calculate_price import calculate_price
-import decimal
-from account_management.serializers import StaffInfoGetSerializer
-from os import read
-from django.db.models.fields.related import RelatedField
-from account_management.models import HotelStaffInformation, UserManager
-from utils.response_wrapper import ResponseWrapper
-from django.db.models import fields
-
-from .models import *
-from django.db.models import Q, query_utils, Min
 from rest_framework import serializers
+from rest_framework.fields import CurrentUserDefault
+
+from account_management.models import HotelStaffInformation
+from account_management.serializers import StaffInfoGetSerializer
+from utils.calculate_price import calculate_price
+from .models import *
 
 
 class FoodOptionTypeSerializer(serializers.ModelSerializer):
@@ -102,12 +97,22 @@ class RestaurantSerializer(serializers.ModelSerializer):
 
 class TableSerializer(serializers.ModelSerializer):
     staff_assigned = StaffInfoGetSerializer(read_only=True, many=True)
-
+    my_table = serializers.SerializerMethodField(read_only=True,required=False)
     class Meta:
         model = Table
-        fields = '__all__'
-
-
+        fields = ['table_no',
+                  'restaurant',
+                  'name',
+                  'staff_assigned',
+                  'is_occupied',
+                  'my_table',
+                  ]
+    def get_my_table(self,obj):
+        user = self.context.get('user')
+        assigned_pk_list = obj.staff_assigned.values_list('pk',flat=True)
+        if user.pk in assigned_pk_list:
+            return True
+        return False
 class StaffIdListSerializer(serializers.Serializer):
     staff_list = serializers.ListSerializer(child=serializers.IntegerField())
 
