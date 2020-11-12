@@ -276,6 +276,8 @@ class TableViewSet(CustomViewSet):
             self.serializer_class = StaffIdListSerializer
         elif self.action in ['staff_table_list']:
             self.serializer_class = TableStaffSerializer
+        elif self.action in ['order_item_list']:
+            self.serializer_class = FoodOrderSerializer
         else:
             self.serializer_class = TableSerializer
         return self.serializer_class
@@ -321,6 +323,12 @@ class TableViewSet(CustomViewSet):
             return ResponseWrapper(msg='removed')
         else:
             return ResponseWrapper(error_code=400, error_msg='wrong table id')
+
+    def order_item_list(self,request, table_id,*args, **kwargs):
+        qs = FoodOrder.objects.filter(pk=table_id)
+        #qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
+        serializer = self.get_serializer(instance=qs,many=True)
+        return ResponseWrapper(data=serializer.data,msg="success")
 
 class FoodOrderViewSet(CustomViewSet):
 

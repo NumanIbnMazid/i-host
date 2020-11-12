@@ -184,6 +184,8 @@ class FoodOrderSerializer(serializers.ModelSerializer):
         return calculate_price(food_order_obj=obj)
 
 
+
+
 class FoodOrderForStaffSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='get_status_display')
     price = serializers.SerializerMethodField()
