@@ -94,8 +94,13 @@ class RestaurantSerializer(serializers.ModelSerializer):
         model = Restaurant
         fields = '__all__'
 
-
 class TableSerializer(serializers.ModelSerializer):
+    staff_assigned = StaffInfoGetSerializer(read_only=True, many=True)
+    class Meta:
+        model = Table
+        fields = '__all__'
+
+class StaffTableSerializer(serializers.ModelSerializer):
     staff_assigned = StaffInfoGetSerializer(read_only=True, many=True)
     my_table = serializers.SerializerMethodField(read_only=True,required=False)
     class Meta:
@@ -107,12 +112,14 @@ class TableSerializer(serializers.ModelSerializer):
                   'is_occupied',
                   'my_table',
                   ]
+
     def get_my_table(self,obj):
         user = self.context.get('user')
         assigned_pk_list = obj.staff_assigned.values_list('pk',flat=True)
         if user.pk in assigned_pk_list:
             return True
         return False
+
 class StaffIdListSerializer(serializers.Serializer):
     staff_list = serializers.ListSerializer(child=serializers.IntegerField())
 

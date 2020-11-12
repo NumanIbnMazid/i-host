@@ -24,9 +24,9 @@ from .serializers import (FoodOptionBaseSerializer, FoodWithPriceSerializer, Foo
                           FoodWithPriceSerializer,
                           OrderedItemSerializer, OrderedItemUserPostSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
-                          RestaurantUpdateSerialier, StaffIdListSerializer, TableSerializer, 
-                          FoodExtraTypeSerializer,TableStaffSerializer,FoodExtraTypeDetailSerializer,
-                          FoodOrderSerializer)
+                          RestaurantUpdateSerialier, StaffIdListSerializer, TableSerializer,
+                          FoodExtraTypeSerializer, TableStaffSerializer, FoodExtraTypeDetailSerializer,
+                          FoodOrderSerializer, StaffTableSerializer)
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
@@ -285,6 +285,8 @@ class TableViewSet(CustomViewSet):
             self.serializer_class = TableStaffSerializer
         elif self.action in ['order_item_list']:
             self.serializer_class = FoodOrderSerializer
+        elif self.action in ['table_list']:
+            self.serializer_class = StaffTableSerializer
         else:
             self.serializer_class = TableSerializer
         return self.serializer_class
@@ -455,6 +457,7 @@ class OrderedItemViewSet(CustomViewSet):
         serializer = self.get_serializer(data=request.data, many=True)
         if serializer.is_valid():
             serializer.save()
+
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
