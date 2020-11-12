@@ -1,15 +1,10 @@
-from utils.calculate_price import calculate_price
-import decimal
-from account_management.serializers import StaffInfoGetSerializer
-from os import read
-from django.db.models.fields.related import RelatedField
-from account_management.models import HotelStaffInformation, UserManager
-from utils.response_wrapper import ResponseWrapper
-from django.db.models import fields
-
-from .models import *
-from django.db.models import Q, query_utils, Min
 from rest_framework import serializers
+from rest_framework.fields import CurrentUserDefault
+
+from account_management.models import HotelStaffInformation
+from account_management.serializers import StaffInfoGetSerializer
+from utils.calculate_price import calculate_price
+from .models import *
 
 
 class FoodOptionTypeSerializer(serializers.ModelSerializer):
@@ -32,12 +27,12 @@ class FoodExtraSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class GroupByListSerializer(serializers.ListSerializer):
+class FoodExtraGroupByListSerializer(serializers.ListSerializer):
 
     def to_representation(self, data):
         iterable = data.all() if isinstance(data, models.Manager) else data
         return {
-            extra_type.name: super(GroupByListSerializer, self).to_representation(
+            extra_type.name: super(FoodExtraGroupByListSerializer, self).to_representation(
                 FoodExtra.objects.filter(extra_type=extra_type, pk__in=list(data.values_list('id', flat=True))))
             for extra_type in FoodExtraType.objects.filter(pk__in=list(data.values_list('extra_type_id', flat=True)))
         }
@@ -49,7 +44,7 @@ class FoodExtraGroupByTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodExtra
         fields = ['id', 'name', 'price']
-        list_serializer_class = GroupByListSerializer
+        list_serializer_class = FoodExtraGroupByListSerializer
 
 
 class FoodExtraPostPatchSerializer(serializers.ModelSerializer):
@@ -64,7 +59,6 @@ class FoodExtraTypeDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodExtra
         fields = '__all__'
-
 
 class FoodCategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -100,14 +94,31 @@ class RestaurantSerializer(serializers.ModelSerializer):
         model = Restaurant
         fields = '__all__'
 
-
 class TableSerializer(serializers.ModelSerializer):
     staff_assigned = StaffInfoGetSerializer(read_only=True, many=True)
-
     class Meta:
         model = Table
         fields = '__all__'
 
+class StaffTableSerializer(serializers.ModelSerializer):
+    staff_assigned = StaffInfoGetSerializer(read_only=True, many=True)
+    my_table = serializers.SerializerMethodField(read_only=True,required=False)
+    class Meta:
+        model = Table
+        fields = ['table_no',
+                  'restaurant',
+                  'name',
+                  'staff_assigned',
+                  'is_occupied',
+                  'my_table',
+                  ]
+
+    def get_my_table(self,obj):
+        user = self.context.get('user')
+        assigned_pk_list = obj.staff_assigned.values_list('pk',flat=True)
+        if user.pk in assigned_pk_list:
+            return True
+        return False
 
 class StaffIdListSerializer(serializers.Serializer):
     staff_list = serializers.ListSerializer(child=serializers.IntegerField())
@@ -136,11 +147,12 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "quantity",
-            "food_option",
-            "food_extra",
             "food_order",
             "status",
             "food_name",
+            "food_option",
+            "food_extra",
+
         ]
 
 
@@ -164,11 +176,32 @@ class FoodOptionsSerializer(serializers.ModelSerializer):
 
 
 class FoodOrderSerializer(serializers.ModelSerializer):
-    status = serializers.CharField(source='get_status_display')
+    status_detail = serializers.CharField(source='get_status_display')
     price = serializers.SerializerMethodField()
     ordered_items = OrderedItemGetDetailsSerializer(many=True, read_only=True)
 
     # TODO: write a ordered item serializer where each foreign key details are also shown in response
+
+    class Meta:
+        model = FoodOrder
+        fields = ['id',
+                  "remarks",
+                  'status_detail',
+                  "table",
+                  "status",
+                  "price",
+                  'ordered_items',
+
+
+                  ]
+
+    def get_price(self, obj):
+        return calculate_price(food_order_obj=obj)
+
+class FoodOrderByTableSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(source='get_status_display')
+    price = serializers.SerializerMethodField()
+    ordered_items = OrderedItemGetDetailsSerializer(many=True, read_only=True)
 
     class Meta:
         model = FoodOrder
@@ -322,17 +355,37 @@ class TableStaffSerializer(serializers.ModelSerializer):
                   'is_occupied', 'name', 'order_info', 'id']
 
     def get_order_info(self, obj):
+        total_items=0
+        total_served_items =0
+
         if obj.is_occupied:
             order_qs = obj.food_orders.exclude(
                 status__in=["5_PAID", "6_CANCELLED"]).order_by('-id').first()
             # item_qs = OrderedItem.objects.filter(food_order=order_qs)
+
+
             if not order_qs:
                 return {}
+
+            total_items += order_qs.ordered_items.count()
+
+            order_qs = obj.food_orders.filter(
+                ordered_items__status__in=["3_IN_TABLE"]).last()
+            if order_qs:
+                total_served_items += order_qs.ordered_items.count()
             serializer = FoodOrderForStaffSerializer(order_qs)
             temp_data_dict = serializer.data
             price = temp_data_dict.pop('price', {})
             temp_data_dict.update(price)
-            # temp_data_dict['total_price'] = 380
+            temp_data_dict['total_items'] = total_items
+            temp_data_dict['total_served_items'] = total_served_items
             return temp_data_dict
         else:
             return {}
+
+
+class FoodExtraByFoodSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = FoodExtra
+        fields ='__all__'

@@ -16,8 +16,9 @@ router.register('food_category', FoodCategoryViewSet,
 router.register('food_extra', FoodExtraViewSet,
                 basename="food_extra")
 
-router.register('food_option', FoodOptionViewSet, basename='food_option'
-                )
+router.register('food_option', FoodOptionViewSet,
+                basename='food_option')
+
 
 # router.register('table', TableViewSet,
 #                basename="table")
@@ -37,6 +38,10 @@ urlpatterns = [
          TableViewSet.as_view({'patch': 'update', }), name='table'),
     path('table/<int:table_id>/staff_remove/',
          TableViewSet.as_view({'post': 'remove_staff', }), name='remove_staff'),
+    # New Add
+    path('table/<int:table_id>/quantity_list/',
+             TableViewSet.as_view({'get': 'quantity_list', }), name='quantity_list'),
+
 
     path('restaurant/',
          RestaurantViewSet.as_view({'post': 'create', 'get': 'list'}), name='restaurant_create_and_list'),
@@ -52,6 +57,12 @@ urlpatterns = [
 
     path('restaurant_staff/<int:staff_id>/tables/',
          TableViewSet.as_view({'get': 'staff_table_list'}), name='staff_table_list'),
+    path('table/<int:table_id>/order_item_list/',
+             TableViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),
+    path('restaurant/<int:restaurant_id>/order_item_list/',
+             RestaurantViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),
+    path('table_order_list/<int:table_id>',
+             TableViewSet.as_view({'get': 'table_order_list'}), name='table_order_list'),
 
     # path('restaurant/waiter/<int:staff_assigned>/tables/',
     #    TableViewSet.as_view({'get': 'waiter_table_list'}), name='waiter_table_list'),
@@ -70,6 +81,9 @@ urlpatterns = [
 
     path('restaurant/<int:restaurant>/foods_by_category/',
          FoodByRestaurantViewSet.as_view({'get': 'list_by_category'}), name='foods_by_category'),
+# New Add
+    path('restaurant/quantity/',
+         FoodByRestaurantViewSet.as_view({'get': 'quantity'}), name='quantity'),
 
     path('restaurant/<int:restaurant>/top_foods_by_category/',
          FoodByRestaurantViewSet.as_view({'get': 'top_foods_by_category'}), name='top_foods_by_category'),
@@ -90,8 +104,15 @@ urlpatterns = [
     path('order/cancel_order/<int:pk>/',
          FoodOrderViewSet.as_view({'post': 'cancel_order'}, name='cancel_order')),
 
+    #path('order/update_status/<int:pk>/',
+         #FoodOrderViewSet.as_view({'post': 'update_status'}, name='update_status')),
+
     path('ordered_item/<int:ordered_id>/',
          FoodOrderedViewSet.as_view({'get': 'ordered_item_list'}, name='ordered_item_list')),
+
+     path('food_extra_by_food/<int:pk>/',FoodViewSet.as_view({'get':'food_extra_by_food'},name='food_extra_by_food')),
+
+     path('food_option_by_food/<int:pk>',FoodViewSet.as_view({'get':'food_option_by_food'},name='food_option_by_food')),
 
 
 ]
