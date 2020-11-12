@@ -95,6 +95,9 @@ urlpatterns = [
     path('order/cancel_order/<int:pk>/',
          FoodOrderViewSet.as_view({'post': 'cancel_order'}, name='cancel_order')),
 
+    #path('order/update_status/<int:pk>/',
+         #FoodOrderViewSet.as_view({'post': 'update_status'}, name='update_status')),
+
     path('ordered_item/<int:ordered_id>/',
          FoodOrderedViewSet.as_view({'get': 'ordered_item_list'}, name='ordered_item_list')),
 

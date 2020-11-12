@@ -264,7 +264,7 @@ class FoodOptionViewSet(CustomViewSet):
 class TableViewSet(CustomViewSet):
     serializer_class = TableSerializer
 
-    # permission_classes = [permissions.IsAuthenticated]
+    #permission_classes = [permissions.IsAuthenticated]
     queryset = Table.objects.all()
     lookup_field = 'pk'
     # http_method_names = ['get', 'post', 'patch']
@@ -281,6 +281,7 @@ class TableViewSet(CustomViewSet):
         return self.serializer_class
 
     def table_list(self, request, restaurant, *args, **kwargs):
+
         qs = self.queryset.filter(restaurant=restaurant)
         # qs = qs.filter(is_top = True)
         serializer = self.serializer_class(instance=qs, many=True)
@@ -333,6 +334,8 @@ class FoodOrderViewSet(CustomViewSet):
         elif self.action in ['add_items']:
             self.serializer_class = OrderedItemUserPostSerializer
         elif self.action in ['cancel_order']:
+            self.serializer_class = FoodOrderCancelSerializer
+        elif self.action in ['update_status']:
             self.serializer_class = FoodOrderCancelSerializer
         else:
             self.serializer_class = FoodOrderUserPostSerializer
@@ -399,6 +402,26 @@ class FoodOrderViewSet(CustomViewSet):
             return ResponseWrapper(data=serializer.data, msg='Cancel')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+"""
+    def update_status(self, request, pk, *args, **kwargs):
+        serializer = self.get_serializer_class()
+        if serializer.is_valid():
+            table_qs = Table.objects.filter(
+                pk=request.data.get('table')).fast()
+            order_qs = FoodOrder.objects.all()
+            if table_qs.is_occupied:
+                #table_qs.is_occupied = True
+                order_qs.status ='2_ORDER_CONFIRMED'
+                order_qs.save()
+                qs = serializer.save()
+                serializer = self.serializer_class(instance=qs)
+            else:
+                return ResponseWrapper(error_msg=['Order is already In kitchen'], error_code=400)
+            return ResponseWrapper(data=serializer.data, msg='In kitchen')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+"""
 
 
 class OrderedItemViewSet(CustomViewSet):
