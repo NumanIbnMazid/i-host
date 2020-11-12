@@ -109,21 +109,21 @@ class RestaurantViewSet(viewsets.ModelViewSet):
     def order_item_list(self,request, restaurant_id,*args, **kwargs):
         qs = FoodOrder.objects.filter(table__restaurant=restaurant_id).exclude(status__in=['4_PAID','5_CANCELLED'])
         orderd_table_set = set(qs.values_list('table_id',flat=True))
-        table_qs = Table.objects.filter(restaurant=restaurant_id)
-        all_table_set = set(table_qs.values_list('pk',flat=True))
-        empty_table_set = all_table_set - orderd_table_set
+        table_qs = Table.objects.filter(restaurant=restaurant_id).exclude(pk__in =orderd_table_set)
+        # all_table_set = set(table_qs.values_list('pk',flat=True))
+        # empty_table_set = all_table_set - orderd_table_set
         empty_table_data = []
-        for empty_table in empty_table_set:
+        for empty_table in table_qs:
             empty_table_data.append(
                 {
-                    'table':empty_table,
-                    'status' : 'Empty',
+                    'table':empty_table.pk,
+                    'table_no': empty_table.table_no,
+                    'table_name':empty_table.name,
+                    'status' : '',
                     'price': {},
                     'ordered_items': []
                 }
             )
-
-        #qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
         serializer = FoodOrderByTableSerializer(instance=qs,many=True)
 
         return ResponseWrapper(data=serializer.data+empty_table_data,msg="success")

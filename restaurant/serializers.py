@@ -200,6 +200,8 @@ class FoodOrderSerializer(serializers.ModelSerializer):
 
 class FoodOrderByTableSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='get_status_display')
+    table_name = serializers.CharField(source="table.name")
+    table_no = serializers.CharField(source="table.table_no")
     price = serializers.SerializerMethodField()
     ordered_items = OrderedItemGetDetailsSerializer(many=True, read_only=True)
 
@@ -211,6 +213,8 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   "status",
                   "price",
                   'ordered_items',
+                  'table_name',
+                  'table_no',
 
                   ]
 
