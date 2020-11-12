@@ -365,3 +365,10 @@ class TableStaffSerializer(serializers.ModelSerializer):
             return temp_data_dict
         else:
             return {}
+
+
+class FoodExtraByFoodSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = FoodExtra
+        fields ='__all__'

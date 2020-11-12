@@ -15,7 +15,7 @@ from restaurant.models import (Food, FoodCategory, FoodExtra,FoodExtraType, Food
                                FoodOptionType, FoodOrder, OrderedItem, Restaurant,
                                Table)
 
-from .serializers import (FoodOptionBaseSerializer, FoodWithPriceSerializer, FoodCategorySerializer,
+from .serializers import (FoodExtraByFoodSerializer, FoodOptionBaseSerializer, FoodWithPriceSerializer, FoodCategorySerializer,
                           FoodDetailSerializer,
                           FoodExtraPostPatchSerializer,
                           FoodExtraSerializer, FoodOptionTypeSerializer,
@@ -469,12 +469,25 @@ class FoodViewSet(CustomViewSet):
     def get_serializer_class(self):
         if self.action == 'retrieve':
             self.serializer_class = FoodDetailSerializer
+        
         return self.serializer_class
     # permission_classes = [permissions.IsAuthenticated]
     queryset = Food.objects.all()
     lookup_field = 'pk'
     http_method_names = ['post', 'patch', 'get']
 
+    def food_extra_by_food(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        serializer = FoodExtraSerializer(instance.food_extras.all(),many=True)
+        return ResponseWrapper(data=serializer.data)
+
+    
+    def food_option_by_food(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        serializer = FoodOptionSerializer(instance.food_options.all(),many=True)
+        return ResponseWrapper(data=serializer.data)
 
 class FoodByRestaurantViewSet(CustomViewSet):
     serializer_class = FoodsByCategorySerializer
@@ -539,6 +552,8 @@ class FoodByRestaurantViewSet(CustomViewSet):
 
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
+
+
 
 """
 class FoodOrderViewSet(CustomViewSet):

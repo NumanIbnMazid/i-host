@@ -106,5 +106,9 @@ urlpatterns = [
     path('ordered_item/<int:ordered_id>/',
          FoodOrderedViewSet.as_view({'get': 'ordered_item_list'}, name='ordered_item_list')),
 
+     path('food_extra_by_food/<int:pk>/',FoodViewSet.as_view({'get':'food_extra_by_food'},name='food_extra_by_food')),
+
+     path('food_option_by_food/<int:pk>',FoodViewSet.as_view({'get':'food_option_by_food'},name='food_option_by_food')),
+
 
 ]
