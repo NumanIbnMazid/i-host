@@ -135,11 +135,12 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "quantity",
-            "food_option",
-            "food_extra",
             "food_order",
             "status",
             "food_name",
+            "food_option",
+            "food_extra",
+
         ]
 
 
@@ -163,7 +164,7 @@ class FoodOptionsSerializer(serializers.ModelSerializer):
 
 
 class FoodOrderSerializer(serializers.ModelSerializer):
-    status = serializers.CharField(source='get_status_display')
+    status_detail = serializers.CharField(source='get_status_display')
     price = serializers.SerializerMethodField()
     ordered_items = OrderedItemGetDetailsSerializer(many=True, read_only=True)
 
@@ -173,10 +174,12 @@ class FoodOrderSerializer(serializers.ModelSerializer):
         model = FoodOrder
         fields = ['id',
                   "remarks",
+                  'status_detail',
                   "table",
                   "status",
                   "price",
                   'ordered_items',
+
 
                   ]
 
