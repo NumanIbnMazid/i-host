@@ -489,19 +489,18 @@ class FoodOrderViewSet(CustomViewSet):
             if not order_qs:
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
-            if order_qs.status:
-                all_items_qs = OrderedItem.objects.filter(
-                    food_order=order_qs.pk, status__in=["1_ORDER_PLACED"])
-                all_items_qs.filter(pk__in=request.data.get(
-                    'food_items')).update(status='2_ORDER_CONFIRMED')
-                all_items_qs.exclude(pk__in=request.data.get(
-                    'food_items')).update(status='4_CANCELLED')
 
-                order_qs.status = '2_ORDER_CONFIRMED'
-                order_qs.save()
-                serializer = FoodOrderByTableSerializer(instance=order_qs)
-            else:
-                return ResponseWrapper(error_msg=['Order is already confirmed'], error_code=400)
+            all_items_qs = OrderedItem.objects.filter(
+                food_order=order_qs.pk, status__in=["1_ORDER_PLACED"])
+            all_items_qs.filter(pk__in=request.data.get(
+                'food_items')).update(status='2_ORDER_CONFIRMED')
+            all_items_qs.exclude(pk__in=request.data.get(
+                'food_items')).update(status='4_CANCELLED')
+
+            order_qs.status = '2_ORDER_CONFIRMED'
+            order_qs.save()
+            serializer = FoodOrderByTableSerializer(instance=order_qs)
+        
             return ResponseWrapper(data=serializer.data, msg='Confirmed')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
