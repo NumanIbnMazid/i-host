@@ -296,10 +296,19 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
 
 class FoodsByCategorySerializer(serializers.ModelSerializer):
     foods = FoodWithPriceSerializer(many=True)
+    food = FoodSerializer(read_only=True, many=True)
+    id = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = FoodCategory
         fields = ['id', 'name', 'image', 'foods']
+
+    def get_id(self, obj):
+        food_qs = obj.food.order_by('-id')
+        if food_qs:
+            return food_qs.id
+        else:
+            return None
 
 
 class FoodDetailSerializer(serializers.ModelSerializer):

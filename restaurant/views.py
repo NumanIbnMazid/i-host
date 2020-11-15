@@ -331,7 +331,7 @@ class TableViewSet(CustomViewSet):
 
         qs = self.queryset.filter(restaurant=restaurant)
         # qs = qs.filter(is_top = True)
-        serializer = self.serializer_class(instance=qs, many=True,context={'user':request.user})
+        serializer = self.get_serializer(instance=qs, many=True,context={'user':request.user})
         return ResponseWrapper(data=serializer.data, msg='success')
 
     # @swagger_auto_schema(request_body=ListOfIdSerializer)
