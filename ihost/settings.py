@@ -47,6 +47,7 @@ LIBRARY_APPS = [
     "storages",
     'corsheaders',
     'drf_extra_fields',
+    'softdelete',
 ]
 DJANOG_APPS = [
     'account_management',
