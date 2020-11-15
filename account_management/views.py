@@ -105,7 +105,7 @@ def verify_login(request):
     return ResponseWrapper(data="Token is Valid", status=200)
 
 
-class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
+class RestaurantAccountManagerViewSet(CustomViewSet):
     def get_serializer_class(self):
         """
         Return the class to use for the serializer.
@@ -119,8 +119,8 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
 
         if self.action in ["create_owner", "create_manager", "create_waiter"]:
             self.serializer_class = RestaurantUserSignUpSerializer
-        elif self.action == "update":
-            self.serializer_class = UserAccountPatchSerializer
+        elif self.action in ["update", 'retrieve']:
+            self.serializer_class = StaffInfoSerializer
         else:
             self.serializer_class = UserAccountSerializer
 
@@ -140,7 +140,8 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
 
-    queryset = User.objects.exclude(status="DEL")
+    queryset = HotelStaffInformation.objects.all()
+    lookup_field = 'pk'
 
     def create_owner(self, request, *args, **kwargs):
         return self.create_staff(request, is_owner=True)
@@ -218,13 +219,13 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
         staff_serializer = StaffInfoGetSerializer(instance=staff_qs)
         return ResponseWrapper(data=staff_serializer.data, status=200)
 
-    def retrieve(self, request, *args, **kwargs):
-        if request.user is not None:
-            # user_serializer = self.serializer_class(instance=request.user)
-            user_serializer = UserAccountSerializer(instance=request.user)
-            return ResponseWrapper(data=user_serializer.data, status=200)
-        else:
-            return ResponseWrapper(data="No User found", status=400)
+    # def retrieve(self, request, *args, **kwargs):
+    #     if request.user is not None:
+    #         # user_serializer = self.serializer_class(instance=request.user)
+    #         user_serializer = UserAccountSerializer(instance=request.user)
+    #         return ResponseWrapper(data=user_serializer.data, status=200)
+    #     else:
+    #         return ResponseWrapper(data="No User found", status=400)
 
     def owner_info(self, request, id, *args, **kwargs):
         owner_qs = HotelStaffInformation.objects.filter(
@@ -243,67 +244,6 @@ class RestaurantAccountManagerViewSet(viewsets.ModelViewSet):
             restaurant_id=id, is_manager=True)
         serializer = StaffInfoGetSerializer(instance=manager_qs, many=True)
         return ResponseWrapper(data=serializer.data)
-
-
-#     # @swagger_auto_schema(request_body=TravellerAccountDetailSerializer)
-#     # def update(self, request, *args, **kwargs):
-#     #     if request.user is not None:
-#     #         user = User.objects.get(id=request.user.id)
-#     #         # print(user.primary_traveller_id)
-#     #         # print(user.primary_traveller.pk)
-#     #         traveller = TravellerAccount.objects.get(
-#     #             traveller_id=user.primary_traveller.pk)
-#     #         # print(traveller)
-#     #         if "present_address" in request.data:
-#     #             present_address = request.data.pop("present_address")
-#     #             present_address_serializer = AddressInformationSerializer(
-#     #                 present_address)
-#     #             if traveller.present_address is None:
-#     #                 present_address_record = present_address_serializer.create(
-#     #                     validated_data=present_address)
-#     #                 traveller.present_address = present_address_record
-#     #                 traveller.save()
-#     #             else:
-#     #                 present_address_serializer.update(instance=traveller.present_address,
-#     #                                                   validated_data=present_address)
-#     #         if "permanent_address" in request.data:
-#     #             permanent_address = request.data.pop("permanent_address")
-#     #             permanent_address_serializer = AddressInformationSerializer(
-#     #                 permanent_address)
-#     #             if traveller.permanent_address is None:
-#     #                 permanent_address_record = present_address_serializer.create(
-#     #                     validated_data=present_address)
-#     #                 traveller.permanent_address = permanent_address_record
-#     #                 traveller.save()
-#     #             else:
-#     #                 permanent_address_serializer.update(instance=traveller.permanent_address,
-#     #                                                     validated_data=permanent_address)
-
-#     #         # print("address saved")
-#     #         traveller_serializer = TravellerAccountDetailSerializer(traveller)
-#     #         traveller_serializer.update(
-#     #             instance=traveller, validated_data=request.data)
-#     #         return ResponseWrapper(data=traveller_serializer.data, status=200)
-
-#     #         # user_primary_traveller_serializer = TravellerAccountDetailSerializer(
-#     #         #     instance=user.primary_traveller, data=request.data, partial=True
-#     #         # )
-#     #         # user_primary_traveller_serializer.update(instance=user.primary_traveller, validated_data=request.data)
-#     #         # # self.serializer_class.update(instance=request.user,validated_data=request.data)
-#     #         # if user_primary_traveller_serializer.is_valid():
-#     #         #     return ResponseWrapper(data=user_primary_traveller_serializer.data, status=200)
-
-    def destroy(self, request, *args, **kwargs):
-        if request.user is not None:
-            user_serializer = UserAccountSerializer(
-                instance=request.user, data={}, partial=True
-            )
-            user_serializer.update(
-                instance=request.user, validated_data={"status": "DEL"}
-            )
-            if user_serializer.is_valid():
-                return ResponseWrapper(data=user_serializer.data, status=200)
-        return ResponseWrapper(data="Active account not found", status=400)
 
 
 class UserAccountManagerViewSet(viewsets.ModelViewSet):
