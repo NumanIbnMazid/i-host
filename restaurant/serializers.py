@@ -154,7 +154,10 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
             "food_extra",
 
         ]
-
+class FoodOrderConfirmSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodOrder
+        fields = ['table']
 
 class OrderedItemUserPostSerializer(serializers.ModelSerializer):
     class Meta:

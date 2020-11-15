@@ -45,8 +45,14 @@ urlpatterns = [
 
     path('restaurant/',
          RestaurantViewSet.as_view({'post': 'create', 'get': 'list'}), name='restaurant_create_and_list'),
+
     path('restaurant/<int:pk>/',
          RestaurantViewSet.as_view({'patch': 'update', 'get': 'retrieve'}), name='restaurant_update'),
+
+    path('restaurant/<int:pk>/delete_restaurant/',
+             RestaurantViewSet.as_view({'delete': 'delete_restaurant'}), name='delete_restaurant'),
+
+
     path("food_category/",
          FoodCategoryViewSet.as_view({"post": "create", "get": "list"})),
     path("food_category/<int:pk>/",
@@ -59,6 +65,9 @@ urlpatterns = [
          TableViewSet.as_view({'get': 'staff_table_list'}), name='staff_table_list'),
     path('table/<int:table_id>/order_item_list/',
              TableViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),
+    path('table/<int:table_id>/delete_table/',
+             TableViewSet.as_view({'delete': 'delete_table'}), name='delete_table'),
+
     path('restaurant/<int:restaurant_id>/order_item_list/',
              RestaurantViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),
     path('table_order_list/<int:table_id>',
@@ -81,7 +90,7 @@ urlpatterns = [
 
     path('restaurant/<int:restaurant>/foods_by_category/',
          FoodByRestaurantViewSet.as_view({'get': 'list_by_category'}), name='foods_by_category'),
-# New Add
+
     path('restaurant/quantity/',
          FoodByRestaurantViewSet.as_view({'get': 'quantity'}), name='quantity'),
 
@@ -104,8 +113,8 @@ urlpatterns = [
     path('order/cancel_order/<int:pk>/',
          FoodOrderViewSet.as_view({'post': 'cancel_order'}, name='cancel_order')),
 
-    #path('order/update_status/<int:pk>/',
-         #FoodOrderViewSet.as_view({'post': 'update_status'}, name='update_status')),
+    path('order/confirm_status/<int:pk>/',
+         FoodOrderViewSet.as_view({'post': 'confirm_status'}, name='confirm_status')),
 
     path('ordered_item/<int:ordered_id>/',
          FoodOrderedViewSet.as_view({'get': 'ordered_item_list'}, name='ordered_item_list')),
