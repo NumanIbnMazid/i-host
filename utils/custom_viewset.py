@@ -1,4 +1,5 @@
 from rest_framework import permissions, status, viewsets
+
 from utils.response_wrapper import ResponseWrapper
 
 
@@ -38,9 +39,9 @@ class CustomViewSet(viewsets.ModelViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def destroy(self, request, **kwargs):
-        qs = self.queryset.filter(**kwargs).first()
-        if qs:
-            qs.delete()
-            return ResponseWrapper(status=200, msg='deleted')
-        else:
-            return ResponseWrapper(error_msg="failed to delete", error_code=400)
+            qs = self.queryset.filter(**kwargs).first()
+            if qs:
+                qs.delete()
+                return ResponseWrapper(status=200, msg='deleted')
+            else:
+                return ResponseWrapper(error_msg="failed to delete", error_code=400)
