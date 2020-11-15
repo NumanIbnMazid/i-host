@@ -60,6 +60,7 @@ class FoodExtraTypeDetailSerializer(serializers.ModelSerializer):
         model = FoodExtra
         fields = '__all__'
 
+
 class FoodCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodCategory
@@ -94,15 +95,20 @@ class RestaurantSerializer(serializers.ModelSerializer):
         model = Restaurant
         fields = '__all__'
 
+
 class TableSerializer(serializers.ModelSerializer):
     staff_assigned = StaffInfoGetSerializer(read_only=True, many=True)
+
     class Meta:
         model = Table
         fields = '__all__'
 
+
 class StaffTableSerializer(serializers.ModelSerializer):
     staff_assigned = StaffInfoGetSerializer(read_only=True, many=True)
-    my_table = serializers.SerializerMethodField(read_only=True,required=False)
+    my_table = serializers.SerializerMethodField(
+        read_only=True, required=False)
+
     class Meta:
         model = Table
         fields = ['table_no',
@@ -113,12 +119,13 @@ class StaffTableSerializer(serializers.ModelSerializer):
                   'my_table',
                   ]
 
-    def get_my_table(self,obj):
+    def get_my_table(self, obj):
         user = self.context.get('user')
-        assigned_pk_list = obj.staff_assigned.values_list('pk',flat=True)
+        assigned_pk_list = obj.staff_assigned.values_list('pk', flat=True)
         if user.pk in assigned_pk_list:
             return True
         return False
+
 
 class StaffIdListSerializer(serializers.Serializer):
     staff_list = serializers.ListSerializer(child=serializers.IntegerField())
@@ -154,9 +161,12 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
             "food_extra",
 
         ]
+
+
 class FoodOrderConfirmSerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
     food_items = serializers.ListSerializer(child=serializers.IntegerField())
+
 
 class OrderedItemUserPostSerializer(serializers.ModelSerializer):
     class Meta:
@@ -174,7 +184,7 @@ class FoodOrderCancelSerializer(serializers.ModelSerializer):
 class FoodOptionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOption
-        fields = '__all__'
+        exclude = ['created_at', 'updated_at']
 
 
 class FoodOrderSerializer(serializers.ModelSerializer):
@@ -199,6 +209,7 @@ class FoodOrderSerializer(serializers.ModelSerializer):
 
     def get_price(self, obj):
         return calculate_price(food_order_obj=obj)
+
 
 class FoodOrderByTableSerializer(serializers.ModelSerializer):
     status_details = serializers.CharField(source='get_status_display')
@@ -301,8 +312,6 @@ class FoodsByCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'image', 'foods']
 
 
-
-
 class FoodDetailSerializer(serializers.ModelSerializer):
     category = FoodCategorySerializer(read_only=True)
     food_extras = FoodExtraGroupByTypeSerializer(read_only=True, many=True)
@@ -364,14 +373,13 @@ class TableStaffSerializer(serializers.ModelSerializer):
                   'is_occupied', 'name', 'order_info', 'id']
 
     def get_order_info(self, obj):
-        total_items=0
-        total_served_items =0
+        total_items = 0
+        total_served_items = 0
 
         if obj.is_occupied:
             order_qs = obj.food_orders.exclude(
                 status__in=["5_PAID", "6_CANCELLED"]).order_by('-id').first()
             # item_qs = OrderedItem.objects.filter(food_order=order_qs)
-
 
             if not order_qs:
                 return {}
@@ -394,7 +402,7 @@ class TableStaffSerializer(serializers.ModelSerializer):
 
 
 class FoodExtraByFoodSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = FoodExtra
-        fields ='__all__'
+        fields = '__all__'

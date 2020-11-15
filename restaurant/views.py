@@ -470,7 +470,7 @@ class FoodOrderViewSet(CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def confirm_status(self, request, pk, *args, **kwargs):
+    def confirm_status(self, request,  *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             order_qs = FoodOrder.objects.filter(
