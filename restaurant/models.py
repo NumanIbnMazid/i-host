@@ -1,5 +1,7 @@
+import uuid
 from os import name, truncate
 
+# from django.contrib.postgres.fields import JSONField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import manager
@@ -149,7 +151,7 @@ class Table(models.Model):
         return self.name+'  ' + self.id.__str__()
 
 
-class FoodOrder(models.Model):
+class FoodOrder(SoftDeleteModel):
     ORDER_STATUS = [
         ("0_ORDER_INITIALIZED", "Table Scanned"),
         ("1_ORDER_PLACED", "User Confirmed"),
@@ -202,3 +204,15 @@ class OrderedItem(models.Model):
     customer table separate
     
     """
+
+
+class Invoice(SoftDeleteModel):
+    id = models.UUIDField(
+        primary_key=True, editable=False, default=uuid.uuid4)
+    restaurant = models.ForeignKey(
+        to=Restaurant, on_delete=models.SET_NULL, null=True, blank=True)
+    grand_total = models.DecimalField(
+        null=True, blank=True, max_digits=10, decimal_places=2)
+    order_info = models.JSONField(null=True, blank=True)
+    updated_at = models.DateField(auto_now=True)
+    created_at = models.DateField(auto_now_add=True)
