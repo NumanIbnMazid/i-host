@@ -26,19 +26,19 @@ restaurant_account_management = [
     path("restaurant/create_waiter/", RestaurantAccountManagerViewSet.as_view({
         "post": "create_waiter",
     }), name="create_waiter"),
-    path("restaurant/staff/", RestaurantAccountManagerViewSet.as_view({
-        "get": "retrieve",
+    path("restaurant/staff/<int:pk>/", RestaurantAccountManagerViewSet.as_view({
+        "get": "retrieve", 'patch': "update"
     }), name="staff_info"),
 
-    path("resturant/<int:id>/owner_info/", RestaurantAccountManagerViewSet.as_view({
+    path("restaurant/<int:id>/owner_info/", RestaurantAccountManagerViewSet.as_view({
         "get": "owner_info"
     }), name="owner_info"),
 
-    path("resturant/<int:id>/waiter_info/", RestaurantAccountManagerViewSet.as_view({
+    path("restaurant/<int:id>/waiter_info/", RestaurantAccountManagerViewSet.as_view({
         "get": "waiter_info"
     }), name="waiter_info"),
 
-    path("resturant/<int:id>/manager_info/", RestaurantAccountManagerViewSet.as_view({
+    path("restaurant/<int:id>/manager_info/", RestaurantAccountManagerViewSet.as_view({
         "get": "manager_info"
     }), name="manager_info"),
 ]
