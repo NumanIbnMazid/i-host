@@ -40,7 +40,7 @@ urlpatterns = [
          TableViewSet.as_view({'post': 'remove_staff', }), name='remove_staff'),
     # New Add
     path('table/<int:table_id>/quantity_list/',
-             TableViewSet.as_view({'get': 'quantity_list', }), name='quantity_list'),
+         TableViewSet.as_view({'get': 'quantity_list', }), name='quantity_list'),
 
 
     path('restaurant/',
@@ -50,7 +50,7 @@ urlpatterns = [
          RestaurantViewSet.as_view({'patch': 'update', 'get': 'retrieve'}), name='restaurant_update'),
 
     path('restaurant/<int:pk>/delete_restaurant/',
-             RestaurantViewSet.as_view({'delete': 'delete_restaurant'}), name='delete_restaurant'),
+         RestaurantViewSet.as_view({'delete': 'delete_restaurant'}), name='delete_restaurant'),
 
 
     path("food_category/",
@@ -65,15 +65,15 @@ urlpatterns = [
          TableViewSet.as_view({'get': 'staff_table_list'}), name='staff_table_list'),
 
     path('table/<int:table_id>/order_item_list/',
-             TableViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),
+         TableViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),
     path('table/<int:table_id>/delete_table/',
-             TableViewSet.as_view({'delete': 'delete_table'}), name='delete_table'),
+         TableViewSet.as_view({'delete': 'delete_table'}), name='delete_table'),
 
     path('restaurant/<int:restaurant_id>/order_item_list/',
-             RestaurantViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),
+         RestaurantViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),
 
     path('table_order_list/<int:table_id>',
-             TableViewSet.as_view({'get': 'table_order_list'}), name='table_order_list'),
+         TableViewSet.as_view({'get': 'table_order_list'}), name='table_order_list'),
 
     # path('restaurant/waiter/<int:staff_assigned>/tables/',
     #    TableViewSet.as_view({'get': 'waiter_table_list'}), name='waiter_table_list'),
@@ -112,7 +112,7 @@ urlpatterns = [
     path('order/create_order/<int:pk>/',
          FoodOrderViewSet.as_view({'patch': 'update', 'get': 'retrieve'}, name='create_order')),
 
-    path('order/cancel_order/<int:pk>/',
+    path('order/cancel_order/',
          FoodOrderViewSet.as_view({'post': 'cancel_order'}, name='cancel_order')),
 
     path('order/confirm_status/',
@@ -121,9 +121,11 @@ urlpatterns = [
     path('ordered_item/<int:ordered_id>/',
          FoodOrderedViewSet.as_view({'get': 'ordered_item_list'}, name='ordered_item_list')),
 
-     path('food_extra_by_food/<int:pk>/',FoodViewSet.as_view({'get':'food_extra_by_food'},name='food_extra_by_food')),
+    path('food_extra_by_food/<int:pk>/',
+         FoodViewSet.as_view({'get': 'food_extra_by_food'}, name='food_extra_by_food')),
 
-     path('food_option_by_food/<int:pk>',FoodViewSet.as_view({'get':'food_option_by_food'},name='food_option_by_food')),
+    path('food_option_by_food/<int:pk>',
+         FoodViewSet.as_view({'get': 'food_option_by_food'}, name='food_option_by_food')),
 
 
 ]

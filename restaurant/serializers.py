@@ -175,16 +175,14 @@ class OrderedItemUserPostSerializer(serializers.ModelSerializer):
         exclude = ['status']
 
 
-class FoodOrderCancelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FoodOrder
-        fields = '__all__'
+class FoodOrderCancelSerializer(serializers.Serializer):
+    order_id = serializers.IntegerField()
 
 
 class FoodOptionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOption
-        exclude = ['created_at', 'updated_at']
+        fields = '__all__'
 
 
 class FoodOrderSerializer(serializers.ModelSerializer):
