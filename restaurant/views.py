@@ -480,10 +480,6 @@ class FoodOrderViewSet(CustomViewSet):
     def confirm_status(self, request,  *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-<<<<<<< HEAD
-            order_qs = FoodOrder.objects.filter(
-                status='1_ORDER_PLACED').first()
-=======
             order_qs = FoodOrder.objects.filter(pk=request.data.get("order_id"),
                                                 status__in=['1_ORDER_PLACED',
                                                             "2_ORDER_CONFIRMED",
@@ -492,7 +488,6 @@ class FoodOrderViewSet(CustomViewSet):
             if not order_qs:
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
->>>>>>> a651b8c28423fffe6a60f18c6244f3a8bb2d2806
             if order_qs.status:
                 order_qs.status = '2_ORDER_CONFIRMED'
                 order_qs.save()
