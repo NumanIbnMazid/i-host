@@ -17,6 +17,7 @@ constantly==15.1.0
 contextlib2==0.6.0
 coreapi==2.3.3
 coreschema==0.0.4
+coverage==4.0.3
 cryptography==3.1.1
 daphne==2.5.0
 decorator==4.4.2
@@ -35,6 +36,7 @@ djangorestframework-simplejwt==4.4.0
 drf-yasg==1.17.1
 drf-yasg2==1.19.3
 environ==1.0
+graphviz==0.14.2
 h11==0.11.0
 html5lib==1.0.1
 hyperlink==20.0.1
@@ -67,6 +69,7 @@ pyasn1-modules==0.2.8
 pycodestyle==2.6.0
 pycparser==2.20
 Pygments==2.7.2
+pygraphviz==1.6
 PyHamcrest==2.0.2
 PyJWT==1.7.1
 pyOpenSSL==19.1.0
@@ -82,6 +85,7 @@ ruamel.yaml.clib==0.2.2
 s3transfer==0.3.3
 service-identity==18.1.0
 six==1.15.0
+soft-delete==0.2.2
 sqlparse==0.4.1
 toml==0.10.1
 traitlets==5.0.5

@@ -3,7 +3,7 @@ from os import name, truncate
 import restaurant
 from django.db import models
 from django.db.models import manager
-
+from softdelete.models import SoftDeleteModel
 # Create your models here.
 """
     TODO
@@ -22,7 +22,7 @@ class Subscription(models.Model):
         return self.name
 
 
-class Restaurant(models.Model):
+class Restaurant(SoftDeleteModel):
     RESTAURANT_STATUS = [('ACTIVE', 'ACTIVE'), ('INACTIVE', 'INACTIVE')]
 
     name = models.CharField(max_length=250)
@@ -68,7 +68,7 @@ class RestaurantPromoCategory(models.Model):
         return self.category_name
 
 
-class FoodCategory(models.Model):
+class FoodCategory(SoftDeleteModel):
     name = models.CharField(max_length=250)
     image = models.ImageField(null=True, blank=True)
     # restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE,related_name='food_category')
@@ -77,7 +77,7 @@ class FoodCategory(models.Model):
         return self.name
 
 
-class Food(models.Model):
+class Food(SoftDeleteModel):
     name = models.CharField(max_length=200)
     image = models.ImageField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
@@ -95,17 +95,19 @@ class Food(models.Model):
         return self.name
 
 
-class FoodOptionType(models.Model):
+class FoodOptionType(SoftDeleteModel):
     name = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name
 
-class FoodExtraType(models.Model):
+
+class FoodExtraType(SoftDeleteModel):
     name = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name
+
 
 class FoodExtra(models.Model):
     name = models.CharField(max_length=50)
@@ -164,8 +166,6 @@ class FoodOrder(models.Model):
         return self.status
 
 
-
-
 class OrderedItem(models.Model):
     ITEM_STATUS = [
         ("0_ORDER_INITIALIZED", "ORDER_INITIALIZED"),
@@ -185,11 +185,6 @@ class OrderedItem(models.Model):
 
     status = models.CharField(
         choices=ITEM_STATUS, default="0_ORDER_INITIALIZED", max_length=120)
-
-
-
-
-
 
     """
     
