@@ -330,7 +330,8 @@ class TableViewSet(CustomViewSet):
 
         qs = self.queryset.filter(restaurant=restaurant)
         # qs = qs.filter(is_top = True)
-        serializer = self.get_serializer(instance=qs, many=True,context={'user':request.user})
+        serializer = self.get_serializer(
+            instance=qs, many=True, context={'user': request.user})
         return ResponseWrapper(data=serializer.data, msg='success')
 
     # @swagger_auto_schema(request_body=ListOfIdSerializer)
@@ -484,9 +485,9 @@ class FoodOrderViewSet(CustomViewSet):
             if order_qs.status:
                 all_items_qs = OrderedItem.objects.filter(
                     food_order=order_qs.pk, status__in=["1_ORDER_PLACED"])
-                all_items_qs.filter(pk__in=serializer.data.get(
+                all_items_qs.filter(pk__in=request.data.get(
                     'food_items')).update(status='2_ORDER_CONFIRMED')
-                all_items_qs.exclude(pk__in=serializer.data.get(
+                all_items_qs.exclude(pk__in=request.data.get(
                     'food_items')).update(status='4_CANCELLED')
 
                 order_qs.status = '2_ORDER_CONFIRMED'
