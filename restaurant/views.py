@@ -530,6 +530,10 @@ class FoodOrderViewSet(CustomViewSet):
             order_qs.save()
             serializer = FoodOrderByTableSerializer(instance=order_qs)
 
+            order_qs.status = '2_ORDER_CONFIRMED'
+            order_qs.save()
+            serializer = FoodOrderByTableSerializer(instance=order_qs)
+
             return ResponseWrapper(data=serializer.data, msg='Confirmed')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
