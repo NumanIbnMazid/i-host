@@ -11,19 +11,21 @@ from rest_framework.serializers import Serializer
 from utils.custom_viewset import CustomViewSet
 from utils.response_wrapper import ResponseWrapper
 
-from restaurant.models import (Food, FoodCategory, FoodExtra,FoodExtraType, FoodOption,
-                               FoodOptionType, FoodOrder, OrderedItem, Restaurant,
-                               Table)
+from restaurant.models import (Food, FoodCategory, FoodExtra, FoodExtraType,
+                               FoodOption, FoodOptionType, FoodOrder,
+                               OrderedItem, Restaurant, Table)
 
-from .serializers import (FoodOptionBaseSerializer,
-                          FoodCategorySerializer,
-                          FoodDetailSerializer,
-                          FoodExtraPostPatchSerializer,
-                          FoodExtraSerializer, FoodOptionTypeSerializer,
-                          FoodOptionSerializer, FoodOrderCancelSerializer, FoodOrderUserPostSerializer,
+from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
+                          FoodExtraPostPatchSerializer, FoodExtraSerializer,
+                          FoodExtraTypeDetailSerializer,
+                          FoodExtraTypeSerializer, FoodOptionBaseSerializer,
+                          FoodOptionSerializer, FoodOptionTypeSerializer,
+                          FoodOrderByTableSerializer,
+                          FoodOrderCancelSerializer, FoodOrderSerializer,
+                          FoodOrderUserPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
-                          FoodWithPriceSerializer,
-                          OrderedItemSerializer, OrderedItemUserPostSerializer,
+                          FoodWithPriceSerializer, OrderedItemSerializer,
+                          OrderedItemUserPostSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
                           RestaurantUpdateSerialier, StaffIdListSerializer, TableSerializer,
                           FoodExtraTypeSerializer, TableStaffSerializer, FoodExtraTypeDetailSerializer,
@@ -514,7 +516,9 @@ class FoodViewSet(CustomViewSet):
     def get_serializer_class(self):
         if self.action == 'retrieve':
             self.serializer_class = FoodDetailSerializer
-        
+
+
+
         return self.serializer_class
     # permission_classes = [permissions.IsAuthenticated]
     queryset = Food.objects.all()
@@ -533,6 +537,18 @@ class FoodViewSet(CustomViewSet):
         
         serializer = FoodOptionSerializer(instance.food_options.all(),many=True)
         return ResponseWrapper(data=serializer.data)
+
+    def update(self, request, **kwargs):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data, partial=True)
+        if serializer.is_valid():
+            qs = serializer.update(instance=self.get_object(
+            ), validated_data=serializer.validated_data)
+            serializer = FoodDetailSerializer(instance=qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
 
 class FoodByRestaurantViewSet(CustomViewSet):
     serializer_class = FoodsByCategorySerializer
