@@ -109,7 +109,7 @@ class FoodExtraType(SoftDeleteModel):
         return self.name
 
 
-class FoodExtra(models.Model):
+class FoodExtra(SoftDeleteModel):
     name = models.CharField(max_length=50)
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     food = models.ForeignKey(Food, on_delete=models.CASCADE,
@@ -121,7 +121,7 @@ class FoodExtra(models.Model):
         return self.name
 
 
-class FoodOption(models.Model):
+class FoodOption(SoftDeleteModel):
     name = models.CharField(max_length=50)
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     food = models.ForeignKey(
