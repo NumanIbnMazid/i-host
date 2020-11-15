@@ -164,6 +164,8 @@ class FoodOrder(models.Model):
         Table, on_delete=models.SET_NULL, null=True, related_name='food_orders')
     status = models.CharField(choices=ORDER_STATUS,
                               default="0_ORDER_INITIALIZED", max_length=120)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         if self.table:
