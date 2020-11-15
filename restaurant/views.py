@@ -21,16 +21,16 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           FoodExtraTypeSerializer, FoodOptionBaseSerializer,
                           FoodOptionSerializer, FoodOptionTypeSerializer,
                           FoodOrderByTableSerializer,
-                          FoodOrderCancelSerializer, FoodOrderSerializer,
+                          FoodOrderCancelSerializer,
+                          FoodOrderConfirmSerializer, FoodOrderSerializer,
                           FoodOrderUserPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
                           FoodWithPriceSerializer, OrderedItemSerializer,
                           OrderedItemUserPostSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
-                          RestaurantUpdateSerialier, StaffIdListSerializer, TableSerializer,
-                          FoodExtraTypeSerializer, TableStaffSerializer, FoodExtraTypeDetailSerializer,
-                          FoodOrderSerializer, StaffTableSerializer,
-                          FoodOrderByTableSerializer, FoodOrderConfirmSerializer)
+                          RestaurantUpdateSerialier, StaffIdListSerializer,
+                          StaffTableSerializer, TableSerializer,
+                          TableStaffSerializer)
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
@@ -330,8 +330,7 @@ class TableViewSet(CustomViewSet):
 
         qs = self.queryset.filter(restaurant=restaurant)
         # qs = qs.filter(is_top = True)
-        serializer = self.serializer_class(
-            instance=qs, many=True, context={'user': request.user})
+        serializer = self.get_serializer(instance=qs, many=True,context={'user':request.user})
         return ResponseWrapper(data=serializer.data, msg='success')
 
     # @swagger_auto_schema(request_body=ListOfIdSerializer)
@@ -568,7 +567,7 @@ class FoodByRestaurantViewSet(CustomViewSet):
 
     # permission_classes = [permissions.IsAuthenticated]
 
-    queryset = Food.objects.all()
+    queryset = Food.objects.all().order_by('-id')
     lookup_field = 'restaurant'
     http_method_names = ['get']
 

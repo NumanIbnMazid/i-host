@@ -301,6 +301,8 @@ class FoodsByCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'image', 'foods']
 
 
+
+
 class FoodDetailSerializer(serializers.ModelSerializer):
     category = FoodCategorySerializer(read_only=True)
     food_extras = FoodExtraGroupByTypeSerializer(read_only=True, many=True)
