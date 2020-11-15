@@ -168,7 +168,10 @@ class FoodOrder(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.status
+        if self.table:
+            return self.table.name
+        else:
+            return 'table null'
 
 
 class OrderedItem(models.Model):
