@@ -21,16 +21,16 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           FoodExtraTypeSerializer, FoodOptionBaseSerializer,
                           FoodOptionSerializer, FoodOptionTypeSerializer,
                           FoodOrderByTableSerializer,
-                          FoodOrderCancelSerializer, FoodOrderSerializer,
+                          FoodOrderCancelSerializer,
+                          FoodOrderConfirmSerializer, FoodOrderSerializer,
                           FoodOrderUserPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
                           FoodWithPriceSerializer, OrderedItemSerializer,
                           OrderedItemUserPostSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
-                          RestaurantUpdateSerialier, StaffIdListSerializer, TableSerializer,
-                          FoodExtraTypeSerializer, TableStaffSerializer, FoodExtraTypeDetailSerializer,
-                          FoodOrderSerializer, StaffTableSerializer,
-                          FoodOrderByTableSerializer, FoodOrderConfirmSerializer)
+                          RestaurantUpdateSerialier, StaffIdListSerializer,
+                          StaffTableSerializer, TableSerializer,
+                          TableStaffSerializer)
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
@@ -557,7 +557,7 @@ class FoodByRestaurantViewSet(CustomViewSet):
 
     # permission_classes = [permissions.IsAuthenticated]
 
-    queryset = Food.objects.all()
+    queryset = Food.objects.all().order_by('-id')
     lookup_field = 'restaurant'
     http_method_names = ['get']
 
