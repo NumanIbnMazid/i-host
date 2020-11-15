@@ -570,11 +570,13 @@ class FoodOrderViewSet(CustomViewSet):
             if not order_qs:
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
-            all_items_qs = OrderedItem.objects.exclude(
-                food_order=order_qs.pk, status__in=["3_IN_TABLE",'4_CANCELLED']).count()
+            remaining_item_counter = OrderedItem.objects.filter(
+                food_order=order_qs.pk).exclude( status__in=["3_IN_TABLE",'4_CANCELLED']).count()
 
-            if all_items_qs > 0:
+
+            if remaining_item_counter > 0:
                 return ResponseWrapper(error_msg=['Order is running'], error_code=400)
+
             else:
                 order_qs.status = '4_PAID'
                 order_qs.save()
