@@ -1,9 +1,12 @@
-from django.core.validators import MaxValueValidator, MinValueValidator
 from os import name, truncate
-import restaurant
+
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import manager
 from softdelete.models import SoftDeleteModel
+
+import restaurant
+
 # Create your models here.
 """
     TODO
@@ -148,11 +151,11 @@ class Table(models.Model):
 
 class FoodOrder(models.Model):
     ORDER_STATUS = [
-        ("0_ORDER_INITIALIZED", "ORDER_INITIALIZED"),
-        ("1_ORDER_PLACED", "Waiting for Verification"),
+        ("0_ORDER_INITIALIZED", "Table Scanned"),
+        ("1_ORDER_PLACED", "User Confirmed"),
         ("2_ORDER_CONFIRMED", "In Kitchen"),
-        ("3_IN_TABLE", "Served on Table"),
-        ("4_PAID", "Paid"),
+        ("3_IN_TABLE", "Food Served"),
+        ("4_PAID", "Payment Done"),
         ("5_CANCELLED", "Cancelled"),
 
     ]
@@ -168,10 +171,10 @@ class FoodOrder(models.Model):
 
 class OrderedItem(models.Model):
     ITEM_STATUS = [
-        ("0_ORDER_INITIALIZED", "ORDER_INITIALIZED"),
-        ("1_ORDER_PLACED", "Waiting for Verification"),
+        ("0_ORDER_INITIALIZED", "Table Scanned"),
+        ("1_ORDER_PLACED", "User Confirmed"),
         ("2_ORDER_CONFIRMED", "In Kitchen"),
-        ("3_IN_TABLE", "Served on Table"),
+        ("3_IN_TABLE", "Food Served"),
         ("4_CANCELLED", "Cancelled"),
 
     ]
