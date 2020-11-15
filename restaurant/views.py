@@ -572,7 +572,6 @@ class FoodOrderViewSet(CustomViewSet):
             if all_items_qs > 0:
                 return ResponseWrapper(error_msg=['Order is running'], error_code=400)
             else:
-
                 order_qs.status = '4_PAID'
                 order_qs.save()
                 serializer = FoodOrderByTableSerializer(instance=order_qs)
