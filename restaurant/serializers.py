@@ -117,6 +117,7 @@ class StaffTableSerializer(serializers.ModelSerializer):
                   'staff_assigned',
                   'is_occupied',
                   'my_table',
+                  'id',
                   ]
 
     def get_my_table(self, obj):
