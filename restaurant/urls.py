@@ -118,6 +118,14 @@ urlpatterns = [
     path('order/confirm_status/',
          FoodOrderViewSet.as_view({'post': 'confirm_status'}, name='confirm_status')),
 
+    path('order/in_table_status/',
+         FoodOrderViewSet.as_view({'post': 'in_table_status'}, name='in_table_status')),
+    path('order/paid_status/',
+         FoodOrderViewSet.as_view({'post': 'paid_status'}, name='paid_status')),
+
+    path('order/placed_status/',
+         FoodOrderViewSet.as_view({'post': 'placed_status'}, name='placed_status')),
+
     path('ordered_item/<int:ordered_id>/',
          FoodOrderedViewSet.as_view({'get': 'ordered_item_list'}, name='ordered_item_list')),
 
