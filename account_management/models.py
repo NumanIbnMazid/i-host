@@ -1,5 +1,6 @@
 
 # from rest_framework import viewsets
+from softdelete.models import SoftDeleteModel
 import restaurant
 from django.contrib.auth.base_user import BaseUserManager
 from ihost.settings import TIME_ZONE
@@ -75,7 +76,7 @@ class CustomerInfo(models.Model):
     user = models.OneToOneField(to=UserAccount, on_delete=models.CASCADE)
 
 
-class HotelStaffInformation(models.Model):
+class HotelStaffInformation(SoftDeleteModel):
     # user = models.ForeignKey()
     DAYS_OF_WEEK = (
         ('Monday', 'Monday'),

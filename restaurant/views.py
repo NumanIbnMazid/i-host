@@ -1,3 +1,5 @@
+from django.db.models.aggregates import Sum
+from django.utils import timezone
 from django.db.models import Count
 import json
 from account_management import serializers
@@ -741,64 +743,67 @@ class FoodOrderViewSet(CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 """
 
-# class ReportingViewset(viewsets.ViewSet):
-#     def get_permissions(self):
-#         permission_classes = []
-#         if self.action == "create":
-#             permission_classes = [permissions.IsAuthenticated]
-#         # elif self.action == "retrieve" or self.action == "update":
-#         #     permission_classes = [permissions.AllowAny]
-#         # else:
-#         #     permission_classes = [permissions.IsAdminUser]
-#         return [permission() for permission in permission_classes]
 
-#     @swagger_auto_schema(
-#         request_body=ReportingDateRangeGraphSerializer
-#     )
-#     def create(self, request):
-#         from_date = request.data.get('from_date')
-#         to_date = request.data.get('to_date')
-#         # by default show all if no order status given
-#         order_status = request.data.get('order_status', '')
-#         user_id = request.user.pk
-#         # serializer = ReportingDateRangeGraphSerializer(request.data)
-#         order_date_range_qs = self.get_queryset(
-#             from_date, to_date, order_status, user_id)
+class ReportingViewset(viewsets.ViewSet):
+    def get_permissions(self):
+        permission_classes = []
+        if self.action == "create":
+            permission_classes = [permissions.IsAuthenticated]
+        # elif self.action == "retrieve" or self.action == "update":
+        #     permission_classes = [permissions.AllowAny]
+        # else:
+        #     permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
 
-#         order_date_range_qs.annotate(food_count=Count('food__quantity'))
-#         order_date_range_qs = order_date_range_qs.annotate(
-#             food_count=Sum('food__quantity'))
-#         food_quantity_list = order_date_range_qs.values_list(
-#             'food__food__name', 'food__quantity')
-#         food_quantity_dict = {}
-#         for food, quantity in food_quantity_list:
-#             if not food_quantity_dict.get(food):
-#                 food_quantity_dict[food] = quantity
-#             else:
-#                 food_quantity_dict[food] += quantity
+    @swagger_auto_schema(
+        request_body=ReportingDateRangeGraphSerializer
+    )
+    def create(self, request):
+        from_date = request.data.get('from_date')
+        to_date = request.data.get('to_date')
+        # by default show all if no order status given
+        order_status = request.data.get('order_status', '')
+        user_id = request.user.pk
+        # serializer = ReportingDateRangeGraphSerializer(request.data)
+        order_date_range_qs = self.get_queryset(
+            from_date, to_date, order_status, user_id)
 
-#         list_of_food_count_with_none_value = list(
-#             order_date_range_qs.values_list('food_count', flat=True))
-#         total_ordered_item = sum(
-#             list(filter(None, list_of_food_count_with_none_value)))
+        order_date_range_qs.annotate(food_count=Count('food__quantity'))
+        order_date_range_qs = order_date_range_qs.annotate(
+            food_count=Sum('food__quantity'))
+        food_quantity_list = order_date_range_qs.values_list(
+            'food__food__name', 'food__quantity')
+        food_quantity_dict = {}
+        for food, quantity in food_quantity_list:
+            if not food_quantity_dict.get(food):
+                food_quantity_dict[food] = quantity
+            else:
+                food_quantity_dict[food] += quantity
 
-#         response = {'total_ordered_item': total_ordered_item,
-#                     'food_quantity_sold': food_quantity_dict}
-#         return ResponseWrapper(data=response)
+        list_of_food_count_with_none_value = list(
+            order_date_range_qs.values_list('food_count', flat=True))
+        total_ordered_item = sum(
+            list(filter(None, list_of_food_count_with_none_value)))
 
-#     def get_queryset(self, from_date, to_date, order_status, user_id):
-#         restaurant_id = User.objects.get(pk=user_id).restaurant.pktable_id
-#         if not (from_date and to_date):
-#             # by default show all if no order status given
-#             order_date_range_qs = Order.objects.filter(table__user__restaurant__id=restaurant_id,
-#                                                        order_status__status__icontains=order_status, datetime__lte=timezone.now().date())
-#         elif not from_date:
-#             order_date_range_qs = Order.objects.filter(table__user__restaurant__id=restaurant_id,
-#                                                        order_status__status__icontains=order_status, datetime__lte=to_date)
-#         elif not to_date:
-#             order_date_range_qs = Order.objects.filter(table__user__restaurant__id=restaurant_id,
-#                                                        order_status__status__icontains=order_status, datetime__gte=from_date)
-#         else:
-#             order_date_range_qs = Order.objects.filter(table__user__restaurant__id=restaurant_id,
-#                                                        order_status__status__icontains=order_status, datetime__gte=from_date, datetime__lte=to_date)
-#         return order_date_range_qs
+        response = {'total_ordered_item': total_ordered_item,
+                    'food_quantity_sold': food_quantity_dict}
+        return ResponseWrapper(data=response)
+
+    def get_queryset(self, from_date, to_date, order_status, user_id):
+        restaurant_id = UserAccount.objects.get(
+            pk=user_id).hotel_staff.restaurant.pk
+        if not (from_date and to_date):
+            # by default show all if no order status given
+            order_date_range_qs = FoodOrder.objects.filter(table__restaurant__id=restaurant_id,
+                                                           status__icontains=order_status, created_at__lte=timezone.now().date())
+        elif not from_date:
+            order_date_range_qs = FoodOrder.objects.filter(table__restaurant__id=restaurant_id,
+                                                           status__icontains=order_status, created_at__lte=to_date)
+        elif not to_date:
+            order_date_range_qs = FoodOrder.objects.filter(table__restaurant__id=restaurant_id,
+
+                                                           status__icontains=order_status, created_at__gte=from_date)
+        else:
+            order_date_range_qs = FoodOrder.objects.filter(table__restaurant__id=restaurant_id,
+                                                           status__icontains=order_status, created_at__gte=from_date, created_at__lte=to_date)
+        return order_date_range_qs
