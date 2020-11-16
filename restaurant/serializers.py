@@ -37,7 +37,6 @@ class FoodExtraGroupByListSerializer(serializers.ListSerializer):
             for extra_type in FoodExtraType.objects.filter(pk__in=list(data.values_list('extra_type_id', flat=True)))
         }
 
-
 class FoodExtraGroupByTypeSerializer(serializers.ModelSerializer):
     # extra_type = FoodExtraTypeSerializer(read_only=True)
 
@@ -409,6 +408,13 @@ class FoodExtraByFoodSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodExtra
         fields = '__all__'
+
+
+class TopRecommendedFoodListSerializer(serializers.ListSerializer):
+    food_id = serializers.ListSerializer(child=serializers.IntegerField())
+    is_top = serializers.BooleanField()
+    is_recommended = serializers.BooleanField()
+
 
 
 class InvoiceSerializer(serializers.ModelSerializer):

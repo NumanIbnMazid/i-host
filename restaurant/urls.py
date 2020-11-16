@@ -134,6 +134,8 @@ urlpatterns = [
 
     path('food_option_by_food/<int:pk>',
          FoodViewSet.as_view({'get': 'food_option_by_food'}, name='food_option_by_food')),
+    path('top_recommended_foods/',
+         FoodByRestaurantViewSet.as_view({'post': 'top_recommended_foods'}, name='top_recommended_foods')),
 
 
 ]
