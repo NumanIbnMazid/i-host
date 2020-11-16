@@ -38,13 +38,14 @@ restaurant_account_management = [
         "get": "waiter_info"
     }), name="waiter_info"),
 
-    path("restaurant/<int:staff_id>/delete_waiter/", RestaurantAccountManagerViewSet.as_view({
-        "delete": "delete_waiter"}), name="delete_waiter"),
+    path("restaurant/<int:staff_id>/delete_staff/", RestaurantAccountManagerViewSet.as_view({
+        "delete": "delete_staff"}), name="delete_waiter"),
 
-    path("restaurant/<int:staff_id>/delete_manager/", RestaurantAccountManagerViewSet.as_view({
-        "delete": "delete_waiter"}), name="delete_waiter"),
-    path("restaurant/<int:staff_id>/delete_owner/", RestaurantAccountManagerViewSet.as_view({
-        "delete": "delete_waiter"}), name="delete_waiter"),
+
+    #path("restaurant/<int:staff_id>/delete_manager/", RestaurantAccountManagerViewSet.as_view({
+        #"delete": "delete_staff"}), name="delete_manager"),
+    #path("restaurant/<int:staff_id>/delete_owner/", RestaurantAccountManagerViewSet.as_view({
+        #"delete": "delete_staff"}), name="delete_owner"),
 
     path("restaurant/<int:id>/manager_info/", RestaurantAccountManagerViewSet.as_view({
         "get": "manager_info"
