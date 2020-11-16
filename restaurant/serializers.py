@@ -100,7 +100,9 @@ class TableSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Table
-        fields = '__all__'
+        #fields = '__all__'
+        exclude = ['deleted_at']
+
 
 
 class StaffTableSerializer(serializers.ModelSerializer):
