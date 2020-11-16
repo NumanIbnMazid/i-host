@@ -207,7 +207,7 @@ class FoodOptionTypeViewSet(CustomViewSet):
 
 class FoodOrderedViewSet(CustomViewSet):
     serializer_class = FoodOrderSerializer
-    qureyset = FoodOrder.objects.all()
+    queryset = FoodOrder.objects.all()
     lookup_field = 'ordered_id'
 
     def ordered_item_list(self, request, ordered_id, *args, **kwargs):

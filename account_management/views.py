@@ -274,8 +274,9 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
             self.serializer_class = UserSignupSerializer
         elif self.action == "update":
             self.serializer_class = UserAccountPatchSerializer
-        elif self.action == "get_otp":
-            self.serializer_class = None
+        # elif self.action == "get_otp":
+
+        #     self.serializer_class = None
         else:
             self.serializer_class = UserAccountSerializer
 
