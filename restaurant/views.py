@@ -207,7 +207,7 @@ class FoodOptionTypeViewSet(CustomViewSet):
 
 class FoodOrderedViewSet(CustomViewSet):
     serializer_class = FoodOrderSerializer
-    qureyset = FoodOrder.objects.all()
+    queryset = FoodOrder.objects.all()
     lookup_field = 'ordered_id'
 
     def ordered_item_list(self, request, ordered_id, *args, **kwargs):
@@ -656,10 +656,6 @@ class FoodByRestaurantViewSet(CustomViewSet):
     # queryset = Food.objects.all()
 
     # permission_classes = [permissions.IsAuthenticated]
-    def get_serializer_class(self):
-        if self.action in ['top_recommended_foods']:
-            self.serializer_class = TopRecommendedFoodListSerializer
-
 
     queryset = Food.objects.all().order_by('-id')
     lookup_field = 'restaurant'
@@ -718,14 +714,17 @@ class FoodByRestaurantViewSet(CustomViewSet):
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
-    def top_recommended_foods(self, request, food_id, *args, **kwargs):
-        serializer= TopRecommendedFoodListSerializer(data=request.data)
+    # @swagger_auto_schema(request_body=TopRecommendedFoodListSerializer)
+    def mark_as_top_or_recommended(self, request, *args, **kwargs):
+        serializer = TopRecommendedFoodListSerializer(
+            data=request.data, partial=True)
         if not serializer.is_valid():
-            return ResponseWrapper(msg = "data is not valid")
+            return ResponseWrapper(msg="data is not valid")
         else:
-            temp_dict = 'is_top'
-            qs = Food.objects.filter(pk__in = food_id)
+            temp_dict = request.data.pop('food_id')
+            qs = Food.objects.filter(pk__in=request.data.get('food_id'))
             qs.update(**temp_dict)
+            return ResponseWrapper(msg='updated', status=200)
 
 
 """
@@ -788,7 +787,7 @@ class FoodOrderViewSet(CustomViewSet):
 #         return ResponseWrapper(data=response)
 
 #     def get_queryset(self, from_date, to_date, order_status, user_id):
-#         restaurant_id = User.objects.get(pk=user_id).restaurant.pk
+#         restaurant_id = User.objects.get(pk=user_id).restaurant.pktable_id
 #         if not (from_date and to_date):
 #             # by default show all if no order status given
 #             order_date_range_qs = Order.objects.filter(table__user__restaurant__id=restaurant_id,

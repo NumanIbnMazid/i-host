@@ -239,6 +239,17 @@ class RestaurantAccountManagerViewSet(CustomViewSet):
         serializer = StaffInfoGetSerializer(instance=waiter_qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
+    def delete_waiter(self, request, staff_id, *args, **kwargs):
+        waiter_qs = HotelStaffInformation.objects.filter(
+            pk = staff_id).first()
+        if waiter_qs:
+            waiter_qs.restaurant = None
+            waiter_qs.save()
+            return ResponseWrapper(msg="Delete", error_code=200)
+        else:
+            return ResponseWrapper(msg="waiter is not valid", error_code=400)
+
+
     def manager_info(self, request, id, *args, **kwargs):
         manager_qs = HotelStaffInformation.objects.filter(
             restaurant_id=id, is_manager=True)
@@ -263,8 +274,9 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
             self.serializer_class = UserSignupSerializer
         elif self.action == "update":
             self.serializer_class = UserAccountPatchSerializer
-        elif self.action == "get_otp":
-            self.serializer_class = None
+        # elif self.action == "get_otp":
+
+        #     self.serializer_class = None
         else:
             self.serializer_class = UserAccountSerializer
 
