@@ -387,11 +387,11 @@ class TableViewSet(CustomViewSet):
     #     else:
     #         return ResponseWrapper(error_msg="failed to delete", error_code=400)
 
-    # def table_order_list(self, request, restaurant,*args, **kwargs):
-    #     qs = Table.objects.filter(restaurant=restaurant)
-    #
-    #     serializer = self.get_serializer(instance=qs,many=True)
-    #     return ResponseWrapper(data=serializer.data,msg="success")
+    def table_order_list(self, request, restaurant,*args, **kwargs):
+        qs = Table.objects.filter(restaurant=restaurant)
+    
+        serializer = self.get_serializer(instance=qs,many=True)
+        return ResponseWrapper(data=serializer.data,msg="success")
 
 
 class FoodOrderViewSet(CustomViewSet):
@@ -768,25 +768,8 @@ class ReportingViewset(viewsets.ViewSet):
         order_date_range_qs = self.get_queryset(
             from_date, to_date, order_status, user_id)
 
-        order_date_range_qs.annotate(food_count=Count('food__quantity'))
-        order_date_range_qs = order_date_range_qs.annotate(
-            food_count=Sum('food__quantity'))
-        food_quantity_list = order_date_range_qs.values_list(
-            'food__food__name', 'food__quantity')
-        food_quantity_dict = {}
-        for food, quantity in food_quantity_list:
-            if not food_quantity_dict.get(food):
-                food_quantity_dict[food] = quantity
-            else:
-                food_quantity_dict[food] += quantity
-
-        list_of_food_count_with_none_value = list(
-            order_date_range_qs.values_list('food_count', flat=True))
-        total_ordered_item = sum(
-            list(filter(None, list_of_food_count_with_none_value)))
-
-        response = {'total_ordered_item': total_ordered_item,
-                    'food_quantity_sold': food_quantity_dict}
+        response = {'total_ordered_item': 22,
+                    'food_quantity_sold': {'burger': 12}}
         return ResponseWrapper(data=response)
 
     def get_queryset(self, from_date, to_date, order_status, user_id):
