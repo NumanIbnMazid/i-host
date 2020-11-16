@@ -239,15 +239,18 @@ class RestaurantAccountManagerViewSet(CustomViewSet):
         serializer = StaffInfoGetSerializer(instance=waiter_qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
-    def delete_waiter(self, request, staff_id, *args, **kwargs):
+    def delete_staff(self, request, staff_id, *args, **kwargs):
         waiter_qs = HotelStaffInformation.objects.filter(
             pk = staff_id).first()
         if waiter_qs:
             waiter_qs.restaurant = None
             waiter_qs.save()
+            waiter_qs.delete()
             return ResponseWrapper(msg="Delete", error_code=200)
         else:
             return ResponseWrapper(msg="waiter is not valid", error_code=400)
+
+
 
 
     def manager_info(self, request, id, *args, **kwargs):
