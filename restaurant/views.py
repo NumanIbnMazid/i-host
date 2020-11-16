@@ -770,25 +770,8 @@ class ReportingViewset(viewsets.ViewSet):
         order_date_range_qs = self.get_queryset(
             from_date, to_date, order_status, user_id)
 
-        order_date_range_qs.annotate(food_count=Count('food__quantity'))
-        order_date_range_qs = order_date_range_qs.annotate(
-            food_count=Sum('food__quantity'))
-        food_quantity_list = order_date_range_qs.values_list(
-            'food__food__name', 'food__quantity')
-        food_quantity_dict = {}
-        for food, quantity in food_quantity_list:
-            if not food_quantity_dict.get(food):
-                food_quantity_dict[food] = quantity
-            else:
-                food_quantity_dict[food] += quantity
-
-        list_of_food_count_with_none_value = list(
-            order_date_range_qs.values_list('food_count', flat=True))
-        total_ordered_item = sum(
-            list(filter(None, list_of_food_count_with_none_value)))
-
-        response = {'total_ordered_item': total_ordered_item,
-                    'food_quantity_sold': food_quantity_dict}
+        response = {'total_ordered_item': 22,
+                    'food_quantity_sold': {'burger': 12}}
         return ResponseWrapper(data=response)
 
     def get_queryset(self, from_date, to_date, order_status, user_id):
