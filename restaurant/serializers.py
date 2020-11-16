@@ -420,12 +420,11 @@ class InvoiceSerializer(serializers.ModelSerializer):
 class ReportingDateRangeGraphSerializer(serializers.Serializer):
     from_date = serializers.DateField(required=False)
     to_date = serializers.DateField(required=False)
-    order_status = serializers.ChoiceField(choices=[('Pending', 'Pending'),
-                                                    ('Received', 'Received'),
-                                                    ('Verified', 'Verified'),
-                                                    ('Cooking', 'Cooking'),
-                                                    ('WaiterHand',
-                                                     'In Waiter Hand'),
-                                                    ('Delivered', 'Delivered'),
-                                                    ('Paid', 'Payment Completed'),
-                                                    ('Rejected', 'Rejected')], default="Paid", required=False)
+    order_status = serializers.ChoiceField(choices=[("0_ORDER_INITIALIZED", "Table Scanned"),
+                                                    ("1_ORDER_PLACED",
+                                                     "User Confirmed"),
+                                                    ("2_ORDER_CONFIRMED",
+                                                     "In Kitchen"),
+                                                    ("3_IN_TABLE", "Food Served"),
+                                                    ("4_PAID", "Payment Done"),
+                                                    ("5_CANCELLED", "Cancelled"), ], default="4_PAID", required=False)
