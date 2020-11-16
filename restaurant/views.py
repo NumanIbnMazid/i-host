@@ -1,3 +1,5 @@
+from django.db.models import Count
+import json
 from account_management import serializers
 from account_management.models import HotelStaffInformation, UserAccount
 from account_management.serializers import (ListOfIdSerializer,
@@ -10,11 +12,11 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.serializers import Serializer
 from utils.custom_viewset import CustomViewSet
 from utils.response_wrapper import ResponseWrapper
-
+import decimal
 from restaurant.models import (Food, FoodCategory, FoodExtra, FoodExtraType,
-                               FoodOption, FoodOptionType, FoodOrder,
+                               FoodOption, FoodOptionType, FoodOrder, Invoice,
                                OrderedItem, Restaurant, Table)
-
+from django.core.serializers.json import DjangoJSONEncoder
 from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           FoodExtraPostPatchSerializer, FoodExtraSerializer,
                           FoodExtraTypeDetailSerializer,
@@ -25,8 +27,8 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           FoodOrderConfirmSerializer, FoodOrderSerializer,
                           FoodOrderUserPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
-                          FoodWithPriceSerializer, OrderedItemSerializer,
-                          OrderedItemUserPostSerializer,
+                          FoodWithPriceSerializer, InvoiceSerializer, OrderedItemSerializer,
+                          OrderedItemUserPostSerializer, PaymentSerializer, ReportingDateRangeGraphSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
                           RestaurantUpdateSerialier, StaffIdListSerializer,
                           StaffTableSerializer, TableSerializer,
@@ -210,7 +212,7 @@ class FoodOrderedViewSet(CustomViewSet):
 
     def ordered_item_list(self, request, ordered_id, *args, **kwargs):
         qs = FoodOrder.objects.filter(pk=ordered_id)
-        #qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
+        # qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
         serializer = self.get_serializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg="success")
 
@@ -236,7 +238,7 @@ class FoodExtraViewSet(CustomViewSet):
 
         return self.serializer_class
 
-    #http_method_names = ['post', 'patch', 'get']
+    # http_method_names = ['post', 'patch', 'get']
     def create(self, request):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
@@ -298,10 +300,10 @@ class FoodOptionViewSet(CustomViewSet):
 class TableViewSet(CustomViewSet):
     serializer_class = TableSerializer
 
-    #permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
     queryset = Table.objects.all()
     lookup_field = 'pk'
-    #http_method_names = ['get', 'post', 'patch']
+    # http_method_names = ['get', 'post', 'patch']
 
     def get_permissions(self):
         if self.action in ['table_list']:
@@ -371,11 +373,11 @@ class TableViewSet(CustomViewSet):
 
     def order_item_list(self, request, table_id, *args, **kwargs):
         qs = FoodOrder.objects.filter(pk=table_id)
-        #qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
+        # qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
         serializer = self.get_serializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg="success")
 
-    def delete_table(self, request, table_id, *args, **kwargs):
+    def destroy(self, request, table_id, *args, **kwargs):
         qs = self.queryset.filter(**kwargs).first()
         if qs:
             qs.delete()
@@ -409,8 +411,8 @@ class FoodOrderViewSet(CustomViewSet):
             self.serializer_class = FoodOrderConfirmSerializer
         elif self.action in ['in_table_status']:
             self.serializer_class = FoodOrderConfirmSerializer
-        elif self.action in ['paid_status']:
-            self.serializer_class = FoodOrderConfirmSerializer
+        elif self.action in ['payment']:
+            self.serializer_class = PaymentSerializer
         else:
             self.serializer_class = FoodOrderUserPostSerializer
 
@@ -493,11 +495,9 @@ class FoodOrderViewSet(CustomViewSet):
             if not order_qs:
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
-
             all_items_qs = OrderedItem.objects.filter(
                 food_order=order_qs.pk, status__in=["0_ORDER_INITIALIZED"])
             all_items_qs.update(status='1_ORDER_PLACED')
-
 
             order_qs.status = '1_ORDER_PLACED'
             order_qs.save()
@@ -517,7 +517,6 @@ class FoodOrderViewSet(CustomViewSet):
                                                             ]).first()
             if not order_qs:
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
-
 
             all_items_qs = OrderedItem.objects.filter(
                 food_order=order_qs.pk, status__in=["1_ORDER_PLACED"])
@@ -562,7 +561,7 @@ class FoodOrderViewSet(CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def paid_status(self, request,  *args, **kwargs):
+    def payment(self, request,  *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             order_qs = FoodOrder.objects.filter(pk=request.data.get("order_id"),
@@ -571,8 +570,7 @@ class FoodOrderViewSet(CustomViewSet):
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
             remaining_item_counter = OrderedItem.objects.filter(
-                food_order=order_qs.pk).exclude( status__in=["3_IN_TABLE",'4_CANCELLED']).count()
-
+                food_order=order_qs.pk).exclude(status__in=["3_IN_TABLE", '4_CANCELLED']).count()
 
             if remaining_item_counter > 0:
                 return ResponseWrapper(error_msg=['Order is running'], error_code=400)
@@ -581,10 +579,15 @@ class FoodOrderViewSet(CustomViewSet):
                 order_qs.status = '4_PAID'
                 order_qs.save()
                 serializer = FoodOrderByTableSerializer(instance=order_qs)
-
+                grand_total = serializer.data.get(
+                    'price', {}).get('grand_total_price')
+                invoice_qs = Invoice.objects.create(
+                    restaurant=order_qs.table.restaurant, order_info=json.loads(json.dumps(serializer.data, cls=DjangoJSONEncoder)), grand_total=grand_total)
+                serializer = InvoiceSerializer(instance=invoice_qs)
             return ResponseWrapper(data=serializer.data, msg='Paid')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
 
 class OrderedItemViewSet(CustomViewSet):
     queryset = OrderedItem.objects.all()
@@ -740,3 +743,65 @@ class FoodOrderViewSet(CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
 """
+
+# class ReportingViewset(viewsets.ViewSet):
+#     def get_permissions(self):
+#         permission_classes = []
+#         if self.action == "create":
+#             permission_classes = [permissions.IsAuthenticated]
+#         # elif self.action == "retrieve" or self.action == "update":
+#         #     permission_classes = [permissions.AllowAny]
+#         # else:
+#         #     permission_classes = [permissions.IsAdminUser]
+#         return [permission() for permission in permission_classes]
+
+#     @swagger_auto_schema(
+#         request_body=ReportingDateRangeGraphSerializer
+#     )
+#     def create(self, request):
+#         from_date = request.data.get('from_date')
+#         to_date = request.data.get('to_date')
+#         # by default show all if no order status given
+#         order_status = request.data.get('order_status', '')
+#         user_id = request.user.pk
+#         # serializer = ReportingDateRangeGraphSerializer(request.data)
+#         order_date_range_qs = self.get_queryset(
+#             from_date, to_date, order_status, user_id)
+
+#         order_date_range_qs.annotate(food_count=Count('food__quantity'))
+#         order_date_range_qs = order_date_range_qs.annotate(
+#             food_count=Sum('food__quantity'))
+#         food_quantity_list = order_date_range_qs.values_list(
+#             'food__food__name', 'food__quantity')
+#         food_quantity_dict = {}
+#         for food, quantity in food_quantity_list:
+#             if not food_quantity_dict.get(food):
+#                 food_quantity_dict[food] = quantity
+#             else:
+#                 food_quantity_dict[food] += quantity
+
+#         list_of_food_count_with_none_value = list(
+#             order_date_range_qs.values_list('food_count', flat=True))
+#         total_ordered_item = sum(
+#             list(filter(None, list_of_food_count_with_none_value)))
+
+#         response = {'total_ordered_item': total_ordered_item,
+#                     'food_quantity_sold': food_quantity_dict}
+#         return ResponseWrapper(data=response)
+
+#     def get_queryset(self, from_date, to_date, order_status, user_id):
+#         restaurant_id = User.objects.get(pk=user_id).restaurant.pk
+#         if not (from_date and to_date):
+#             # by default show all if no order status given
+#             order_date_range_qs = Order.objects.filter(table__user__restaurant__id=restaurant_id,
+#                                                        order_status__status__icontains=order_status, datetime__lte=timezone.now().date())
+#         elif not from_date:
+#             order_date_range_qs = Order.objects.filter(table__user__restaurant__id=restaurant_id,
+#                                                        order_status__status__icontains=order_status, datetime__lte=to_date)
+#         elif not to_date:
+#             order_date_range_qs = Order.objects.filter(table__user__restaurant__id=restaurant_id,
+#                                                        order_status__status__icontains=order_status, datetime__gte=from_date)
+#         else:
+#             order_date_range_qs = Order.objects.filter(table__user__restaurant__id=restaurant_id,
+#                                                        order_status__status__icontains=order_status, datetime__gte=from_date, datetime__lte=to_date)
+#         return order_date_range_qs

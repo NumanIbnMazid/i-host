@@ -168,6 +168,10 @@ class FoodOrderConfirmSerializer(serializers.Serializer):
     food_items = serializers.ListSerializer(child=serializers.IntegerField())
 
 
+class PaymentSerializer(serializers.Serializer):
+    order_id = serializers.IntegerField()
+
+
 class OrderedItemUserPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderedItem
@@ -411,3 +415,22 @@ class TopRecommendedFoodListSerializer(serializers.ListSerializer):
     is_top = serializers.BooleanField()
     is_recommended = serializers.BooleanField()
 
+
+
+class InvoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invoice
+        fields = '__all__'
+
+
+class ReportingDateRangeGraphSerializer(serializers.Serializer):
+    from_date = serializers.DateField(required=False)
+    to_date = serializers.DateField(required=False)
+    order_status = serializers.ChoiceField(choices=[("0_ORDER_INITIALIZED", "Table Scanned"),
+                                                    ("1_ORDER_PLACED",
+                                                     "User Confirmed"),
+                                                    ("2_ORDER_CONFIRMED",
+                                                     "In Kitchen"),
+                                                    ("3_IN_TABLE", "Food Served"),
+                                                    ("4_PAID", "Payment Done"),
+                                                    ("5_CANCELLED", "Cancelled"), ], default="4_PAID", required=False)
