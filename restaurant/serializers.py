@@ -1,9 +1,9 @@
-from rest_framework import serializers
-from rest_framework.fields import CurrentUserDefault
-
 from account_management.models import HotelStaffInformation
 from account_management.serializers import StaffInfoGetSerializer
+from rest_framework import serializers
+from rest_framework.fields import CurrentUserDefault
 from utils.calculate_price import calculate_price
+
 from .models import *
 
 
