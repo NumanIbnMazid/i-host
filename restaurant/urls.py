@@ -35,7 +35,7 @@ urlpatterns = [
     path('table/',
          TableViewSet.as_view({'post': 'create', }), name='table'),
     path('table/<int:pk>/',
-         TableViewSet.as_view({'patch': 'update', }), name='table'),
+         TableViewSet.as_view({'patch': 'update', 'delete': 'destroy'}), name='table'),
     path('table/<int:table_id>/staff_remove/',
          TableViewSet.as_view({'post': 'remove_staff', }), name='remove_staff'),
     # New Add
@@ -66,8 +66,8 @@ urlpatterns = [
 
     path('table/<int:table_id>/order_item_list/',
          TableViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),
-    path('table/<int:table_id>/',
-         TableViewSet.as_view({'delete': 'destroy'}), name='delete_table'),
+    #     path('table/<int:table_id>/',
+    #          TableViewSet.as_view({'delete': 'destroy'}), name='destroy_tables'),
 
     path('restaurant/<int:restaurant_id>/order_item_list/',
          RestaurantViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),

@@ -377,13 +377,13 @@ class TableViewSet(CustomViewSet):
         serializer = self.get_serializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg="success")
 
-    def destroy(self, request, table_id, *args, **kwargs):
-        qs = self.queryset.filter(**kwargs).first()
-        if qs:
-            qs.delete()
-            return ResponseWrapper(status=200, msg='deleted')
-        else:
-            return ResponseWrapper(error_msg="failed to delete", error_code=400)
+    # def destroy(self, request, table_id, *args, **kwargs):
+    #     qs = self.queryset.filter(**kwargs).first()
+    #     if qs:
+    #         qs.delete()
+    #         return ResponseWrapper(status=200, msg='deleted')
+    #     else:
+    #         return ResponseWrapper(error_msg="failed to delete", error_code=400)
 
     # def table_order_list(self, request, restaurant,*args, **kwargs):
     #     qs = Table.objects.filter(restaurant=restaurant)
