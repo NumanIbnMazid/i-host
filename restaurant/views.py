@@ -387,11 +387,11 @@ class TableViewSet(CustomViewSet):
     #     else:
     #         return ResponseWrapper(error_msg="failed to delete", error_code=400)
 
-    # def table_order_list(self, request, restaurant,*args, **kwargs):
-    #     qs = Table.objects.filter(restaurant=restaurant)
-    #
-    #     serializer = self.get_serializer(instance=qs,many=True)
-    #     return ResponseWrapper(data=serializer.data,msg="success")
+    def table_order_list(self, request, restaurant,*args, **kwargs):
+        qs = Table.objects.filter(restaurant=restaurant)
+    
+        serializer = self.get_serializer(instance=qs,many=True)
+        return ResponseWrapper(data=serializer.data,msg="success")
 
 
 class FoodOrderViewSet(CustomViewSet):
