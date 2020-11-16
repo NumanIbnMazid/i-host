@@ -410,7 +410,7 @@ class FoodExtraByFoodSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class TopRecommendedFoodListSerializer(serializers.ListSerializer):
+class TopRecommendedFoodListSerializer(serializers.Serializer):
     food_id = serializers.ListSerializer(child=serializers.IntegerField())
     is_top = serializers.BooleanField()
     is_recommended = serializers.BooleanField()
