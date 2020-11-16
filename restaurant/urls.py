@@ -101,6 +101,11 @@ urlpatterns = [
 
     path('restaurant/<int:restaurant>/recommended_foods_by_category/',
          FoodByRestaurantViewSet.as_view({'get': 'recommended_foods_by_category'}), name='recommended_foods_by_category'),
+
+    path('restaurant/food/mark_as_top_or_recommended/',
+         FoodByRestaurantViewSet.as_view({'post': 'mark_as_top_or_recommended'}, name='mark_as_top_or_recommended')),
+
+
     path('order/create_order/',
          FoodOrderViewSet.as_view({'post': 'create_order'}, name='create_order')),
 
@@ -134,9 +139,6 @@ urlpatterns = [
 
     path('food_option_by_food/<int:pk>',
          FoodViewSet.as_view({'get': 'food_option_by_food'}, name='food_option_by_food')),
-
-    path('marks_as_top_or_recommended/',
-         FoodByRestaurantViewSet.as_view({'post': 'marks_as_top_or_recommended'}, name='marks_as_top_or_recommended')),
 
 
 ]

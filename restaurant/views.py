@@ -657,7 +657,6 @@ class FoodByRestaurantViewSet(CustomViewSet):
 
     # permission_classes = [permissions.IsAuthenticated]
 
-
     queryset = Food.objects.all().order_by('-id')
     lookup_field = 'restaurant'
     http_method_names = ['get']
@@ -715,15 +714,17 @@ class FoodByRestaurantViewSet(CustomViewSet):
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
-    @swagger_auto_schema(request_body=TopRecommendedFoodListSerializer)
-    def marks_as_top_or_recommended(self, request, *args, **kwargs):
-        serializer= TopRecommendedFoodListSerializer(data=request.data)
+    # @swagger_auto_schema(request_body=TopRecommendedFoodListSerializer)
+    def mark_as_top_or_recommended(self, request, *args, **kwargs):
+        serializer = TopRecommendedFoodListSerializer(
+            data=request.data, partial=True)
         if not serializer.is_valid():
-            return ResponseWrapper(msg = "data is not valid")
+            return ResponseWrapper(msg="data is not valid")
         else:
             temp_dict = request.data.pop('food_id')
-            qs = Food.objects.filter(pk__in = request.data.get('food_id'))
+            qs = Food.objects.filter(pk__in=request.data.get('food_id'))
             qs.update(**temp_dict)
+            return ResponseWrapper(msg='updated', status=200)
 
 
 """
