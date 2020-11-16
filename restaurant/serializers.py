@@ -217,7 +217,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
     status_details = serializers.CharField(source='get_status_display')
     table_name = serializers.CharField(source="table.name")
     table_no = serializers.CharField(source="table.table_no")
-    staff= serializers.SerializerMethodField(read_only=True)
+    waiter= serializers.SerializerMethodField(read_only=True)
     price = serializers.SerializerMethodField()
     ordered_items = OrderedItemGetDetailsSerializer(many=True, read_only=True)
 
@@ -232,15 +232,15 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   'ordered_items',
                   'table_name',
                   'table_no',
-                  'staff',
+                  'waiter',
 
                   ]
 
     def get_price(self, obj):
         return calculate_price(food_order_obj=obj)
 
-    def get_staff(self, obj):
-        qs = obj.table.staff_assigned.first()
+    def get_waiter(self, obj):
+        qs = obj.table.staff_assigned.filter(is_waiter=True).first()
         if qs:
             return {"name":qs.user.first_name,'id':qs.pk}
         else:
