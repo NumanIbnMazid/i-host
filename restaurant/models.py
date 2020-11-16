@@ -138,7 +138,7 @@ class FoodOption(SoftDeleteModel):
         return self.name
 
 
-class Table(models.Model):
+class Table(SoftDeleteModel):
     table_no = models.IntegerField(null=True, blank=True)
     restaurant = models.ForeignKey(
         Restaurant, on_delete=models.CASCADE, related_name='tables')
