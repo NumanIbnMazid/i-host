@@ -32,7 +32,7 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
                           RestaurantUpdateSerialier, StaffIdListSerializer,
                           StaffTableSerializer, TableSerializer,
-                          TableStaffSerializer)
+                          TableStaffSerializer, TopRecommendedFoodListSerializer)
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
@@ -377,13 +377,13 @@ class TableViewSet(CustomViewSet):
         serializer = self.get_serializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg="success")
 
-    def destroy(self, request, table_id, *args, **kwargs):
-        qs = self.queryset.filter(**kwargs).first()
-        if qs:
-            qs.delete()
-            return ResponseWrapper(status=200, msg='deleted')
-        else:
-            return ResponseWrapper(error_msg="failed to delete", error_code=400)
+    # def destroy(self, request, table_id, *args, **kwargs):
+    #     qs = self.queryset.filter(**kwargs).first()
+    #     if qs:
+    #         qs.delete()
+    #         return ResponseWrapper(status=200, msg='deleted')
+    #     else:
+    #         return ResponseWrapper(error_msg="failed to delete", error_code=400)
 
     # def table_order_list(self, request, restaurant,*args, **kwargs):
     #     qs = Table.objects.filter(restaurant=restaurant)
@@ -596,6 +596,7 @@ class OrderedItemViewSet(CustomViewSet):
     def get_serializer_class(self):
         if self.action in ['create', 'update']:
             self.serializer_class = OrderedItemUserPostSerializer
+
         else:
             self.serializer_class = OrderedItemSerializer
 
@@ -655,6 +656,10 @@ class FoodByRestaurantViewSet(CustomViewSet):
     # queryset = Food.objects.all()
 
     # permission_classes = [permissions.IsAuthenticated]
+    def get_serializer_class(self):
+        if self.action in ['top_recommended_foods']:
+            self.serializer_class = TopRecommendedFoodListSerializer
+
 
     queryset = Food.objects.all().order_by('-id')
     lookup_field = 'restaurant'
@@ -712,6 +717,15 @@ class FoodByRestaurantViewSet(CustomViewSet):
 
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
+
+    def top_recommended_foods(self, request, food_id, *args, **kwargs):
+        serializer= TopRecommendedFoodListSerializer(data=request.data)
+        if not serializer.is_valid():
+            return ResponseWrapper(msg = "data is not valid")
+        else:
+            temp_dict = 'is_top'
+            qs = Food.objects.filter(pk__in = food_id)
+            qs.update(**temp_dict)
 
 
 """
