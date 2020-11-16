@@ -30,7 +30,7 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
                           RestaurantUpdateSerialier, StaffIdListSerializer,
                           StaffTableSerializer, TableSerializer,
-                          TableStaffSerializer)
+                          TableStaffSerializer, TopRecommendedFoodListSerializer)
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
@@ -593,6 +593,7 @@ class OrderedItemViewSet(CustomViewSet):
     def get_serializer_class(self):
         if self.action in ['create', 'update']:
             self.serializer_class = OrderedItemUserPostSerializer
+
         else:
             self.serializer_class = OrderedItemSerializer
 
@@ -652,6 +653,10 @@ class FoodByRestaurantViewSet(CustomViewSet):
     # queryset = Food.objects.all()
 
     # permission_classes = [permissions.IsAuthenticated]
+    def get_serializer_class(self):
+        if self.action in ['top_recommended_foods']:
+            self.serializer_class = TopRecommendedFoodListSerializer
+
 
     queryset = Food.objects.all().order_by('-id')
     lookup_field = 'restaurant'
@@ -709,6 +714,15 @@ class FoodByRestaurantViewSet(CustomViewSet):
 
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
+
+    def top_recommended_foods(self, request, food_id, *args, **kwargs):
+        serializer= TopRecommendedFoodListSerializer(data=request.data)
+        if not serializer.is_valid():
+            return ResponseWrapper(msg = "data is not valid")
+        else:
+            temp_dict = 'is_top'
+            qs = Food.objects.filter(pk__in = food_id)
+            qs.update(**temp_dict)
 
 
 """
