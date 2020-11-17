@@ -141,12 +141,6 @@ class StaffIdListSerializer(serializers.Serializer):
     staff_list = serializers.ListSerializer(child=serializers.IntegerField())
 
 
-class OrderedItemSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = OrderedItem
-        fields = '__all__'
-
 
 class FoodExtraBasicSerializer(serializers.ModelSerializer):
     class Meta:
@@ -154,6 +148,12 @@ class FoodExtraBasicSerializer(serializers.ModelSerializer):
         #fields = '__all__'
         exclude = ['deleted_at']
 
+class OrderedItemSerializer(serializers.ModelSerializer):
+    food_extra = FoodExtraTypeDetailSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = OrderedItem
+        fields = '__all__'
 
 class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
     food_extra = FoodExtraBasicSerializer(many=True, read_only=True)
