@@ -157,8 +157,10 @@ class FoodOrder(SoftDeleteModel):
         ("1_ORDER_PLACED", "User Confirmed"),
         ("2_ORDER_CONFIRMED", "In Kitchen"),
         ("3_IN_TABLE", "Food Served"),
-        ("4_PAID", "Payment Done"),
-        ("5_CANCELLED", "Cancelled"),
+        ("4_CREATE_INVOICE", "Create Invoice"),
+
+        ("5_PAID", "Payment Done"),
+        ("6_CANCELLED", "Cancelled"),
 
     ]
     remarks = models.TextField(null=True, blank=True)

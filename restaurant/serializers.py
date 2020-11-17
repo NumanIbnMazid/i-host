@@ -453,5 +453,5 @@ class ReportingDateRangeGraphSerializer(serializers.Serializer):
                                                     ("2_ORDER_CONFIRMED",
                                                      "In Kitchen"),
                                                     ("3_IN_TABLE", "Food Served"),
-                                                    ("4_PAID", "Payment Done"),
-                                                    ("5_CANCELLED", "Cancelled"), ], default="4_PAID", required=False)
+                                                    ("5_PAID", "Payment Done"),
+                                                    ("6_CANCELLED", "Cancelled"), ], default="5_PAID", required=False)

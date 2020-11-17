@@ -114,7 +114,7 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 
     def order_item_list(self, request, restaurant_id, *args, **kwargs):
         qs = FoodOrder.objects.filter(table__restaurant=restaurant_id).exclude(
-            status__in=['4_PAID', '5_CANCELLED'])
+            status__in=['5_PAID', '6_CANCELLED'])
         orderd_table_set = set(qs.values_list('table_id', flat=True))
         table_qs = Table.objects.filter(
             restaurant=restaurant_id).exclude(pk__in=orderd_table_set)
@@ -465,9 +465,9 @@ class FoodOrderViewSet(CustomViewSet):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             order_qs = FoodOrder.objects.filter(pk=request.data.get(
-                'order_id')).exclude(status='4_PAID').first()
+                'order_id')).exclude(status='5_PAID').first()
             if order_qs:
-                order_qs.status = '5_CANCELLED'
+                order_qs.status = '6_CANCELLED'
                 order_qs.save()
                 order_qs.ordered_items.update(status="4_CANCELLED")
                 table_qs = order_qs.table
@@ -574,7 +574,7 @@ class FoodOrderViewSet(CustomViewSet):
                 return ResponseWrapper(error_msg=['Order is running'], error_code=400)
 
             else:
-                order_qs.status = '4_PAID'
+                order_qs.status = '5_PAID'
                 order_qs.save()
                 serializer = FoodOrderByTableSerializer(instance=order_qs)
                 grand_total = serializer.data.get(
