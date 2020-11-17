@@ -10,13 +10,15 @@ from .models import *
 class FoodOptionTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOptionType
-        fields = '__all__'
+        #fields = '__all__'
+        exclude = ['deleted_at']
 
 
 class FoodExtraTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodExtraType
-        fields = '__all__'
+        #fields = '__all__'
+        exclude = ['deleted_at']
 
 
 class FoodExtraSerializer(serializers.ModelSerializer):
@@ -24,7 +26,8 @@ class FoodExtraSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FoodExtra
-        fields = '__all__'
+        #fields = '__all__'
+        exclude = ['deleted_at']
 
 
 class FoodExtraGroupByListSerializer(serializers.ListSerializer):
@@ -49,7 +52,8 @@ class FoodExtraGroupByTypeSerializer(serializers.ModelSerializer):
 class FoodExtraPostPatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodExtra
-        fields = '__all__'
+        #fields = '__all__'
+        exclude = ['deleted_at']
 
 
 class FoodExtraTypeDetailSerializer(serializers.ModelSerializer):
@@ -63,7 +67,8 @@ class FoodExtraTypeDetailSerializer(serializers.ModelSerializer):
 class FoodCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodCategory
-        fields = '__all__'
+        #fields = '__all__'
+        exclude = ['deleted_at']
 
 
 class FoodOptionSerializer(serializers.ModelSerializer):
@@ -71,13 +76,16 @@ class FoodOptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FoodOption
-        fields = '__all__'
+        #fields = '__all__'
+        exclude = ['deleted_at']
+
 
 
 class FoodOptionBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOption
-        fields = '__all__'
+        #fields = '__all__'
+        exclude = ['deleted_at']
 
 
 """
@@ -92,7 +100,8 @@ class RestaurantSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Restaurant
-        fields = '__all__'
+        #fields = '__all__'
+        exclude = ['deleted_at']
 
 
 class TableSerializer(serializers.ModelSerializer):
@@ -143,7 +152,8 @@ class OrderedItemSerializer(serializers.ModelSerializer):
 class FoodExtraBasicSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodExtra
-        fields = '__all__'
+        #fields = '__all__'
+        exclude = ['deleted_at']
 
 
 class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
@@ -359,7 +369,7 @@ class FoodDetailSerializer(serializers.ModelSerializer):
 class RestaurantUpdateSerialier(serializers.ModelSerializer):
     class Meta:
         model = Restaurant
-        exclude = ['status', 'subscription', 'subscription_ends']
+        exclude = ['status', 'subscription', 'subscription_ends','deleted_at']
 
 
 class RestaurantContactPersonSerializer(serializers.ModelSerializer):
