@@ -40,6 +40,7 @@ class FoodExtraGroupByListSerializer(serializers.ListSerializer):
             for extra_type in FoodExtraType.objects.filter(pk__in=list(data.values_list('extra_type_id', flat=True)))
         }
 
+
 class FoodExtraGroupByTypeSerializer(serializers.ModelSerializer):
     # extra_type = FoodExtraTypeSerializer(read_only=True)
 
@@ -80,7 +81,6 @@ class FoodOptionSerializer(serializers.ModelSerializer):
         exclude = ['deleted_at']
 
 
-
 class FoodOptionBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOption
@@ -111,7 +111,6 @@ class TableSerializer(serializers.ModelSerializer):
         model = Table
         #fields = '__all__'
         exclude = ['deleted_at']
-
 
 
 class StaffTableSerializer(serializers.ModelSerializer):
@@ -229,7 +228,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
     status_details = serializers.CharField(source='get_status_display')
     table_name = serializers.CharField(source="table.name")
     table_no = serializers.CharField(source="table.table_no")
-    waiter= serializers.SerializerMethodField(read_only=True)
+    waiter = serializers.SerializerMethodField(read_only=True)
     price = serializers.SerializerMethodField()
     ordered_items = OrderedItemGetDetailsSerializer(many=True, read_only=True)
 
@@ -254,7 +253,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
     def get_waiter(self, obj):
         qs = obj.table.staff_assigned.filter(is_waiter=True).first()
         if qs:
-            return {"name":qs.user.first_name,'id':qs.pk}
+            return {"name": qs.user.first_name, 'id': qs.pk}
         else:
             return None
 
@@ -369,7 +368,7 @@ class FoodDetailSerializer(serializers.ModelSerializer):
 class RestaurantUpdateSerialier(serializers.ModelSerializer):
     class Meta:
         model = Restaurant
-        exclude = ['status', 'subscription', 'subscription_ends','deleted_at']
+        exclude = ['status', 'subscription', 'subscription_ends', 'deleted_at']
 
 
 class RestaurantContactPersonSerializer(serializers.ModelSerializer):
@@ -435,7 +434,6 @@ class TopRecommendedFoodListSerializer(serializers.Serializer):
     food_id = serializers.ListSerializer(child=serializers.IntegerField())
     is_top = serializers.BooleanField()
     is_recommended = serializers.BooleanField()
-
 
 
 class InvoiceSerializer(serializers.ModelSerializer):

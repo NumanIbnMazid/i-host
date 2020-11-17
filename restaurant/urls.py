@@ -123,9 +123,11 @@ urlpatterns = [
 
     path('order/status/in_table/',
          FoodOrderViewSet.as_view({'post': 'in_table_status'}, name='in_table_status')),
+    path('order/create_invoice/',
+         FoodOrderViewSet.as_view({'post': 'create_invoice'}, name='create_invoice')),
     path('order/confirm_payment/',
          FoodOrderViewSet.as_view({'post': 'payment'}, name='confirm_payment')),
-
+         
     path('order/placed_status/',
          FoodOrderViewSet.as_view({'post': 'placed_status'}, name='placed_status')),
 

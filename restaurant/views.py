@@ -388,8 +388,6 @@ class TableViewSet(CustomViewSet):
     #         return ResponseWrapper(error_msg="failed to delete", error_code=400)
 
 
-
-
 class FoodOrderViewSet(CustomViewSet):
 
     # permission_classes = [permissions.IsAuthenticated]
@@ -409,7 +407,7 @@ class FoodOrderViewSet(CustomViewSet):
             self.serializer_class = FoodOrderConfirmSerializer
         elif self.action in ['in_table_status']:
             self.serializer_class = FoodOrderConfirmSerializer
-        elif self.action in ['payment']:
+        elif self.action in ['payment', 'create_invoice']:
             self.serializer_class = PaymentSerializer
         else:
             self.serializer_class = FoodOrderUserPostSerializer
@@ -559,13 +557,65 @@ class FoodOrderViewSet(CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
+    def create_invoice(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            """
+            making sure that food order is in "3_IN_TABLE", "4_CREATE_INVOICE", "5_PAID" state
+            because in other state there is no need to generate invoice because food state is required in other state
+            and merging will disrupt the flow.
+            """
+            order_qs = FoodOrder.objects.filter(pk=request.data.get("order_id"),
+                                                status__in=["3_IN_TABLE", "4_CREATE_INVOICE", "5_PAID"]).first()
+            if not order_qs:
+                return ResponseWrapper(error_msg=['please ask waiter to update to in table status or ask them to create invoice for you'], error_code=400)
+
+            remaining_item_counter = OrderedItem.objects.filter(
+                food_order=order_qs.pk).exclude(status__in=["3_IN_TABLE", '4_CANCELLED']).count()
+
+            if remaining_item_counter > 0:
+                return ResponseWrapper(error_msg=['Order is running. Please make sure all the order is either in table or is cancelled'], error_code=400)
+
+            else:
+                order_qs.status = '4_CREATE_INVOICE'
+                order_qs.save()
+                invoice_qs = self.invoice_generator(
+                    order_qs, payment_status="0_UNPAID")
+
+                serializer = InvoiceSerializer(instance=invoice_qs)
+            return ResponseWrapper(data=serializer.data, msg='Invoice Created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def invoice_generator(self, order_qs, payment_status):
+        # adjust cart for unique items
+        # item_qs = order_qs.ordered_items.all()
+
+        serializer = FoodOrderByTableSerializer(instance=order_qs)
+        grand_total = serializer.data.get(
+            'price', {}).get('grand_total_price')
+
+        if order_qs.invoices:
+            invoice_qs = order_qs.invoices.first()
+            invoice_qs.order_info = json.loads(
+                json.dumps(serializer.data, cls=DjangoJSONEncoder))
+            invoice_qs.grand_total = grand_total
+            invoice_qs.payment_status = payment_status
+            invoice_qs.save()
+        else:
+            invoice_qs = Invoice.objects.create(
+                restaurant=order_qs.table.restaurant,
+                order=order_qs,
+                order_info=json.loads(json.dumps(serializer.data, cls=DjangoJSONEncoder)), grand_total=grand_total, payment_status=payment_status)
+        return invoice_qs
+
     def payment(self, request,  *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             order_qs = FoodOrder.objects.filter(pk=request.data.get("order_id"),
-                                                status__in=["3_IN_TABLE"]).first()
+                                                status__in=["4_CREATE_INVOICE"]).first()
             if not order_qs:
-                return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
+                return ResponseWrapper(error_msg=['please create invoice before payment'], error_code=400)
 
             remaining_item_counter = OrderedItem.objects.filter(
                 food_order=order_qs.pk).exclude(status__in=["3_IN_TABLE", '4_CANCELLED']).count()
@@ -576,11 +626,9 @@ class FoodOrderViewSet(CustomViewSet):
             else:
                 order_qs.status = '5_PAID'
                 order_qs.save()
-                serializer = FoodOrderByTableSerializer(instance=order_qs)
-                grand_total = serializer.data.get(
-                    'price', {}).get('grand_total_price')
-                invoice_qs = Invoice.objects.create(
-                    restaurant=order_qs.table.restaurant, order_info=json.loads(json.dumps(serializer.data, cls=DjangoJSONEncoder)), grand_total=grand_total)
+                invoice_qs = self.invoice_generator(
+                    order_qs, payment_status='1_PAID')
+
                 serializer = InvoiceSerializer(instance=invoice_qs)
             return ResponseWrapper(data=serializer.data, msg='Paid')
         else:

@@ -209,12 +209,17 @@ class OrderedItem(models.Model):
 
 
 class Invoice(SoftDeleteModel):
+    STATUS = [("1_PAID", "Paid"), ("0_UNPAID", "Unpaid")]
     id = models.UUIDField(
         primary_key=True, editable=False, default=uuid.uuid4)
     restaurant = models.ForeignKey(
         to=Restaurant, on_delete=models.SET_NULL, null=True, blank=True)
+    order = models.ForeignKey(FoodOrder, null=True,
+                              blank=True, on_delete=models.SET_NULL, related_name='invoices')
     grand_total = models.DecimalField(
         null=True, blank=True, max_digits=10, decimal_places=2)
     order_info = models.JSONField(null=True, blank=True)
     updated_at = models.DateField(auto_now=True)
     created_at = models.DateField(auto_now_add=True)
+    payment_status = models.CharField(
+        choices=STATUS, max_length=25, default="0_UNPAID")
