@@ -651,7 +651,8 @@ class OrderedItemViewSet(CustomViewSet):
     def create(self, request):
         serializer = self.get_serializer(data=request.data, many=True)
         if serializer.is_valid():
-            serializer.save()
+            qs = serializer.save()
+            serializer = OrderedItemSerializer(instance=qs, many= True)
 
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
