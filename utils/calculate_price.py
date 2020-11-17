@@ -3,7 +3,7 @@ import decimal
 
 def calculate_price(food_order_obj):
     ordered_items_qs = food_order_obj.ordered_items.exclude(
-        status__in=["5_PAID", "6_CANCELLED", "0_ORDER_INITIALIZED"])
+        status__in=["4_CANCELLED", "0_ORDER_INITIALIZED"])
 
     total_price = decimal.Decimal(0.0)
     tax_amount = decimal.Decimal(0.0)
