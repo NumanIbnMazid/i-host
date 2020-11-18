@@ -141,12 +141,12 @@ class StaffIdListSerializer(serializers.Serializer):
     staff_list = serializers.ListSerializer(child=serializers.IntegerField())
 
 
-
 class FoodExtraBasicSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodExtra
         #fields = '__all__'
         exclude = ['deleted_at']
+
 
 class OrderedItemSerializer(serializers.ModelSerializer):
     food_extra = FoodExtraTypeDetailSerializer(many=True, read_only=True)
@@ -154,6 +154,7 @@ class OrderedItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderedItem
         fields = '__all__'
+
 
 class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
     food_extra = FoodExtraBasicSerializer(many=True, read_only=True)
@@ -231,6 +232,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
     waiter = serializers.SerializerMethodField(read_only=True)
     price = serializers.SerializerMethodField()
     ordered_items = OrderedItemGetDetailsSerializer(many=True, read_only=True)
+    restaurant_info = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = FoodOrder
@@ -244,18 +246,34 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   'table_name',
                   'table_no',
                   'waiter',
-
+                  'restaurant_info',
                   ]
 
     def get_price(self, obj):
         return calculate_price(food_order_obj=obj)
 
     def get_waiter(self, obj):
-        qs = obj.table.staff_assigned.filter(is_waiter=True).first()
-        if qs:
-            return {"name": qs.user.first_name, 'id': qs.pk}
+        if obj.table:
+            qs = obj.table.staff_assigned.filter(is_waiter=True).first()
+            if qs:
+                return {"name": qs.user.first_name, 'id': qs.pk}
         else:
             return None
+
+    def get_restaurant_info(self, obj):
+        restaurant_qs = None
+        if obj.table:
+            restaurant_qs = obj.table.restaurant
+
+        else:
+            ordered_items_qs = obj.ordered_items.first()
+            if ordered_items_qs:
+                restaurant_qs = ordered_items_qs.food_option.food.restaurant
+
+        if restaurant_qs:
+            return {'id': restaurant_qs.pk, 'name': restaurant_qs.name}
+        else:
+            return {}
 
 
 class FoodOrderForStaffSerializer(serializers.ModelSerializer):
