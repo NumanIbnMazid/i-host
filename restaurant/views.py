@@ -623,7 +623,6 @@ class FoodOrderViewSet(CustomViewSet):
                 temp_order_list = []
                 temp_extra_list = []
 
-
                 for order_items_qs in ordered_items_by_food_options_qs:
                     extras = list(
                         order_items_qs.food_extra.values_list('pk', flat=True))
@@ -655,6 +654,11 @@ class FoodOrderViewSet(CustomViewSet):
             else:
                 order_qs.status = '5_PAID'
                 order_qs.save()
+                table_qs = order_qs.table
+                if table_qs:
+                    table_qs.is_occupied = False
+                    table_qs.save()
+
                 invoice_qs = self.invoice_generator(
                     order_qs, payment_status='1_PAID')
 
