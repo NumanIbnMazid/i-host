@@ -150,12 +150,10 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 
     def today_sell(self, request, pk, *args, **kwargs):
         now = timezone.now().date()
-        qs= Invoice.objects.filter(created_at= now, payment_status =['1_PAID'])
+        qs = Invoice.objects.filter(created_at=now, payment_status=['1_PAID'])
         grand_total_list = qs.values_list('grand_total', flat=True)
         total = sum(grand_total_list)
         return ResponseWrapper(data={'total_sell': total}, msg="success")
-
-
 
 
 # class FoodCategoryViewSet(viewsets.GenericViewSet):
@@ -515,8 +513,8 @@ class FoodOrderViewSet(CustomViewSet):
     def placed_status(self, request,  *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            order_qs = FoodOrder.objects.filter(pk=request.data.get("order_id")).exclude(status__in=      
-                                                 ['5_PAID','6_CANCELLED']).first()
+            order_qs = FoodOrder.objects.filter(pk=request.data.get("order_id")).exclude(
+                status__in=['5_PAID', '6_CANCELLED']).first()
             if not order_qs:
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
@@ -574,9 +572,9 @@ class FoodOrderViewSet(CustomViewSet):
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
             all_items_qs = OrderedItem.objects.filter(
-                food_order=order_qs.pk, status__in=["2_ORDER_CONFIRMED"])
-            all_items_qs.filter(pk__in=request.data.get(
-                'food_items')).update(status='3_IN_TABLE')
+                food_order=order_qs, status__in=["2_ORDER_CONFIRMED"])
+            if all_items_qs:
+                all_items_qs.update(status='3_IN_TABLE')
 
             order_qs.status = '3_IN_TABLE'
             order_qs.save()
@@ -717,11 +715,12 @@ class OrderedItemViewSet(CustomViewSet):
             is_invalid_order = True
             if request.data:
                 food_order = request.data[0].get('food_order')
-                food_order_qs = FoodOrder.objects.filter(pk=food_order).exclude(status__in=['5_PAID','6_CANCELLED']).first()
+                food_order_qs = FoodOrder.objects.filter(pk=food_order).exclude(
+                    status__in=['5_PAID', '6_CANCELLED']).first()
                 if food_order_qs:
                     is_invalid_order = False
             if is_invalid_order:
-                return  ResponseWrapper(error_code=400 , error_msg=['order is invalid'])
+                return ResponseWrapper(error_code=400, error_msg=['order is invalid'])
 
             qs = serializer.save()
             serializer = OrderedItemSerializer(instance=qs, many=True)
