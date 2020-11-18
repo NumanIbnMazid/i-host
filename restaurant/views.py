@@ -1,24 +1,26 @@
-from django.db.models.aggregates import Sum
-from django.utils import timezone
-from django.db.models import Count
+import decimal
 import json
+
 from account_management import serializers
 from account_management.models import HotelStaffInformation, UserAccount
 from account_management.serializers import (ListOfIdSerializer,
                                             StaffInfoSerializer)
-from django.db.models import Min, Q, query_utils
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Count, Min, Q, query_utils
+from django.db.models.aggregates import Sum
 from django.http import request
+from django.utils import timezone
 from drf_yasg2.utils import get_serializer_class, swagger_auto_schema
 from rest_framework import permissions, status, viewsets
 from rest_framework.permissions import IsAdminUser
 from rest_framework.serializers import Serializer
 from utils.custom_viewset import CustomViewSet
 from utils.response_wrapper import ResponseWrapper
-import decimal
+
 from restaurant.models import (Food, FoodCategory, FoodExtra, FoodExtraType,
                                FoodOption, FoodOptionType, FoodOrder, Invoice,
                                OrderedItem, Restaurant, Table)
-from django.core.serializers.json import DjangoJSONEncoder
+
 from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           FoodExtraPostPatchSerializer, FoodExtraSerializer,
                           FoodExtraTypeDetailSerializer,
@@ -29,14 +31,15 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           FoodOrderConfirmSerializer, FoodOrderSerializer,
                           FoodOrderUserPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
-                          FoodWithPriceSerializer, InvoiceSerializer, OrderedItemSerializer,
-                          OrderedItemUserPostSerializer, PaymentSerializer, ReportingDateRangeGraphSerializer,
+                          FoodWithPriceSerializer, InvoiceSerializer,
+                          OrderedItemSerializer, OrderedItemUserPostSerializer,
+                          PaymentSerializer, ReportingDateRangeGraphSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
                           RestaurantUpdateSerialier, StaffIdListSerializer,
                           StaffTableSerializer, TableSerializer,
-                          TableStaffSerializer, TopRecommendedFoodListSerializer)
+                          TableStaffSerializer,
+                          TopRecommendedFoodListSerializer)
 
-from django.utils import timezone
 
 class RestaurantViewSet(viewsets.ModelViewSet):
     queryset = Restaurant.objects.all()
@@ -512,9 +515,8 @@ class FoodOrderViewSet(CustomViewSet):
     def placed_status(self, request,  *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            order_qs = FoodOrder.objects.filter(pk=request.data.get("order_id"),
-                                                status__in=['0_ORDER_INITIALIZED'
-                                                            ]).first()
+            order_qs = FoodOrder.objects.filter(pk=request.data.get("order_id")).exclude(status__in=      
+                                                 ['5_PAID','6_CANCELLED']).first()
             if not order_qs:
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
