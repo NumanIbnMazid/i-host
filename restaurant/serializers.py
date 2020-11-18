@@ -245,8 +245,10 @@ class FoodOrderSerializer(serializers.ModelSerializer):
 
 class FoodOrderByTableSerializer(serializers.ModelSerializer):
     status_details = serializers.CharField(source='get_status_display')
-    table_name = serializers.CharField(source="table.name")
-    table_no = serializers.CharField(source="table.table_no")
+    # table_name = serializers.CharField(source="table.name")
+    table_name = serializers.SerializerMethodField(read_only=True)
+    table_no = serializers.SerializerMethodField(read_only=True)
+    # table_no = serializers.CharField(source="table.table_no")
     waiter = serializers.SerializerMethodField(read_only=True)
     price = serializers.SerializerMethodField()
     ordered_items = OrderedItemGetDetailsSerializer(many=True, read_only=True)
@@ -292,6 +294,18 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
             return {'id': restaurant_qs.pk, 'name': restaurant_qs.name}
         else:
             return {}
+
+    def get_table_name(self, obj):
+        if obj.table:
+            return obj.table.name
+        else:
+            return None
+
+    def get_table_no(self, obj):
+        if obj.table:
+            return obj.table.table_no
+        else:
+            return None
 
 
 class FoodOrderForStaffSerializer(serializers.ModelSerializer):
