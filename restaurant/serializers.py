@@ -34,11 +34,29 @@ class FoodExtraGroupByListSerializer(serializers.ListSerializer):
 
     def to_representation(self, data):
         iterable = data.all() if isinstance(data, models.Manager) else data
-        return {
-            extra_type.name: super(FoodExtraGroupByListSerializer, self).to_representation(
-                FoodExtra.objects.filter(extra_type=extra_type, pk__in=list(data.values_list('id', flat=True))))
+        return [
+            {'extras': super(FoodExtraGroupByListSerializer, self).to_representation(
+                FoodExtra.objects.filter(extra_type=extra_type, pk__in=list(
+                    data.values_list('id', flat=True)
+                ))
+            ),
+                'type_name': extra_type.name,
+                'type_id': extra_type.pk
+            }
             for extra_type in FoodExtraType.objects.filter(pk__in=list(data.values_list('extra_type_id', flat=True)))
-        }
+        ]
+
+    # def to_representation(self, data):
+    #     iterable = data.all() if isinstance(data, models.Manager) else data
+    #     return {
+
+    #         extra_type.name: super(FoodExtraGroupByListSerializer, self).to_representation(
+    #             FoodExtra.objects.filter(extra_type=extra_type, pk__in=list(
+    #                 data.values_list('id', flat=True)
+    #             ))
+    #         )
+    #         for extra_type in FoodExtraType.objects.filter(pk__in=list(data.values_list('extra_type_id', flat=True)))
+    #     }
 
 
 class FoodExtraGroupByTypeSerializer(serializers.ModelSerializer):
