@@ -108,6 +108,9 @@ urlpatterns = [
 
     path('order/create_order/',
          FoodOrderViewSet.as_view({'post': 'create_order'}, name='create_order')),
+    path('order/create_take_away_order/',
+         FoodOrderViewSet.as_view({'post': 'create_take_away_order'}, name='create_take_away_order')),
+
 
     path('order/cart/items/',
          OrderedItemViewSet.as_view({'post': 'create'}, name='items')),
@@ -129,7 +132,7 @@ urlpatterns = [
          FoodOrderViewSet.as_view({'post': 'create_invoice'}, name='create_invoice')),
     path('order/confirm_payment/',
          FoodOrderViewSet.as_view({'post': 'payment'}, name='confirm_payment')),
-         
+
     path('order/placed_status/',
          FoodOrderViewSet.as_view({'post': 'placed_status'}, name='placed_status')),
 

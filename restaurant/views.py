@@ -404,7 +404,7 @@ class FoodOrderViewSet(CustomViewSet):
     lookup_field = 'pk'
 
     def get_serializer_class(self):
-        if self.action in ['create_order']:
+        if self.action in ['create_order', "create_take_away_order"]:
             self.serializer_class = FoodOrderUserPostSerializer
         elif self.action in ['add_items']:
             self.serializer_class = OrderedItemUserPostSerializer
@@ -423,7 +423,15 @@ class FoodOrderViewSet(CustomViewSet):
 
         return self.serializer_class
 
-    # def list(self,request,)
+    def get_permissions(self):
+        permission_classes = []
+        if self.action == "create_take_away_order":
+            permission_classes = [permissions.IsAuthenticated]
+        # elif self.action == "retrieve" or self.action == "update":
+        #     permission_classes = [permissions.AllowAny]
+        # else:
+        #     permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
 
     # def book_table(self, request):
     #     # serializer_class = self.get_serializer_class()
@@ -460,6 +468,15 @@ class FoodOrderViewSet(CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
+    def create_take_away_order(self, request):
+        serializer = self.get_serializer(data=request.data, partial=True)
+        if serializer.is_valid():
+            qs = serializer.save()
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
     def add_items(self, request):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -478,9 +495,10 @@ class FoodOrderViewSet(CustomViewSet):
                 order_qs.save()
                 order_qs.ordered_items.update(status="4_CANCELLED")
                 table_qs = order_qs.table
-                if table_qs.is_occupied:
-                    table_qs.is_occupied = False
-                    table_qs.save()
+                if table_qs:
+                    if table_qs.is_occupied:
+                        table_qs.is_occupied = False
+                        table_qs.save()
 
             else:
                 return ResponseWrapper(
@@ -613,7 +631,8 @@ class FoodOrderViewSet(CustomViewSet):
             invoice_qs.save()
         else:
             invoice_qs = Invoice.objects.create(
-                restaurant=order_qs.table.restaurant,
+                restaurant_id=serializer.data.get(
+                    'restaurant_info', {}).get('id'),
                 order=order_qs,
                 order_info=json.loads(json.dumps(serializer.data, cls=DjangoJSONEncoder)), grand_total=grand_total, payment_status=payment_status)
         return invoice_qs
