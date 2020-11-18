@@ -115,9 +115,9 @@ class RestaurantViewSet(viewsets.ModelViewSet):
     def order_item_list(self, request, restaurant_id, *args, **kwargs):
         qs = FoodOrder.objects.filter(table__restaurant=restaurant_id).exclude(
             status__in=['5_PAID', '6_CANCELLED'])
-        orderd_table_set = set(qs.values_list('table_id', flat=True))
+        ordered_table_set = set(qs.values_list('table_id', flat=True))
         table_qs = Table.objects.filter(
-            restaurant=restaurant_id).exclude(pk__in=orderd_table_set)
+            restaurant=restaurant_id).exclude(pk__in=ordered_table_set)
         # all_table_set = set(table_qs.values_list('pk',flat=True))
         # empty_table_set = all_table_set - orderd_table_set
         empty_table_data = []
@@ -589,13 +589,13 @@ class FoodOrderViewSet(CustomViewSet):
 
     def invoice_generator(self, order_qs, payment_status):
         # adjust cart for unique items
-        # item_qs = order_qs.ordered_items.all()
+        self.adjust_cart_for_unique_items(order_qs)
 
         serializer = FoodOrderByTableSerializer(instance=order_qs)
         grand_total = serializer.data.get(
             'price', {}).get('grand_total_price')
 
-        if order_qs.invoices:
+        if order_qs.invoices.first():
             invoice_qs = order_qs.invoices.first()
             invoice_qs.order_info = json.loads(
                 json.dumps(serializer.data, cls=DjangoJSONEncoder))
@@ -608,6 +608,35 @@ class FoodOrderViewSet(CustomViewSet):
                 order=order_qs,
                 order_info=json.loads(json.dumps(serializer.data, cls=DjangoJSONEncoder)), grand_total=grand_total, payment_status=payment_status)
         return invoice_qs
+
+    def adjust_cart_for_unique_items(self, order_qs):
+        ordered_items_qs = order_qs.ordered_items.all()
+        food_option_extra_tuple_list = ordered_items_qs.values_list(
+            'food_option', 'food_extra')
+
+        food_option_list = ordered_items_qs.values_list(
+            'food_option', flat=True).distinct()
+        for food_option in food_option_list:
+            ordered_items_by_food_options_qs = ordered_items_qs.filter(
+                food_option=food_option)
+            if ordered_items_by_food_options_qs.count() > 1:
+                temp_order_list = []
+                temp_extra_list = []
+
+
+                for order_items_qs in ordered_items_by_food_options_qs:
+                    extras = list(
+                        order_items_qs.food_extra.values_list('pk', flat=True))
+                    if extras in temp_extra_list:
+                        first_order_qs = temp_order_list[temp_extra_list.index(
+                            extras)]
+                        first_order_qs.quantity += order_items_qs.quantity
+                        first_order_qs.save()
+                        order_items_qs.delete()
+
+                    else:
+                        temp_extra_list.append(extras)
+                        temp_order_list.append(order_items_qs)
 
     def payment(self, request,  *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -652,7 +681,7 @@ class OrderedItemViewSet(CustomViewSet):
         serializer = self.get_serializer(data=request.data, many=True)
         if serializer.is_valid():
             qs = serializer.save()
-            serializer = OrderedItemSerializer(instance=qs, many= True)
+            serializer = OrderedItemSerializer(instance=qs, many=True)
 
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
