@@ -36,6 +36,7 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           StaffTableSerializer, TableSerializer,
                           TableStaffSerializer, TopRecommendedFoodListSerializer)
 
+from django.utils import timezone
 
 class RestaurantViewSet(viewsets.ModelViewSet):
     queryset = Restaurant.objects.all()
@@ -144,6 +145,15 @@ class RestaurantViewSet(viewsets.ModelViewSet):
         else:
             return ResponseWrapper(error_msg="failed to delete", error_code=400)
 
+    def today_sell(self, request, pk, *args, **kwargs):
+        now = timezone.now().date()
+        qs= Invoice.objects.filter(created_at= now, payment_status =['1_PAID'])
+        grand_total_list = qs.values_list('grand_total', flat=True)
+        total = sum(grand_total_list)
+        return ResponseWrapper(data={'total_sell': total}, msg="success")
+
+
+
 
 # class FoodCategoryViewSet(viewsets.GenericViewSet):
 #     serializer_class = FoodCategorySerializer
@@ -183,7 +193,6 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 #             return ResponseWrapper(status=200, msg='deleted')
 #         else:
 #             return ResponseWrapper(error_msg="failed to delete", error_code=400)
-
 
 class FoodCategoryViewSet(CustomViewSet):
     serializer_class = FoodCategorySerializer
