@@ -414,7 +414,7 @@ class FoodOrderViewSet(CustomViewSet):
         elif self.action in ['cancel_order']:
             self.serializer_class = FoodOrderCancelSerializer
         elif self.action in ['placed_status']:
-            self.serializer_class = FoodOrderConfirmSerializer
+            self.serializer_class = PaymentSerializer
         elif self.action in ['confirm_status']:
             self.serializer_class = FoodOrderConfirmSerializer
         elif self.action in ['in_table_status']:
@@ -714,6 +714,15 @@ class OrderedItemViewSet(CustomViewSet):
     def create(self, request):
         serializer = self.get_serializer(data=request.data, many=True)
         if serializer.is_valid():
+            is_invalid_order = True
+            if request.data:
+                food_order = request.data[0].get('food_order')
+                food_order_qs = FoodOrder.objects.filter(pk=food_order).exclude(status__in=['5_PAID','6_CANCELLED']).first()
+                if food_order_qs:
+                    is_invalid_order = False
+            if is_invalid_order:
+                return  ResponseWrapper(error_code=400 , error_msg=['order is invalid'])
+
             qs = serializer.save()
             serializer = OrderedItemSerializer(instance=qs, many=True)
 
