@@ -1,3 +1,4 @@
+import copy
 from account_management.models import HotelStaffInformation
 from account_management.serializers import StaffInfoGetSerializer
 from rest_framework import serializers
@@ -487,9 +488,18 @@ class TopRecommendedFoodListSerializer(serializers.Serializer):
 
 
 class InvoiceSerializer(serializers.ModelSerializer):
+    order_info = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Invoice
-        fields = '__all__'
+        fields = ['order_info']
+
+    def get_order_info(self, obj):
+        # data_dict = obj.__dict__
+        obj.__dict__.pop('_state')
+        order_info = obj.__dict__.pop('order_info')
+        order_info['invoice'] = obj.__dict__
+        return order_info
 
 
 class ReportingDateRangeGraphSerializer(serializers.Serializer):
