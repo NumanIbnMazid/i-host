@@ -574,7 +574,8 @@ class FoodOrderViewSet(CustomViewSet):
             all_items_qs = OrderedItem.objects.filter(
                 food_order=order_qs, status__in=["2_ORDER_CONFIRMED"])
             if all_items_qs:
-                all_items_qs.update(status='3_IN_TABLE')
+                all_items_qs.filter(pk__in=request.data.get(
+                    'food_items')).update(status='3_IN_TABLE')
 
             order_qs.status = '3_IN_TABLE'
             order_qs.save()
