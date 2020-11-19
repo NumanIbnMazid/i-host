@@ -611,7 +611,7 @@ class FoodOrderViewSet(CustomViewSet):
                     order_qs, payment_status="0_UNPAID")
 
                 serializer = InvoiceSerializer(instance=invoice_qs)
-            return ResponseWrapper(data=serializer.data, msg='Invoice Created')
+            return ResponseWrapper(data=serializer.data.get('order_info'), msg='Invoice Created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
@@ -692,7 +692,7 @@ class FoodOrderViewSet(CustomViewSet):
                     order_qs, payment_status='1_PAID')
 
                 serializer = InvoiceSerializer(instance=invoice_qs)
-            return ResponseWrapper(data=serializer.data, msg='Paid')
+            return ResponseWrapper(data=serializer.data.get('order_info'), msg='Paid')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
