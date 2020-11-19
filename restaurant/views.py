@@ -413,7 +413,7 @@ class FoodOrderViewSet(CustomViewSet):
             self.serializer_class = FoodOrderCancelSerializer
         elif self.action in ['placed_status']:
             self.serializer_class = PaymentSerializer
-        elif self.action in ['confirm_status']:
+        elif self.action in ['confirm_status','cancel_items']:
             self.serializer_class = FoodOrderConfirmSerializer
         elif self.action in ['in_table_status']:
             self.serializer_class = FoodOrderConfirmSerializer
@@ -486,6 +486,11 @@ class FoodOrderViewSet(CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
+
+
+
+
+
     def cancel_order(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -509,6 +514,29 @@ class FoodOrderViewSet(CustomViewSet):
             return ResponseWrapper(data=serializer.data, msg='Cancel')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def cancel_items(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            order_qs = FoodOrder.objects.filter(pk=request.data.get(
+                'order_id')).exclude(status=['5_PAID','6_CANCELLED']).first()
+            if not order_qs:
+                return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
+
+            all_items_qs = OrderedItem.objects.filter(
+                food_order=order_qs).exclude(status__in=["3_IN_TABLE","4_CANCELLED"])
+            if all_items_qs:
+                all_items_qs.filter(pk__in=request.data.get(
+                    'food_items')).update(status='4_CANCELLED')
+
+            #order_qs.status = '3_IN_TABLE'
+            #order_qs.save()
+            serializer = FoodOrderByTableSerializer(instance=order_qs)
+
+            return ResponseWrapper(data=serializer.data, msg='Served')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
 
     def placed_status(self, request,  *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
