@@ -519,7 +519,7 @@ class FoodOrderViewSet(CustomViewSet):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             order_qs = FoodOrder.objects.filter(pk=request.data.get(
-                'order_id')).exclude(status=['5_PAID','6_CANCELLED']).first()
+                'order_id'), status=['0_ORDER_INITIALIZED','1_ORDER_PLACED','2_ORDER_CONFIRMED']).first()
             if not order_qs:
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
