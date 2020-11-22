@@ -729,6 +729,15 @@ class OrderedItemViewSet(CustomViewSet):
     queryset = OrderedItem.objects.all()
     lookup_field = 'pk'
 
+
+    def get_permissions(self):
+        if self.action in ['create']:
+            permission_classes = [permissions.IsAuthenticated]
+        else:
+            permission_classes = [permissions.AllowAny]
+        return [permission() for permission in permission_classes]
+
+
     def get_serializer_class(self):
         if self.action in ['create', 'update']:
             self.serializer_class = OrderedItemUserPostSerializer
@@ -752,11 +761,27 @@ class OrderedItemViewSet(CustomViewSet):
                 return ResponseWrapper(error_code=400, error_msg=['order is invalid'])
 
             qs = serializer.save()
-            serializer = OrderedItemSerializer(instance=qs, many=True)
 
+            restaurant_id = food_order_qs.table.restaurant_id
+
+<<<<<<< HEAD
+=======
+            if HotelStaffInformation.objects.filter(user=request.user.pk,restaurant_id=restaurant_id,is_manager=True):
+                order_pk_list = list()
+                for item in qs:
+                    order_pk_list.append(item.pk)
+                qs= OrderedItem.objects.filter(pk__in =order_pk_list)
+                qs.update(status='2_ORDER_CONFIRMED')
+                # for order_item in qs:
+                #     order_item.status='2_ORDER_CONFIRMED'
+                #     order_item.save()
+
+            serializer = OrderedItemSerializer(instance=qs, many=True)
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+>>>>>>> 97b7cfe43f1d2ab384396591f33ac00627e91ca8
 
 
 class FoodViewSet(CustomViewSet):
