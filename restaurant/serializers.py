@@ -269,6 +269,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   'waiter',
                   'restaurant_info',
                   ]
+        #ordering = ['table']
 
     def get_price(self, obj):
         return calculate_price(food_order_obj=obj)
@@ -385,7 +386,7 @@ class FoodsByCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FoodCategory
-        fields = ['id', 'name', 'image', 'foods']
+        fields = ['id', 'name', 'image','foods']
 
 
 class FoodDetailSerializer(serializers.ModelSerializer):
