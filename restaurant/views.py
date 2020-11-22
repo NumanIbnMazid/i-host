@@ -764,8 +764,6 @@ class OrderedItemViewSet(CustomViewSet):
 
             restaurant_id = food_order_qs.table.restaurant_id
 
-<<<<<<< HEAD
-=======
             if HotelStaffInformation.objects.filter(user=request.user.pk,restaurant_id=restaurant_id,is_manager=True):
                 order_pk_list = list()
                 for item in qs:
@@ -780,8 +778,6 @@ class OrderedItemViewSet(CustomViewSet):
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
-
->>>>>>> 97b7cfe43f1d2ab384396591f33ac00627e91ca8
 
 
 class FoodViewSet(CustomViewSet):
