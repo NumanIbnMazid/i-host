@@ -4,7 +4,7 @@ from utils.response_wrapper import ResponseWrapper
 from rest_framework_tracking.mixins import LoggingMixin
 
 
-class CustomViewSet(viewsets.ModelViewSet, LoggingMixin):
+class CustomViewSet(LoggingMixin, viewsets.ModelViewSet):
     # serializer_class = FoodCategorySerializer
     # permission_classes = [permissions.IsAdminUser]
     # queryset = FoodCategory.objects.all()
