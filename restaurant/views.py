@@ -141,15 +141,12 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 
         return ResponseWrapper(data=serializer.data+empty_table_data, msg="success")
 
-<<<<<<< HEAD
-=======
     def user_order_history(self, request, *args, **kwargs):
         order_qs = FoodOrder.objects.all()
         if CustomerInfo.objects.filter(user=request.user.pk):
             serializer = FoodOrderByTableSerializer(
                 instance=order_qs, many=True)
             return ResponseWrapper(data=serializer.data)
->>>>>>> b70985cd869cb8d919bc6d7aad24a0b73097b789
 
     def delete_restaurant(self, request, pk, *args, **kwargs):
         qs = self.queryset.filter(**kwargs).first()
