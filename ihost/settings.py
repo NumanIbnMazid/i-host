@@ -48,8 +48,9 @@ LIBRARY_APPS = [
     'corsheaders',
     'drf_extra_fields',
     'softdelete',
+    'rest_framework_tracking',
 ]
-DJANOG_APPS = [
+DJANGO_APPS = [
     'account_management',
     'restaurant',
 ]
@@ -60,7 +61,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-]+LIBRARY_APPS+DJANOG_APPS
+
+]+LIBRARY_APPS+DJANGO_APPS
 
 AUTH_USER_MODEL = 'account_management.UserAccount'
 

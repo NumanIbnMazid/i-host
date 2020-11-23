@@ -40,11 +40,13 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           StaffTableSerializer, TableSerializer,
                           TableStaffSerializer,
                           TopRecommendedFoodListSerializer)
+from rest_framework_tracking.mixins import LoggingMixin
 
 
-class RestaurantViewSet(viewsets.ModelViewSet):
+class RestaurantViewSet(LoggingMixin, viewsets.ModelViewSet):
     queryset = Restaurant.objects.all()
     lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     # serializer_class = RestaurantContactPerson
 
     def get_serializer_class(self):
@@ -141,12 +143,7 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 
         return ResponseWrapper(data=serializer.data+empty_table_data, msg="success")
 
-    def user_order_history(self, request, *args, **kwargs):
-        order_qs = FoodOrder.objects.all()
-        if CustomerInfo.objects.filter(user=request.user.pk):
-            serializer = FoodOrderByTableSerializer(
-                instance=order_qs, many=True)
-            return ResponseWrapper(data=serializer.data)
+
 
     def delete_restaurant(self, request, pk, *args, **kwargs):
         qs = self.queryset.filter(**kwargs).first()
