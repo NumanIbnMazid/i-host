@@ -401,13 +401,25 @@ class TableViewSet(CustomViewSet):
         #serializer = self.get_serializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg="success")
 
-    # def destroy(self, request, table_id, *args, **kwargs):
-    #     qs = self.queryset.filter(**kwargs).first()
-    #     if qs:
-    #         qs.delete()
-    #         return ResponseWrapper(status=200, msg='deleted')
-    #     else:
-    #         return ResponseWrapper(error_msg="failed to delete", error_code=400)
+    def destroy(self, request,**kwargs):
+        qs = self.queryset.filter(**kwargs).first()
+        if qs:
+            if qs.food_orders.count() == qs.food_orders.filter(status__in=['5_PAID', '6_CANCELLED']).count():
+                qs.delete()
+                return ResponseWrapper(status=200, msg='deleted')
+            else:
+                return ResponseWrapper(error_code=status.HTTP_406_NOT_ACCEPTABLE, error_msg=['order is running'])
+
+        else:
+            return ResponseWrapper(error_msg="table not found", error_code=400)
+
+
+
+
+
+
+
+
 
 
 class FoodOrderViewSet(CustomViewSet):
