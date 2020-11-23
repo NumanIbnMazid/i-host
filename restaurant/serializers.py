@@ -236,12 +236,10 @@ class FoodOrderSerializer(serializers.ModelSerializer):
                   "status",
                   "price",
                   'ordered_items',
-
-
                   ]
 
     def get_price(self, obj):
-        return calculate_price(food_order_obj=obj)
+        return calculate_price(food_order_obj=obj, include_initial_order=True)
 
 
 class FoodOrderByTableSerializer(serializers.ModelSerializer):
@@ -339,9 +337,6 @@ class FoodOrderUserPostSerializer(serializers.ModelSerializer):
         fields = ['ordered_items', 'table', 'remarks', 'status', 'id']
 
 
-
-
-
 class AddItemsSerializer(serializers.Serializer):
     ordered_items = OrderedItemUserPostSerializer(
         many=True, required=True)
@@ -386,7 +381,7 @@ class FoodsByCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FoodCategory
-        fields = ['id', 'name', 'image','foods']
+        fields = ['id', 'name', 'image', 'foods']
 
 
 class FoodDetailSerializer(serializers.ModelSerializer):

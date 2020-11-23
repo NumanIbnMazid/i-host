@@ -52,8 +52,6 @@ class RestaurantViewSet(viewsets.ModelViewSet):
             self.serializer_class = RestaurantSerializer
         elif self.action == 'update':
             self.serializer_class = RestaurantUpdateSerialier
-        elif self.action == 'user_order_history':
-            self.serializer_class = FoodOrderByTableSerializer
         else:
             self.serializer_class = RestaurantSerializer
 
@@ -62,7 +60,7 @@ class RestaurantViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ["create", 'destroy', 'list']:
             permission_classes = [permissions.IsAdminUser]
-        if self.action in ['update', 'restaurant_under_owner','user_order_history']:
+        if self.action in ['update', 'restaurant_under_owner', 'user_order_history']:
             permission_classes = [permissions.IsAuthenticated]
         else:
             permission_classes = [permissions.AllowAny]
@@ -142,10 +140,6 @@ class RestaurantViewSet(viewsets.ModelViewSet):
         serializer = FoodOrderByTableSerializer(instance=qs, many=True)
 
         return ResponseWrapper(data=serializer.data+empty_table_data, msg="success")
-
-
-
-
 
 
 
@@ -230,13 +224,14 @@ class FoodOptionTypeViewSet(CustomViewSet):
 class FoodOrderedViewSet(CustomViewSet):
     serializer_class = FoodOrderSerializer
     queryset = FoodOrder.objects.all()
-    lookup_field = 'ordered_id'
+    lookup_field = 'pk'
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    def ordered_item_list(self, request, ordered_id, *args, **kwargs):
-        qs = FoodOrder.objects.filter(pk=ordered_id)
-        # qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
-        serializer = self.get_serializer(instance=qs, many=True)
-        return ResponseWrapper(data=serializer.data, msg="success")
+    # def ordered_item_list(self, request, ordered_id, *args, **kwargs):
+    #     qs = FoodOrder.objects.filter(pk=ordered_id)
+    #     # qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
+    #     serializer = self.get_serializer(instance=qs, many=True)
+    #     return ResponseWrapper(data=serializer.data, msg="success")
 
 
 class FoodExtraTypeViewSet(CustomViewSet):
@@ -403,7 +398,7 @@ class TableViewSet(CustomViewSet):
         #serializer = self.get_serializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg="success")
 
-    def destroy(self, request,**kwargs):
+    def destroy(self, request, **kwargs):
         qs = self.queryset.filter(**kwargs).first()
         if qs:
             if qs.food_orders.count() == qs.food_orders.filter(status__in=['5_PAID', '6_CANCELLED']).count():
@@ -414,14 +409,6 @@ class TableViewSet(CustomViewSet):
 
         else:
             return ResponseWrapper(error_msg="table not found", error_code=400)
-
-
-
-
-
-
-
-
 
 
 class FoodOrderViewSet(CustomViewSet):
@@ -608,7 +595,7 @@ class FoodOrderViewSet(CustomViewSet):
             # order_qs.status = '2_ORDER_CONFIRMED'
             # order_qs.save()
             # serializer = FoodOrderByTableSerializer(instance=order_qs)
-            if order_qs.status in ["0_ORDER_INITIALIZED","1_ORDER_PLACED"]:
+            if order_qs.status in ["0_ORDER_INITIALIZED", "1_ORDER_PLACED"]:
                 order_qs.status = '2_ORDER_CONFIRMED'
                 order_qs.save()
 
@@ -635,7 +622,7 @@ class FoodOrderViewSet(CustomViewSet):
                 all_items_qs.filter(pk__in=request.data.get(
                     'food_items')).update(status='3_IN_TABLE')
 
-            if order_qs.status in ["2_ORDER_CONFIRMED","1_ORDER_PLACED","0_ORDER_INITIALIZED"]:
+            if order_qs.status in ["2_ORDER_CONFIRMED", "1_ORDER_PLACED", "0_ORDER_INITIALIZED"]:
                 order_qs.status = '3_IN_TABLE'
                 order_qs.save()
             serializer = FoodOrderByTableSerializer(instance=order_qs)
@@ -786,10 +773,11 @@ class OrderedItemViewSet(CustomViewSet):
                 food_order_qs = FoodOrder.objects.filter(pk=food_order)
                 restaurant_id = food_order_qs.first().table.restaurant_id
 
-                if HotelStaffInformation.objects.filter(user=request.user.pk,restaurant_id=restaurant_id,is_manager=True):
-                    food_order_qs=food_order_qs.first()
+                if HotelStaffInformation.objects.filter(user=request.user.pk, restaurant_id=restaurant_id, is_manager=True):
+                    food_order_qs = food_order_qs.first()
                 else:
-                    food_order_qs=food_order_qs.exclude(status__in=['5_PAID', '6_CANCELLED']).first()
+                    food_order_qs = food_order_qs.exclude(
+                        status__in=['5_PAID', '6_CANCELLED']).first()
                 if food_order_qs:
                     is_invalid_order = False
             if is_invalid_order:
@@ -805,7 +793,6 @@ class OrderedItemViewSet(CustomViewSet):
                     order_pk_list.append(item.pk)
                 qs = OrderedItem.objects.filter(pk__in=order_pk_list)
                 qs.update(status='2_ORDER_CONFIRMED')
-
 
             # order_order_qs= FoodOrder.objects.filter(status = '0_ORDER_INITIALIZED',pk=request.data.get('id'))
             # if order_order_qs:
