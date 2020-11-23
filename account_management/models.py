@@ -57,6 +57,9 @@ class UserAccount(AbstractUser):
     ]
     username = None
     email = None
+    first_name = None
+    last_name = None
+
     # email = models.EmailField(max_length=35, null=True, blank=True)
     phone = models.CharField(max_length=35, unique=True)
     status = models.CharField(max_length=25,
@@ -71,6 +74,7 @@ class UserAccount(AbstractUser):
 
 
 class CustomerInfo(models.Model):
+    name = models.CharField(null=True, blank=True, max_length=250)
     email_address = models.EmailField(max_length=35, null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     user = models.OneToOneField(to=UserAccount, on_delete=models.CASCADE)
@@ -96,6 +100,7 @@ class HotelStaffInformation(SoftDeleteModel):
     shift_start = models.TimeField(null=True, blank=True)
     shift_end = models.TimeField(null=True, blank=True)
     nid = models.CharField(max_length=50, null=True, blank=True)
+    name = models.CharField(null=True, blank=True, max_length=250)
     # shift_days = models.CharField(
     #     choices=DAYS_OF_WEEK, max_length=20, null=True, blank=True)
     restaurant = models.ForeignKey(
