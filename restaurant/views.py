@@ -40,11 +40,13 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           StaffTableSerializer, TableSerializer,
                           TableStaffSerializer,
                           TopRecommendedFoodListSerializer)
+from rest_framework_tracking.mixins import LoggingMixin
 
 
-class RestaurantViewSet(viewsets.ModelViewSet):
+class RestaurantViewSet(LoggingMixin, viewsets.ModelViewSet):
     queryset = Restaurant.objects.all()
     lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     # serializer_class = RestaurantContactPerson
 
     def get_serializer_class(self):
