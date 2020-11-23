@@ -147,8 +147,9 @@ urlpatterns = [
     path('order/placed_status/',
          FoodOrderViewSet.as_view({'post': 'placed_status'}, name='placed_status')),
 
-    path('ordered_item/<int:ordered_id>/',
-         FoodOrderedViewSet.as_view({'get': 'ordered_item_list'}, name='ordered_item_list')),
+
+    path('ordered_item/<int:pk>/',
+         FoodOrderedViewSet.as_view({'get': 'retrieve'}, name='ordered_item')),
 
     path('food_extra_by_food/<int:pk>/',
          FoodViewSet.as_view({'get': 'food_extra_by_food'}, name='food_extra_by_food')),
