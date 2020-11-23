@@ -118,11 +118,7 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 
     def order_item_list(self, request, restaurant_id, *args, **kwargs):
         qs = FoodOrder.objects.filter(table__restaurant=restaurant_id).exclude(
-<<<<<<< HEAD
-            status__in=['5_PAID', '6_CANCELLED'])
-=======
             status__in=['5_PAID', '6_CANCELLED']).order_by('table_id')
->>>>>>> 61a7c289282f71e25b7839b525b58d8bd956f3a9
         ordered_table_set = set(qs.values_list('table_id', flat=True))
         table_qs = Table.objects.filter(
             restaurant=restaurant_id).exclude(pk__in=ordered_table_set).order_by('id')
@@ -390,7 +386,9 @@ class TableViewSet(CustomViewSet):
     def order_item_list(self, request, table_id, *args, **kwargs):
         qs = FoodOrder.objects.filter(pk=table_id)
         # qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
-        serializer = self.get_serializer(instance=qs, many=True)
+
+        serializer = FoodOrderByTableSerializer(instance=qs, many=True)
+        #serializer = self.get_serializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg="success")
 
     # def destroy(self, request, table_id, *args, **kwargs):
@@ -550,15 +548,24 @@ class FoodOrderViewSet(CustomViewSet):
             if not order_qs:
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
-            all_items_qs = OrderedItem.objects.filter(
-                food_order=order_qs.pk, status__in=["0_ORDER_INITIALIZED"])
-            all_items_qs.update(status='1_ORDER_PLACED')
+            order_item_counter = OrderedItem.objects.filter(
+                food_order=order_qs.pk, status='0_ORDER_INITIALIZED').count()
 
-            order_qs.status = '1_ORDER_PLACED'
-            order_qs.save()
-            serializer = FoodOrderByTableSerializer(instance=order_qs)
 
-            return ResponseWrapper(data=serializer.data, msg='Placed')
+            if order_item_counter == 0:
+                return ResponseWrapper(
+                    error_msg=["No order item"],
+                    error_code=400)
+            else:
+                all_items_qs = OrderedItem.objects.filter(
+                    food_order=order_qs.pk, status__in=["0_ORDER_INITIALIZED"])
+                all_items_qs.update(status='1_ORDER_PLACED')
+
+                order_qs.status = '1_ORDER_PLACED'
+                order_qs.save()
+                serializer = FoodOrderByTableSerializer(instance=order_qs)
+
+                return ResponseWrapper(data=serializer.data, msg='Placed')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
@@ -784,6 +791,7 @@ class OrderedItemViewSet(CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
 
+
 class FoodViewSet(CustomViewSet):
     serializer_class = FoodWithPriceSerializer
 
@@ -836,13 +844,13 @@ class FoodByRestaurantViewSet(CustomViewSet):
     def top_foods(self, request, restaurant, *args, **kwargs):
         qs = self.queryset.filter(restaurant=restaurant, is_top=True)
         # qs = qs.filter(is_top = True)
-        serializer = self.serializer_class(instance=qs, many=True)
+        serializer = FoodDetailSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def recommended_foods(self, request, restaurant, *args, **kwargs):
         qs = self.queryset.filter(restaurant=restaurant, is_recommended=True)
         # qs = qs.filter(is_top = True)
-        serializer = self.serializer_class(instance=qs, many=True)
+        serializer = FoodDetailSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def list(self, request, restaurant, *args, **kwargs):
