@@ -113,8 +113,8 @@ urlpatterns = [
          FoodOrderViewSet.as_view({'post': 'create_take_away_order'}, name='create_take_away_order')),
 
 
-    #path('re_order',
-         #OrderedItemViewSet.as_view({'post': 're_order'}, name='re_order')),
+    # path('re_order',
+    # OrderedItemViewSet.as_view({'post': 're_order'}, name='re_order')),
 
     path('order/cart/items/',
          OrderedItemViewSet.as_view({'post': 'create'}, name='items')),

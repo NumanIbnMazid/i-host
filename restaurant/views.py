@@ -1,5 +1,6 @@
 import decimal
 import json
+from . import permissions as custom_permissions
 
 from account_management import serializers
 from account_management.models import HotelStaffInformation, UserAccount
@@ -150,7 +151,8 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 
     def today_sell(self, request, pk, *args, **kwargs):
         today_date = timezone.now().date()
-        qs = Invoice.objects.filter(created_at=today_date, payment_status='1_PAID')
+        qs = Invoice.objects.filter(
+            created_at=today_date, payment_status='1_PAID')
         grand_total_list = qs.values_list('grand_total', flat=True)
         total = sum(grand_total_list)
         return ResponseWrapper(data={'total_sell': total}, msg="success")
@@ -322,6 +324,7 @@ class TableViewSet(CustomViewSet):
             permission_classes = [permissions.IsAuthenticated]
         else:
             permission_classes = [permissions.AllowAny]
+
         return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
@@ -384,6 +387,7 @@ class TableViewSet(CustomViewSet):
             return ResponseWrapper(error_code=400, error_msg='wrong table id')
 
     def order_item_list(self, request, table_id, *args, **kwargs):
+
         qs = FoodOrder.objects.filter(pk=table_id)
         # qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
 
@@ -415,7 +419,7 @@ class FoodOrderViewSet(CustomViewSet):
             self.serializer_class = FoodOrderCancelSerializer
         elif self.action in ['placed_status']:
             self.serializer_class = PaymentSerializer
-        elif self.action in ['confirm_status','cancel_items']:
+        elif self.action in ['confirm_status', 'cancel_items']:
             self.serializer_class = FoodOrderConfirmSerializer
         elif self.action in ['in_table_status']:
             self.serializer_class = FoodOrderConfirmSerializer
@@ -488,11 +492,6 @@ class FoodOrderViewSet(CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-
-
-
-
-
     def cancel_order(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -521,24 +520,23 @@ class FoodOrderViewSet(CustomViewSet):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             order_qs = FoodOrder.objects.filter(pk=request.data.get(
-                'order_id')).exclude(status=['0_ORDER_INITIALIZED','5_PAID','6_CANCELLED']).first()
+                'order_id')).exclude(status=['0_ORDER_INITIALIZED', '5_PAID', '6_CANCELLED']).first()
             if not order_qs:
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
             all_items_qs = OrderedItem.objects.filter(
-                food_order=order_qs).exclude(status__in=["0_ORDER_INITIALIZED","4_CANCELLED"])
+                food_order=order_qs).exclude(status__in=["0_ORDER_INITIALIZED", "4_CANCELLED"])
             if all_items_qs:
                 all_items_qs.filter(pk__in=request.data.get(
                     'food_items')).update(status='4_CANCELLED')
 
             #order_qs.status = '3_IN_TABLE'
-            #order_qs.save()
+            # order_qs.save()
             serializer = FoodOrderByTableSerializer(instance=order_qs)
 
             return ResponseWrapper(data=serializer.data, msg='Served')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
-
 
     def placed_status(self, request,  *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -550,7 +548,6 @@ class FoodOrderViewSet(CustomViewSet):
 
             order_item_counter = OrderedItem.objects.filter(
                 food_order=order_qs.pk, status='0_ORDER_INITIALIZED').count()
-
 
             if order_item_counter == 0:
                 return ResponseWrapper(
@@ -740,14 +737,12 @@ class OrderedItemViewSet(CustomViewSet):
     queryset = OrderedItem.objects.all()
     lookup_field = 'pk'
 
-
     def get_permissions(self):
         if self.action in ['create']:
             permission_classes = [permissions.IsAuthenticated]
         else:
             permission_classes = [permissions.AllowAny]
         return [permission() for permission in permission_classes]
-
 
     def get_serializer_class(self):
         if self.action in ['create', 'update']:
@@ -775,11 +770,11 @@ class OrderedItemViewSet(CustomViewSet):
 
             restaurant_id = food_order_qs.table.restaurant_id
 
-            if HotelStaffInformation.objects.filter(user=request.user.pk,restaurant_id=restaurant_id,is_manager=True):
+            if HotelStaffInformation.objects.filter(user=request.user.pk, restaurant_id=restaurant_id, is_manager=True):
                 order_pk_list = list()
                 for item in qs:
                     order_pk_list.append(item.pk)
-                qs= OrderedItem.objects.filter(pk__in =order_pk_list)
+                qs = OrderedItem.objects.filter(pk__in=order_pk_list)
                 qs.update(status='2_ORDER_CONFIRMED')
                 # for order_item in qs:
                 #     order_item.status='2_ORDER_CONFIRMED'
@@ -791,7 +786,6 @@ class OrderedItemViewSet(CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
 
-
 class FoodViewSet(CustomViewSet):
     serializer_class = FoodWithPriceSerializer
 
@@ -801,6 +795,7 @@ class FoodViewSet(CustomViewSet):
 
         return self.serializer_class
     # permission_classes = [permissions.IsAuthenticated]
+
     queryset = Food.objects.all()
     lookup_field = 'pk'
     http_method_names = ['post', 'patch', 'get', 'delete']
