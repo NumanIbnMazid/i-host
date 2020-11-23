@@ -74,6 +74,9 @@ urlpatterns = [
     path('restaurant/<int:restaurant_id>/order_item_list/',
          RestaurantViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),
 
+    path('user_order_history/',
+         RestaurantViewSet.as_view({'get': 'user_order_history'}), name='user_order_history'),
+
 
     # path('restaurant/waiter/<int:staff_assigned>/tables/',
     #    TableViewSet.as_view({'get': 'waiter_table_list'}), name='waiter_table_list'),
