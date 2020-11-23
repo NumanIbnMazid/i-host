@@ -118,10 +118,14 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 
     def order_item_list(self, request, restaurant_id, *args, **kwargs):
         qs = FoodOrder.objects.filter(table__restaurant=restaurant_id).exclude(
+<<<<<<< HEAD
             status__in=['5_PAID', '6_CANCELLED'])
+=======
+            status__in=['5_PAID', '6_CANCELLED']).order_by('table_id')
+>>>>>>> 61a7c289282f71e25b7839b525b58d8bd956f3a9
         ordered_table_set = set(qs.values_list('table_id', flat=True))
         table_qs = Table.objects.filter(
-            restaurant=restaurant_id).exclude(pk__in=ordered_table_set)
+            restaurant=restaurant_id).exclude(pk__in=ordered_table_set).order_by('id')
         # all_table_set = set(table_qs.values_list('pk',flat=True))
         # empty_table_set = all_table_set - orderd_table_set
         empty_table_data = []
