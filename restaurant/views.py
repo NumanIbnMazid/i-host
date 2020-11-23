@@ -52,6 +52,8 @@ class RestaurantViewSet(viewsets.ModelViewSet):
             self.serializer_class = RestaurantSerializer
         elif self.action == 'update':
             self.serializer_class = RestaurantUpdateSerialier
+        elif self.action == 'user_order_history':
+            self.serializer_class = FoodOrderByTableSerializer
         else:
             self.serializer_class = RestaurantSerializer
 
@@ -141,11 +143,7 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 
         return ResponseWrapper(data=serializer.data+empty_table_data, msg="success")
 
-    def user_order_history(self, request, *args, **kwargs):
-        order_qs = FoodOrder.objects.all()
-        if CustomerInfo.objects.filter(user = request.user.pk):
-            serializer = FoodOrderByTableSerializer(instance=order_qs, many=True)
-            return ResponseWrapper(data=serializer.data)
+
 
 
 
