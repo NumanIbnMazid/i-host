@@ -13,11 +13,11 @@ def calculate_price(food_order_obj, include_initial_order=False):
     if food_order_obj.table:
         restaurant_qs = food_order_obj.table.restaurant
 
-    total_price = decimal.Decimal(0.0)
-    tax_amount = decimal.Decimal(0.0)
-    grand_total_price = decimal.Decimal(0.0)
-    service_charge = decimal.Decimal(0.0)
-    hundred = decimal.Decimal(100.0)
+    total_price = 0.0
+    tax_amount = 0.0
+    grand_total_price = 0.0
+    service_charge = 0.0
+    hundred = 100.0
     for ordered_item in ordered_items_qs:
         if not restaurant_qs:
             restaurant_qs = ordered_item.food_option.food.restaurant
@@ -31,7 +31,7 @@ def calculate_price(food_order_obj, include_initial_order=False):
     grand_total_price += total_price
 
     if restaurant_qs.service_charge_is_percentage:
-        service_charge =(restaurant_qs.service_charge*total_price /hundred)
+        service_charge = (restaurant_qs.service_charge*total_price / hundred)
     else:
         service_charge = restaurant_qs.service_charge
 
@@ -39,9 +39,9 @@ def calculate_price(food_order_obj, include_initial_order=False):
     tax_amount = ((total_price * restaurant_qs.tax_percentage)/hundred)
     grand_total_price += tax_amount
     return {
-        "grand_total_price": float(grand_total_price),
-        "tax_amount": float(tax_amount),
-        'tax_percentage': float(restaurant_qs.tax_percentage),
-        "service_charge": float(service_charge),
-        'total_price': float(total_price)
+        "grand_total_price": grand_total_price,
+        "tax_amount": tax_amount,
+        'tax_percentage': restaurant_qs.tax_percentage,
+        "service_charge": service_charge,
+        'total_price': total_price
     }
