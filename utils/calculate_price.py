@@ -31,17 +31,17 @@ def calculate_price(food_order_obj, include_initial_order=False):
     grand_total_price += total_price
 
     if restaurant_qs.service_charge_is_percentage:
-        service_charge = grand_total_price * \
-            (restaurant_qs.service_charge/hundred)
+        service_charge =(restaurant_qs.service_charge*total_price /hundred)
     else:
-        service_charge = grand_total_price + \
-            restaurant_qs.service_charge
+        service_charge = restaurant_qs.service_charge
+
     grand_total_price += service_charge
-    tax_amount = grand_total_price * (restaurant_qs.tax_percentage/hundred)
+    tax_amount = ((total_price * restaurant_qs.tax_percentage)/hundred)
     grand_total_price += tax_amount
     return {
-        "grand_total_price": grand_total_price,
-        "tax_amount": tax_amount,
-        'tax_percentage': restaurant_qs.tax_percentage,
-        "service_charge": service_charge,
-        'total_price': total_price}
+        "grand_total_price": float(grand_total_price),
+        "tax_amount": float(tax_amount),
+        'tax_percentage': float(restaurant_qs.tax_percentage),
+        "service_charge": float(service_charge),
+        'total_price': float(total_price)
+    }
