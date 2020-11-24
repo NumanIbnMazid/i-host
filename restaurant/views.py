@@ -451,7 +451,7 @@ class FoodOrderViewSet(LoggingMixin,CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ["create_take_away_order","placed_status"]:
+        if self.action in ["create_take_away_order"]:
             permission_classes = [permissions.IsAuthenticated]
         # elif self.action == "retrieve" or self.action == "update":
         #     permission_classes = [permissions.AllowAny]
