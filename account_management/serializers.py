@@ -80,7 +80,7 @@ class RestaurantUserSignUpSerializer(serializers.Serializer):
     shift_start = serializers.TimeField(required=False)
     shift_end = serializers.TimeField(required=False)
     nid = serializers.CharField(required=False)
-    image = serializers.ImageField()
+    image = serializers.ImageField(required=False)
 
 
 class UserAccountPatchSerializer(serializers.ModelSerializer):
