@@ -604,8 +604,8 @@ class FoodOrderViewSet(LoggingMixin,CustomViewSet):
                 food_order=order_qs.pk, status__in=["1_ORDER_PLACED"])
             all_items_qs.filter(pk__in=request.data.get(
                 'food_items')).update(status='2_ORDER_CONFIRMED')
-            all_items_qs.exclude(pk__in=request.data.get(
-                'food_items')).update(status='4_CANCELLED')
+            #all_items_qs.exclude(pk__in=request.data.get(
+                #'food_items')).update(status='4_CANCELLED')
 
             # order_qs.status = '2_ORDER_CONFIRMED'
             # order_qs.save()
@@ -1013,6 +1013,6 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data)
 
     def paid_cancel_invoice_history(self, request, restaurant, *args, **kwargs):
-        qs = Invoice.objects.filter(restaurant= restaurant, order__status=['5_PAID','6_CANCELLED'])
+        qs = Invoice.objects.filter(restaurant= restaurant, order__status__in=['5_PAID','6_CANCELLED'])
         serializer = InvoiceSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
