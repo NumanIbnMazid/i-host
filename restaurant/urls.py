@@ -133,6 +133,10 @@ urlpatterns = [
     path('order/status/confirm/',
          FoodOrderViewSet.as_view({'post': 'confirm_status'}, name='confirm_status')),
 
+    path('order/status/confirm_status_without_cancel/',
+         FoodOrderViewSet.as_view({'post': 'confirm_status_without_cancel'}, name='confirm_status_without_cancel')),
+
+
     path('order/status/in_table/',
          FoodOrderViewSet.as_view({'post': 'in_table_status'}, name='in_table_status')),
     path('order/create_invoice/',
