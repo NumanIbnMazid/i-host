@@ -161,10 +161,7 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         total = sum(grand_total_list)
         return ResponseWrapper(data={'total_sell': total}, msg="success")
 
-    def invoice_history(self, request, restaurant_id, *args, **kwargs):
-        qs = Invoice.objects.filter(restaurant=restaurant_id)
-        serializer = InvoiceSerializer(instance=qs, many=True)
-        return ResponseWrapper(data=serializer.data)
+
 
 # class FoodCategoryViewSet(viewsets.GenericViewSet):
 #     serializer_class = FoodCategorySerializer
@@ -454,13 +451,16 @@ class FoodOrderViewSet(LoggingMixin,CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action == "create_take_away_order":
+        if self.action in ["create_take_away_order","placed_status"]:
             permission_classes = [permissions.IsAuthenticated]
         # elif self.action == "retrieve" or self.action == "update":
         #     permission_classes = [permissions.AllowAny]
         # else:
         #     permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
+
+
+
 
     # def book_table(self, request):
     #     # serializer_class = self.get_serializer_class()
@@ -1000,3 +1000,19 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             order_date_range_qs = FoodOrder.objects.filter(table__restaurant__id=restaurant_id,
                                                            status__icontains=order_status, created_at__gte=from_date, created_at__lte=to_date)
         return order_date_range_qs
+
+
+class InvoiceViewSet(LoggingMixin, CustomViewSet):
+    queryset = Invoice.objects.all()
+    lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+
+    def invoice_history(self, request, restaurant, *args, **kwargs):
+        qs = Invoice.objects.filter(restaurant=restaurant)
+        serializer = InvoiceSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data)
+
+    def paid_cancel_invoice_history(self, request, restaurant, *args, **kwargs):
+        qs = Invoice.objects.filter(restaurant= restaurant, order__status=['5_PAID','6_CANCELLED'])
+        serializer = InvoiceSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data)

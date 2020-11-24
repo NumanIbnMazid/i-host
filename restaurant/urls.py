@@ -55,8 +55,7 @@ urlpatterns = [
     path('restaurant/<int:pk>/today_sell/',
          RestaurantViewSet.as_view({'get': 'today_sell'}), name='today_sell'),
 
-    path('restaurant/<int:restaurant_id>/invoice_history/',
-         RestaurantViewSet.as_view({'get': 'invoice_history'}), name='invoice_history'),
+
 
     path("food_category/",
          FoodCategoryViewSet.as_view({"post": "create", "get": "list"})),
@@ -153,6 +152,11 @@ urlpatterns = [
 
     path('food_option_by_food/<int:pk>',
          FoodViewSet.as_view({'get': 'food_option_by_food'}, name='food_option_by_food')),
+
+    path('restaurant/<int:restaurant>/invoice_history/',
+         InvoiceViewSet.as_view({'get': 'invoice_history'}), name='invoice_history'),
+    path('restaurant/<int:restaurant>/paid_cancel_invoice_history/',
+         InvoiceViewSet.as_view({'get': 'paid_cancel_invoice_history'}), name='paid_cancel_invoice_history'),
 
 
 ]

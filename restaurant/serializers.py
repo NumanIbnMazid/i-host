@@ -91,6 +91,8 @@ class FoodCategorySerializer(serializers.ModelSerializer):
         exclude = ['deleted_at']
 
 
+
+
 class FoodOptionSerializer(serializers.ModelSerializer):
     option_type = FoodOptionTypeSerializer(read_only=True)
 
@@ -178,8 +180,9 @@ class OrderedItemSerializer(serializers.ModelSerializer):
 class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
     food_extra = FoodExtraBasicSerializer(many=True, read_only=True)
     food_option = FoodOptionSerializer(read_only=True)
-    food_name = serializers.CharField(source="food_option.food.name")
-
+    food_name = serializers.CharField(source="food_option.food.name",read_only=True)
+    food_image = serializers.ImageField(source="food_option.food.image",read_only=True)
+    #food_image = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = OrderedItem
         fields = [
@@ -188,10 +191,19 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
             "food_order",
             "status",
             "food_name",
+            "food_image",
             "food_option",
             "food_extra",
 
         ]
+    #def get_food_image(self,obj):
+     #   if obj.food_options.food.image:
+      #      return serializers.ImageField(source="food_option.food.image")
+        #else:
+           # return None
+
+
+
 
 
 class FoodOrderConfirmSerializer(serializers.Serializer):
@@ -218,6 +230,7 @@ class FoodOptionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOption
         fields = '__all__'
+
 
 
 class FoodOrderSerializer(serializers.ModelSerializer):
