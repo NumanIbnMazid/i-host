@@ -74,13 +74,13 @@ class StaffInfoSerializer(serializers.ModelSerializer):
 class RestaurantUserSignUpSerializer(serializers.Serializer):
     restaurant_id = serializers.IntegerField()
     email_address = serializers.EmailField(required=False, allow_blank=True)
-    first_name = serializers.CharField()
+    name = serializers.CharField()
     phone = serializers.CharField()
     password = serializers.CharField(required=False)
     shift_start = serializers.TimeField(required=False)
     shift_end = serializers.TimeField(required=False)
     nid = serializers.CharField(required=False)
-    image = serializers.ImageField()
+    image = serializers.ImageField(required=False)
 
 
 class UserAccountPatchSerializer(serializers.ModelSerializer):
