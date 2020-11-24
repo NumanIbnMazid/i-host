@@ -68,7 +68,7 @@ class UserSignupSerializer(serializers.ModelSerializer):
 class StaffInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelStaffInformation
-        fields = ['shift_start', 'shift_end', 'nid', 'image']
+        fields = ['shift_start', 'shift_end', 'nid', 'image', 'name']
 
 
 class RestaurantUserSignUpSerializer(serializers.Serializer):
@@ -88,26 +88,26 @@ class UserAccountPatchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserAccount
-        fields = ["password", "first_name"]
+        fields = ["password"]
 
 
 class UserAccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserAccount
-        fields = ['phone', 'first_name', 'last_name',
+        fields = ['phone',
                   'id']
 
 
 class StaffInfoGetSerializer(serializers.ModelSerializer):
     user = UserAccountSerializer(read_only=True)
-    first_name = serializers.CharField(source='user.first_name')
+    # first_name = serializers.CharField(source='user.first_name')
 
     class Meta:
         model = HotelStaffInformation
         fields = [
             "id",
-            "first_name",
+            "name",
             "user",
             "image",
             "is_manager",
@@ -142,6 +142,7 @@ class StaffLoginInfoGetSerializer(serializers.ModelSerializer):
             "shift_end",
             "nid",
             "restaurant",
+            "name",
 
         ]
 
