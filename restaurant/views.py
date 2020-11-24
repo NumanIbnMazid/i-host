@@ -39,7 +39,7 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           RestaurantUpdateSerialier, StaffIdListSerializer,
                           StaffTableSerializer, TableSerializer,
                           TableStaffSerializer,
-                          TopRecommendedFoodListSerializer)
+                          TopRecommendedFoodListSerializer, InvoiceGetSerializer)
 from rest_framework_tracking.mixins import LoggingMixin
 
 
@@ -885,7 +885,7 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
 
-class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
+class FoodByRestaurantViewSet(LoggingMixin,CustomViewSet):
     serializer_class = FoodsByCategorySerializer
 
     # queryset = Food.objects.all()
@@ -1035,11 +1035,15 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
     def invoice_history(self, request, restaurant, *args, **kwargs):
         qs = Invoice.objects.filter(restaurant=restaurant)
-        serializer = InvoiceSerializer(instance=qs, many=True)
+        serializer = InvoiceGetSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
     def paid_cancel_invoice_history(self, request, restaurant, *args, **kwargs):
-        qs = Invoice.objects.filter(restaurant=restaurant, order__status__in=[
-                                    '5_PAID', '6_CANCELLED'])
-        serializer = InvoiceSerializer(instance=qs, many=True)
+        qs = Invoice.objects.filter(restaurant= restaurant, order__status__in=['5_PAID','6_CANCELLED'])
+        serializer = InvoiceGetSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data)
+
+    def order_invoice(self, request, order_id, *args, **kwargs):
+        qs = Invoice.objects.filter(order_id = order_id).last()
+        serializer = InvoiceGetSerializer(instance=qs,many=False)
         return ResponseWrapper(data=serializer.data)
