@@ -30,6 +30,8 @@ from account_management.serializers import (CustomerInfoSerializer, OtpLoginSeri
                                             UserAccountSerializer,
                                             UserSignupSerializer)
 
+from rest_framework_tracking.mixins import LoggingMixin
+
 
 class LoginView(KnoxLoginView):
     permission_classes = (permissions.AllowAny,)
@@ -105,7 +107,8 @@ def verify_login(request):
     return ResponseWrapper(data="Token is Valid", status=200)
 
 
-class RestaurantAccountManagerViewSet(CustomViewSet):
+class RestaurantAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     def get_serializer_class(self):
         """
         Return the class to use for the serializer.
@@ -260,7 +263,8 @@ class RestaurantAccountManagerViewSet(CustomViewSet):
         return ResponseWrapper(data=serializer.data)
 
 
-class UserAccountManagerViewSet(viewsets.ModelViewSet):
+class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def get_serializer_class(self):
         """
@@ -371,9 +375,10 @@ class UserAccountManagerViewSet(viewsets.ModelViewSet):
         return ResponseWrapper(msg='otp sent', status=200)
 
 
-class CustomerInfoViewset(CustomViewSet):
+class CustomerInfoViewset(LoggingMixin, viewsets.ModelViewSet):
     queryset = CustomerInfo.objects.all()
     lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     serializer_class = CustomerInfoSerializer
 
     def get_permissions(self):
