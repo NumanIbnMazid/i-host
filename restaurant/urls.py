@@ -55,6 +55,9 @@ urlpatterns = [
     path('restaurant/<int:pk>/today_sell/',
          RestaurantViewSet.as_view({'get': 'today_sell'}), name='today_sell'),
 
+    path('restaurant/<int:restaurant_id>/invoice_history/',
+         RestaurantViewSet.as_view({'get': 'invoice_history'}), name='invoice_history'),
+
     path("food_category/",
          FoodCategoryViewSet.as_view({"post": "create", "get": "list"})),
     path("food_category/<int:pk>/",

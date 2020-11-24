@@ -43,7 +43,7 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
 from rest_framework_tracking.mixins import LoggingMixin
 
 
-class RestaurantViewSet(LoggingMixin, viewsets.ModelViewSet):
+class RestaurantViewSet(LoggingMixin, CustomViewSet):
     queryset = Restaurant.objects.all()
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
@@ -161,6 +161,10 @@ class RestaurantViewSet(LoggingMixin, viewsets.ModelViewSet):
         total = sum(grand_total_list)
         return ResponseWrapper(data={'total_sell': total}, msg="success")
 
+    def invoice_history(self, request, restaurant_id, *args, **kwargs):
+        qs = Invoice.objects.filter(restaurant=restaurant_id)
+        serializer = InvoiceSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data)
 
 # class FoodCategoryViewSet(viewsets.GenericViewSet):
 #     serializer_class = FoodCategorySerializer
@@ -201,18 +205,21 @@ class RestaurantViewSet(LoggingMixin, viewsets.ModelViewSet):
 #         else:
 #             return ResponseWrapper(error_msg="failed to delete", error_code=400)
 
-class FoodCategoryViewSet(CustomViewSet):
+class FoodCategoryViewSet(LoggingMixin, CustomViewSet):
+
     serializer_class = FoodCategorySerializer
     # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodCategory.objects.all()
     lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
 
-class FoodOptionTypeViewSet(CustomViewSet):
+class FoodOptionTypeViewSet(LoggingMixin,CustomViewSet):
     serializer_class = FoodOptionTypeSerializer
     # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodOptionType.objects.all()
     lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def list(self, request):
         qs = self.get_queryset().exclude(name='single_type')
@@ -223,10 +230,11 @@ class FoodOptionTypeViewSet(CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
 
-class FoodOrderedViewSet(CustomViewSet):
+class FoodOrderedViewSet(LoggingMixin,CustomViewSet):
     serializer_class = FoodOrderSerializer
     queryset = FoodOrder.objects.all()
     lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     # def ordered_item_list(self, request, ordered_id, *args, **kwargs):
@@ -236,18 +244,20 @@ class FoodOrderedViewSet(CustomViewSet):
     #     return ResponseWrapper(data=serializer.data, msg="success")
 
 
-class FoodExtraTypeViewSet(CustomViewSet):
+class FoodExtraTypeViewSet(LoggingMixin,CustomViewSet):
     serializer_class = FoodExtraTypeSerializer
     # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodExtraType.objects.all()
     lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
 
-class FoodExtraViewSet(CustomViewSet):
+class FoodExtraViewSet(LoggingMixin,CustomViewSet):
 
     # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodExtra.objects.all()
     lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def get_serializer_class(self):
         if self.action == 'create' or self.action == 'update':
@@ -280,7 +290,7 @@ class FoodExtraViewSet(CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
 
-class FoodOptionViewSet(CustomViewSet):
+class FoodOptionViewSet(LoggingMixin,CustomViewSet):
 
     def get_serializer_class(self):
         if self.action in ['create', 'update']:
@@ -293,6 +303,7 @@ class FoodOptionViewSet(CustomViewSet):
 
     queryset = FoodOption.objects.all()
     lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def create(self, request):
         serializer_class = self.get_serializer_class()
@@ -316,12 +327,13 @@ class FoodOptionViewSet(CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
 
-class TableViewSet(CustomViewSet):
+class TableViewSet(LoggingMixin,CustomViewSet):
     serializer_class = TableSerializer
 
     # permission_classes = [permissions.IsAuthenticated]
     queryset = Table.objects.all()
     lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     # http_method_names = ['get', 'post', 'patch']
 
     def get_permissions(self):
@@ -413,11 +425,12 @@ class TableViewSet(CustomViewSet):
             return ResponseWrapper(error_msg="table not found", error_code=400)
 
 
-class FoodOrderViewSet(CustomViewSet):
+class FoodOrderViewSet(LoggingMixin,CustomViewSet):
 
     # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodOrder.objects.all()
     lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def get_serializer_class(self):
         if self.action in ['create_order', "create_take_away_order"]:
@@ -745,9 +758,10 @@ class FoodOrderViewSet(CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
 
-class OrderedItemViewSet(CustomViewSet):
+class OrderedItemViewSet(LoggingMixin,CustomViewSet):
     queryset = OrderedItem.objects.all()
     lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def get_permissions(self):
         if self.action in ['create']:
@@ -806,7 +820,7 @@ class OrderedItemViewSet(CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
 
-class FoodViewSet(CustomViewSet):
+class FoodViewSet(LoggingMixin,CustomViewSet):
     serializer_class = FoodWithPriceSerializer
 
     def get_serializer_class(self):
@@ -818,6 +832,7 @@ class FoodViewSet(CustomViewSet):
 
     queryset = Food.objects.all()
     lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     http_method_names = ['post', 'patch', 'get', 'delete']
 
     def food_extra_by_food(self, request, *args, **kwargs):
@@ -845,7 +860,7 @@ class FoodViewSet(CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
 
-class FoodByRestaurantViewSet(CustomViewSet):
+class FoodByRestaurantViewSet(LoggingMixin,CustomViewSet):
     serializer_class = FoodsByCategorySerializer
 
     # queryset = Food.objects.all()
@@ -854,6 +869,7 @@ class FoodByRestaurantViewSet(CustomViewSet):
 
     queryset = Food.objects.all().order_by('-id')
     lookup_field = 'restaurant'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     http_method_names = ['get']
 
     def top_foods(self, request, restaurant, *args, **kwargs):
@@ -937,7 +953,8 @@ class FoodOrderViewSet(CustomViewSet):
 """
 
 
-class ReportingViewset(viewsets.ViewSet):
+class ReportingViewset(LoggingMixin, viewsets.ViewSet):
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     def get_permissions(self):
         permission_classes = []
         if self.action == "create":
