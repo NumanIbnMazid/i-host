@@ -38,10 +38,10 @@ class Restaurant(SoftDeleteModel):
     longitude = models.DecimalField(
         max_digits=50, decimal_places=45, null=True, blank=True)
     service_charge_is_percentage = models.BooleanField(default=False)
-    service_charge = models.DecimalField(
-        max_digits=8, decimal_places=2, default=00.00)
-    tax_percentage = models.DecimalField(
-        max_digits=4, decimal_places=2, default=00.00)
+    service_charge = models.FloatField(
+        default=00.00)
+    tax_percentage = models.FloatField(
+        default=00.00)
     created_at = models.DateTimeField(auto_now_add=True)
     website = models.URLField(null=True, blank=True)
     status = models.CharField(
@@ -116,7 +116,7 @@ class FoodExtraType(SoftDeleteModel):
 
 class FoodExtra(SoftDeleteModel):
     name = models.CharField(max_length=50)
-    price = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    price = models.FloatField(default=0)
     food = models.ForeignKey(Food, on_delete=models.CASCADE,
                              related_name='food_extras')
     extra_type = models.ForeignKey(
@@ -128,7 +128,7 @@ class FoodExtra(SoftDeleteModel):
 
 class FoodOption(SoftDeleteModel):
     name = models.CharField(max_length=50)
-    price = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    price = models.FloatField(default=0)
     food = models.ForeignKey(
         Food, on_delete=models.CASCADE, related_name='food_options')
     option_type = models.ForeignKey(
@@ -216,8 +216,8 @@ class Invoice(SoftDeleteModel):
         to=Restaurant, on_delete=models.SET_NULL, null=True, blank=True)
     order = models.ForeignKey(FoodOrder, null=True,
                               blank=True, on_delete=models.SET_NULL, related_name='invoices')
-    grand_total = models.DecimalField(
-        null=True, blank=True, max_digits=10, decimal_places=2)
+    grand_total = models.FloatField(
+        null=True, blank=True)
     order_info = models.JSONField(null=True, blank=True)
     updated_at = models.DateField(auto_now=True)
     created_at = models.DateField(auto_now_add=True)
