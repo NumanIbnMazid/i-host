@@ -74,7 +74,7 @@ class StaffInfoSerializer(serializers.ModelSerializer):
 class RestaurantUserSignUpSerializer(serializers.Serializer):
     restaurant_id = serializers.IntegerField()
     email_address = serializers.EmailField(required=False, allow_blank=True)
-    first_name = serializers.CharField()
+    name = serializers.CharField()
     phone = serializers.CharField()
     password = serializers.CharField(required=False)
     shift_start = serializers.TimeField(required=False)
