@@ -508,11 +508,15 @@ class InvoiceSerializer(serializers.ModelSerializer):
 
     def get_order_info(self, obj):
         # data_dict = obj.__dict__
-        obj.__dict__.pop('_state')
-        order_info = obj.__dict__.pop('order_info')
+        obj.__dict__.pop('_state',None)
+        order_info = obj.__dict__.pop('order_info',{})
         order_info['invoice'] = obj.__dict__
         return order_info
 
+class InvoiceGetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invoice
+        fields = '__all__'
 
 class ReportingDateRangeGraphSerializer(serializers.Serializer):
     from_date = serializers.DateField(required=False)
