@@ -95,6 +95,8 @@ class Food(SoftDeleteModel):
     is_top = models.BooleanField(default=False)
     is_recommended = models.BooleanField(default=False)
     ingredients = models.TextField(null=True, blank=True)
+    discount = models.ForeignKey(
+        to="restaurant.Discount", null=True, blank=True, on_delete=models.SET_NULL, related_name='foods')
 
     def __str__(self):
         return self.name
@@ -223,3 +225,35 @@ class Invoice(SoftDeleteModel):
     created_at = models.DateField(auto_now_add=True)
     payment_status = models.CharField(
         choices=STATUS, max_length=25, default="0_UNPAID")
+
+
+class Discount(SoftDeleteModel):
+    DISCOUNT_TYPE = [
+        ("PERCENTAGE", "percentage"), ("AMOUNT", "amount")]
+
+    discount_name = models.CharField(max_length=200)
+    discount_description = models.CharField(
+        max_length=500, default=None, null=True)
+    # discount_promo_code = models.CharField(max_length=100)
+    discount_url = models.CharField(
+        max_length=250, default=None, null=True, blank=True)
+    start_date = models.DateTimeField(
+        null=False, blank=False)
+    end_date = models.DateTimeField(null=True, blank=True)
+
+    # discount_slot_start_time = models.TimeField(null=True, blank=True)
+    # discount_slot_closing_time = models.TimeField(null=True, blank=True)
+
+    # discount_type = models.CharField(choices=DISCOUNT_TYPE,
+    #                                  max_length=50, default="PERCENTAGE")
+    discount = models.FloatField()
+    # max_discount_amount = models.FloatField(null=True, blank=True)
+    # number_of_uses = models.PositiveIntegerField(default=0)
+    # maximum_number_of_uses = models.PositiveIntegerField(null=True, blank=True)
+    # user_unique = models.BooleanField(default=False)
+
+    # number_of_times_allowed_by_each_user = models.PositiveIntegerField(
+    #     null=True, blank=True)
+
+    def __str__(self):
+        return self.discount_name
