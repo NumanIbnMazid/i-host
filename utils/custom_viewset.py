@@ -1,15 +1,13 @@
 from rest_framework import permissions, status, viewsets
 
 from utils.response_wrapper import ResponseWrapper
-from rest_framework_tracking.mixins import LoggingMixin
 
 
-class CustomViewSet(LoggingMixin, viewsets.ModelViewSet):
+class CustomViewSet(viewsets.ModelViewSet):
     # serializer_class = FoodCategorySerializer
     # permission_classes = [permissions.IsAdminUser]
     # queryset = FoodCategory.objects.all()
     lookup_field = 'pk'
-    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def list(self, request):
         qs = self.get_queryset()
