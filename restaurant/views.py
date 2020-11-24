@@ -591,34 +591,35 @@ class FoodOrderViewSet(LoggingMixin,CustomViewSet):
 
     def confirm_status(self, request,  *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            order_qs = FoodOrder.objects.filter(pk=request.data.get("order_id"),
-                                                status__in=['1_ORDER_PLACED',
-                                                            "2_ORDER_CONFIRMED",
-                                                            "3_IN_TABLE"
-                                                            ]).first()
-            if not order_qs:
-                return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
-
-            all_items_qs = OrderedItem.objects.filter(
-                food_order=order_qs.pk, status__in=["1_ORDER_PLACED"])
-            all_items_qs.filter(pk__in=request.data.get(
-                'food_items')).update(status='2_ORDER_CONFIRMED')
-            #all_items_qs.exclude(pk__in=request.data.get(
-                #'food_items')).update(status='4_CANCELLED')
-
-            # order_qs.status = '2_ORDER_CONFIRMED'
-            # order_qs.save()
-            # serializer = FoodOrderByTableSerializer(instance=order_qs)
-            if order_qs.status in ["0_ORDER_INITIALIZED", "1_ORDER_PLACED"]:
-                order_qs.status = '2_ORDER_CONFIRMED'
-                order_qs.save()
-
-            serializer = FoodOrderByTableSerializer(instance=order_qs)
-
-            return ResponseWrapper(data=serializer.data, msg='Confirmed')
-        else:
+        if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+        order_qs = FoodOrder.objects.filter(pk=request.data.get("order_id"),
+                                            status__in=['1_ORDER_PLACED',
+                                                        "2_ORDER_CONFIRMED",
+                                                        "3_IN_TABLE"
+                                                        ]).first()
+        if not order_qs:
+            return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
+
+        all_items_qs = OrderedItem.objects.filter(
+            food_order=order_qs.pk, status__in=["1_ORDER_PLACED"])
+        all_items_qs.filter(pk__in=request.data.get(
+            'food_items')).update(status='2_ORDER_CONFIRMED')
+        all_items_qs.exclude(pk__in=request.data.get(
+            'food_items')).update(status='4_CANCELLED')
+
+        # order_qs.status = '2_ORDER_CONFIRMED'
+        # order_qs.save()
+        # serializer = FoodOrderByTableSerializer(instance=order_qs)
+        if order_qs.status in ["0_ORDER_INITIALIZED", "1_ORDER_PLACED"]:
+            order_qs.status = '2_ORDER_CONFIRMED'
+            order_qs.save()
+
+        serializer = FoodOrderByTableSerializer(instance=order_qs)
+
+        return ResponseWrapper(data=serializer.data, msg='Confirmed')
+
 
     def in_table_status(self, request,  *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
