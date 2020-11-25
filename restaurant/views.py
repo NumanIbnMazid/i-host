@@ -226,7 +226,7 @@ class FoodOptionTypeViewSet(LoggingMixin, CustomViewSet):
 
 class FoodOrderedViewSet(LoggingMixin, CustomViewSet):
     serializer_class = FoodOrderSerializer
-    queryset = FoodOrder.objects.all()
+    queryset = FoodOrder.objects.all().order_by('-id')
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -536,7 +536,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             order_qs = FoodOrder.objects.filter(pk=request.data.get(
-                'order_id')).exclude(status=['0_ORDER_INITIALIZED', '5_PAID', '6_CANCELLED']).first()
+                'order_id')).exclude(status=['5_PAID', '6_CANCELLED']).first()
             if not order_qs:
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
@@ -761,7 +761,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 return ResponseWrapper(error_msg=['please create invoice before payment'], error_code=400)
 
             remaining_item_counter = OrderedItem.objects.filter(
-                food_order=order_qs.pk).exclude(status__in=["3_IN_TABLE", '4_CANCELLED']).count()
+                food_order=order_qs.pk).exclude(status__in=["0_ORDER_INITIALIZED","3_IN_TABLE", '4_CANCELLED']).count()
 
             if remaining_item_counter > 0:
                 return ResponseWrapper(error_msg=['Order is running'], error_code=400)
