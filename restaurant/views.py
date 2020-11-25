@@ -820,7 +820,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
                 food_order_qs = FoodOrder.objects.filter(pk=food_order)
                 restaurant_id = food_order_qs.first().table.restaurant_id
 
-                if HotelStaffInformation.objects.filter(user=request.user.pk, restaurant_id=restaurant_id, is_manager=True):
+                if HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk, restaurant_id=restaurant_id):
                     food_order_qs = food_order_qs.first()
                 else:
                     food_order_qs = food_order_qs.exclude(
@@ -834,7 +834,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
 
             restaurant_id = food_order_qs.table.restaurant_id
 
-            if HotelStaffInformation.objects.filter(user=request.user.pk, restaurant_id=restaurant_id, is_manager=True):
+            if HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk, restaurant_id=restaurant_id):
                 order_pk_list = list()
                 for item in qs:
                     order_pk_list.append(item.pk)
