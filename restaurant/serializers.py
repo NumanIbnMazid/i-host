@@ -200,6 +200,8 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
             "price",
 
         ]
+        ordering = ['id']
+
 
     def get_price(self, obj):
         return calculate_item_price_with_discount(ordered_item_qs=obj)

@@ -1,6 +1,11 @@
 import decimal
 import json
+
+from django_filters.rest_framework import DjangoFilterBackend
+
 from . import permissions as custom_permissions
+
+from rest_framework import viewsets, filters
 
 from account_management import serializers
 from account_management.models import HotelStaffInformation, UserAccount, CustomerInfo
@@ -226,10 +231,11 @@ class FoodOptionTypeViewSet(LoggingMixin, CustomViewSet):
 
 class FoodOrderedViewSet(LoggingMixin, CustomViewSet):
     serializer_class = FoodOrderSerializer
-    queryset = FoodOrder.objects.all().order_by('-id')
+    queryset = FoodOrder.objects.all()
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
 
     # def ordered_item_list(self, request, ordered_id, *args, **kwargs):
     #     qs = FoodOrder.objects.filter(pk=ordered_id)
