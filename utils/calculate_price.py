@@ -39,10 +39,15 @@ def calculate_price(food_order_obj, include_initial_order=False):
     tax_amount = ((total_price * restaurant_qs.tax_percentage)/hundred)
     grand_total_price += tax_amount
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> d8e887b29c7f0062601cb2af68ec3ee0ce25f903
     return {
-        "grand_total_price": grand_total_price,
+        "grand_total_price": round(grand_total_price, 2),
         "tax_amount": tax_amount,
         'tax_percentage': restaurant_qs.tax_percentage,
         "service_charge": service_charge,
         'total_price': total_price
     }
+

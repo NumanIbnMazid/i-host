@@ -18,7 +18,7 @@ from rest_framework.serializers import Serializer
 from utils.custom_viewset import CustomViewSet
 from utils.response_wrapper import ResponseWrapper
 
-from restaurant.models import (Food, FoodCategory, FoodExtra, FoodExtraType,
+from restaurant.models import (Discount, Food, FoodCategory, FoodExtra, FoodExtraType,
                                FoodOption, FoodOptionType, FoodOrder, Invoice,
                                OrderedItem, Restaurant, Table)
 
@@ -157,7 +157,7 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
             created_at=today_date, payment_status='1_PAID')
         grand_total_list = qs.values_list('grand_total', flat=True)
         total = sum(grand_total_list)
-        return ResponseWrapper(data={'total_sell': total}, msg="success")
+        return ResponseWrapper(data={'total_sell': round(total,2)}, msg="success")
 
 
 # class FoodCategoryViewSet(viewsets.GenericViewSet):
@@ -1045,5 +1045,17 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
     def order_invoice(self, request, order_id, *args, **kwargs):
         qs = Invoice.objects.filter(order_id = order_id).last()
+        serializer = InvoiceGetSerializer(instance=qs,many=False)
+        return ResponseWrapper(data=serializer.data)
+
+
+class DiscountViewSet(LoggingMixin,CustomViewSet):
+    queryset = Discount.objects.all()
+    lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+
+    def invoice(self, request, invoice_id, *args, **kwargs):
+        invoice_id =invoice_id
+        qs = Invoice.objects.filter(pk__icontains = invoice_id)
         serializer = InvoiceGetSerializer(instance=qs,many=False)
         return ResponseWrapper(data=serializer.data)

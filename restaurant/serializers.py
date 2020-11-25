@@ -66,7 +66,10 @@ class FoodExtraGroupByTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodExtra
         fields = ['id', 'name', 'price']
+
         list_serializer_class = FoodExtraGroupByListSerializer
+
+
 
 
 class FoodExtraPostPatchSerializer(serializers.ModelSerializer):
@@ -282,6 +285,8 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   ]
         #ordering = ['table']
 
+
+
     def get_price(self, obj):
         return calculate_price(food_order_obj=obj)
 
@@ -381,10 +386,13 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
             'id'
         ]
 
+        #extra_kwargs = {
+            #'price': {'max_digits': 16, 'decimal_places': 2}
+       # }
     def get_price(self, obj):
         option_qs = obj.food_options.order_by('price').first()
         if option_qs:
-            return option_qs.price
+            return round(option_qs.price, 2)
         else:
             return None
 
@@ -420,10 +428,12 @@ class FoodDetailSerializer(serializers.ModelSerializer):
             'price',
         ]
 
+
+
     def get_price(self, obj):
         option_qs = obj.food_options.order_by('price').first()
         if option_qs:
-            return option_qs.price
+            return round(option_qs.price, 2)
         else:
             return None
 
