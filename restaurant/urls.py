@@ -175,8 +175,8 @@ urlpatterns = [
     path('restaurant/<int:restaurant>/paid_cancel_invoice_history/',
          InvoiceViewSet.as_view({'get': 'paid_cancel_invoice_history'}), name='paid_cancel_invoice_history'),
 
-    path('restaurant/<int:restaurant>/dicount_list/',
-         DiscountViewSet.as_view({'get': 'dicount_list'}), name='dicount_list'),
+    path('restaurant/<int:restaurant>/discount_list/',
+         DiscountViewSet.as_view({'get': 'discount_list'}), name='discount_list'),
 
 
 ]

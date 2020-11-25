@@ -1094,7 +1094,7 @@ class DiscountViewSet(LoggingMixin,CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     http_method_names = ['post', 'patch', 'get', 'delete']
 
-    def dicount_list(self, request, restaurant, *args, **kwargs):
+    def discount_list(self, request, restaurant, *args, **kwargs):
         qs = Discount.objects.filter(restaurant=restaurant)
         serializer = DiscountSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
