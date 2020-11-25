@@ -226,7 +226,7 @@ class FoodOptionTypeViewSet(LoggingMixin, CustomViewSet):
 
 class FoodOrderedViewSet(LoggingMixin, CustomViewSet):
     serializer_class = FoodOrderSerializer
-    queryset = FoodOrder.objects.all()
+    queryset = FoodOrder.objects.all().order_by('-id')
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
