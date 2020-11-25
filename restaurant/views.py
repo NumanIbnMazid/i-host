@@ -1035,22 +1035,26 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
     def invoice_history(self, request, restaurant, *args, **kwargs):
         qs = Invoice.objects.filter(restaurant=restaurant)
-        serializer = InvoiceGetSerializer(instance=qs, many=True)
+        serializer = InvoiceSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
     def paid_cancel_invoice_history(self, request, restaurant, *args, **kwargs):
         qs = Invoice.objects.filter(restaurant= restaurant, order__status__in=['5_PAID','6_CANCELLED'])
-        serializer = InvoiceGetSerializer(instance=qs, many=True)
+        serializer = InvoiceSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
     def order_invoice(self, request, order_id, *args, **kwargs):
         qs = Invoice.objects.filter(order_id = order_id).last()
-        serializer = InvoiceGetSerializer(instance=qs,many=False)
+        serializer = InvoiceSerializer(instance=qs,many=False)
         return ResponseWrapper(data=serializer.data)
 
     def invoice(self, request, invoice_id, *args, **kwargs):
-        qs = Invoice.objects.filter(pk = invoice_id)
-        serializer = InvoiceGetSerializer(instance=qs)
+
+        invoice = Invoice.objects.filter(pk__icontains=invoice_id)
+        qs = list(invoice.values_list("id", flat=True))
+
+        #qs = Invoice.objects.filter(pk__icontains = '1')
+        serializer = InvoiceGetSerializer(instance=qs, many= True)
         return ResponseWrapper(data=serializer.data)
 
 
