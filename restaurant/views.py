@@ -18,7 +18,7 @@ from rest_framework.serializers import Serializer
 from utils.custom_viewset import CustomViewSet
 from utils.response_wrapper import ResponseWrapper
 
-from restaurant.models import (Food, FoodCategory, FoodExtra, FoodExtraType,
+from restaurant.models import (Discount, Food, FoodCategory, FoodExtra, FoodExtraType,
                                FoodOption, FoodOptionType, FoodOrder, Invoice,
                                OrderedItem, Restaurant, Table)
 
@@ -1047,6 +1047,12 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         qs = Invoice.objects.filter(order_id = order_id).last()
         serializer = InvoiceGetSerializer(instance=qs,many=False)
         return ResponseWrapper(data=serializer.data)
+
+
+class DiscountViewSet(LoggingMixin,CustomViewSet):
+    queryset = Discount.objects.all()
+    lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def invoice(self, request, invoice_id, *args, **kwargs):
         invoice_id =invoice_id

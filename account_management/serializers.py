@@ -101,6 +101,7 @@ class UserAccountSerializer(serializers.ModelSerializer):
 
 class StaffInfoGetSerializer(serializers.ModelSerializer):
     user = UserAccountSerializer(read_only=True)
+    phone = serializers.CharField(source='user.phone', read_only=True)
     # first_name = serializers.CharField(source='user.first_name')
 
     class Meta:
@@ -117,6 +118,7 @@ class StaffInfoGetSerializer(serializers.ModelSerializer):
             "shift_end",
             "nid",
             "restaurant",
+            "phone",
         ]
 
 
