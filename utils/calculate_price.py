@@ -73,4 +73,4 @@ def calculate_item_price_with_discount(ordered_item_qs):
     )
     total_price += extra_price
 
-    return total_price
+    return round(total_price, 2)
