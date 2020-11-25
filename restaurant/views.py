@@ -157,7 +157,7 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
             created_at=today_date, payment_status='1_PAID')
         grand_total_list = qs.values_list('grand_total', flat=True)
         total = sum(grand_total_list)
-        return ResponseWrapper(data={'total_sell': total}, msg="success")
+        return ResponseWrapper(data={'total_sell': round(total,2)}, msg="success")
 
 
 # class FoodCategoryViewSet(viewsets.GenericViewSet):
