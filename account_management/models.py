@@ -57,7 +57,7 @@ class UserAccount(AbstractUser):
     ]
     username = None
     email = None
-    first_name = None
+    #first_name = None
     last_name = None
 
     # email = models.EmailField(max_length=35, null=True, blank=True)
