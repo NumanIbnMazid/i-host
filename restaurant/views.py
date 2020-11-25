@@ -1050,11 +1050,8 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
     def invoice(self, request, invoice_id, *args, **kwargs):
 
-        invoice = Invoice.objects.filter(pk__icontains=invoice_id)
-        qs = list(invoice.values_list("id", flat=True))
-
-        #qs = Invoice.objects.filter(pk__icontains = '1')
-        serializer = InvoiceGetSerializer(instance=qs, many= True)
+        qs = Invoice.objects.filter(pk__icontains=invoice_id)
+        serializer = InvoiceSerializer(instance=qs, many= True)
         return ResponseWrapper(data=serializer.data)
 
 
