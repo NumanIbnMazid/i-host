@@ -160,6 +160,8 @@ urlpatterns = [
     path('restaurant/order_invoice/<int:order_id>',
          InvoiceViewSet.as_view({'get': 'order_invoice'}), name='order_invoice'),
 
+    path('restaurant/invoice/<int:invoice_id>',
+         InvoiceViewSet.as_view({'get': 'invoice'}), name='invoice'),
 
 
     path('restaurant/<int:restaurant>/invoice_history/',
