@@ -88,26 +88,27 @@ class UserAccountPatchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserAccount
-        fields = ["password"]
+        fields = ["password","first_name"]
 
 
 class UserAccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserAccount
-        fields = ['phone',
+        fields = ['phone','first_name',
                   'id']
 
 
 class StaffInfoGetSerializer(serializers.ModelSerializer):
     user = UserAccountSerializer(read_only=True)
     phone = serializers.CharField(source='user.phone', read_only=True)
-    # first_name = serializers.CharField(source='user.first_name')
+    first_name = serializers.CharField(source='user.first_name')
 
     class Meta:
         model = HotelStaffInformation
         fields = [
             "id",
+            "first_name",
             "name",
             "user",
             "image",
