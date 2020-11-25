@@ -109,6 +109,7 @@ def verify_login(request):
 
 class RestaurantAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+
     def get_serializer_class(self):
         """
         Return the class to use for the serializer.
@@ -245,7 +246,7 @@ class RestaurantAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
 
     def delete_staff(self, request, staff_id, *args, **kwargs):
         waiter_qs = HotelStaffInformation.objects.filter(
-            pk = staff_id).first()
+            pk=staff_id).first()
         if waiter_qs:
             waiter_qs.restaurant = None
             waiter_qs.save()
@@ -253,9 +254,6 @@ class RestaurantAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
             return ResponseWrapper(msg="Delete", error_code=200)
         else:
             return ResponseWrapper(msg="waiter is not valid", error_code=400)
-
-
-
 
     def manager_info(self, request, id, *args, **kwargs):
         manager_qs = HotelStaffInformation.objects.filter(
@@ -378,8 +376,9 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
 
 class CustomerInfoViewset(LoggingMixin, viewsets.ModelViewSet):
     queryset = CustomerInfo.objects.all()
-    lookup_field = 'pk'
+    lookup_field = 'user'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+    # http_method_names = ['GET', 'POST', 'PATCH', ]
     serializer_class = CustomerInfoSerializer
 
     def get_permissions(self):
