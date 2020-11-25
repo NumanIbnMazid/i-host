@@ -45,7 +45,7 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           StaffTableSerializer, TableSerializer,
                           TableStaffSerializer,
                           TopRecommendedFoodListSerializer, InvoiceGetSerializer, DiscountSerializer,
-                          OrderedItemDashboardPostSerializer)
+                          OrderedItemDashboardPostSerializer, OrderedItemGetDetailsSerializer)
 from rest_framework_tracking.mixins import LoggingMixin
 
 
@@ -869,7 +869,8 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             return  ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED , error_msg='not a valid manager or owner')
 
         list_of_qs = serializer.save()
-        serializer = FoodOrderByTableSerializer(instance=list_of_qs, many=True)
+
+        serializer = OrderedItemGetDetailsSerializer(instance=list_of_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='created')
 
 
