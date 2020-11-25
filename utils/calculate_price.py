@@ -39,7 +39,7 @@ def calculate_price(food_order_obj, include_initial_order=False):
     tax_amount = ((total_price * restaurant_qs.tax_percentage)/hundred)
     grand_total_price += tax_amount
 
-    return {
+    response_dict = {
         "grand_total_price": round(grand_total_price, 2),
         'discount_amount': 0.0,
         'payable_amount': 0.0,
@@ -48,3 +48,29 @@ def calculate_price(food_order_obj, include_initial_order=False):
         "service_charge": round(service_charge, 2),
         'total_price': round(total_price, 2)
     }
+    food_order_obj.grand_total_price = response_dict.get('grand_total_price')
+    food_order_obj.total_price = response_dict.get('total_price')
+    food_order_obj.discount_amount = response_dict.get('discount_amount')
+    food_order_obj.tax_amount = response_dict.get('tax_amount')
+    food_order_obj.tax_percentage = response_dict.get('tax_percentage')
+    food_order_obj.service_charge = response_dict.get('service_charge')
+    food_order_obj.payable_amount = response_dict.get('payable_amount')
+    food_order_obj.save()
+
+    return response_dict
+
+
+def calculate_item_price_with_discount(ordered_item_qs):
+    total_price = 0.0
+    item_price = ordered_item_qs.quantity*ordered_item_qs.food_option.price
+    discount_amount = 0*item_price
+    total_price += item_price
+    total_price = total_price-discount_amount
+    extra_price = ordered_item_qs.quantity*sum(
+        list(
+            ordered_item_qs.food_extra.values_list('price', flat=True)
+        )
+    )
+    total_price += extra_price
+
+    return total_price
