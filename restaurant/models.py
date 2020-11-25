@@ -170,6 +170,16 @@ class FoodOrder(SoftDeleteModel):
         Table, on_delete=models.SET_NULL, null=True, related_name='food_orders')
     status = models.CharField(choices=ORDER_STATUS,
                               default="0_ORDER_INITIALIZED", max_length=120)
+
+    grand_total_price = models.FloatField(null=True, blank=True, default=0)
+    total_price = models.FloatField(null=True, blank=True, default=0)
+    discount_amount = models.FloatField(null=True, blank=True, default=0)
+    tax_amount = models.FloatField(null=True, blank=True, default=0)
+    tax_percentage = models.FloatField(null=True, blank=True, default=0)
+    service_charge = models.FloatField(null=True, blank=True, default=0)
+    payable_amount = models.FloatField(null=True, blank=True, default=0)
+    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

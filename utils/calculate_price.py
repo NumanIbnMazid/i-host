@@ -44,6 +44,7 @@ def calculate_price(food_order_obj, include_initial_order=False):
         "tax_amount": tax_amount,
         'tax_percentage': restaurant_qs.tax_percentage,
         "service_charge": service_charge,
-        'total_price': total_price
+        'total_price': total_price,
+        'discount_amount': 0.0,
+        'payable_amount': 0.0,
     }
-

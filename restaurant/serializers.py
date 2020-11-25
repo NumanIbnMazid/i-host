@@ -252,6 +252,13 @@ class FoodOrderSerializer(serializers.ModelSerializer):
                   "status",
                   "price",
                   'ordered_items',
+                  'grand_total_price',
+                  "total_price",
+                  "discount_amount",
+                  "tax_amount",
+                  "tax_percentage",
+                  "service_charge",
+                  "payable_amount",
                   ]
 
     def get_price(self, obj):
@@ -282,6 +289,13 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   'table_no',
                   'waiter',
                   'restaurant_info',
+                  'grand_total_price',
+                  "total_price",
+                  "discount_amount",
+                  "tax_amount",
+                  "tax_percentage",
+                  "service_charge",
+                  "payable_amount",
                   ]
         #ordering = ['table']
 
@@ -336,7 +350,14 @@ class FoodOrderForStaffSerializer(serializers.ModelSerializer):
                   "remarks",
                   "table",
                   "status",
-                  "price"
+                  "price",
+                  'grand_total_price',
+                  "total_price",
+                  "discount_amount",
+                  "tax_amount",
+                  "tax_percentage",
+                  "service_charge",
+                  "payable_amount",
                   ]
 
     # def get_status(self, obj):
