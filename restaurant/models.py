@@ -250,6 +250,7 @@ class Discount(SoftDeleteModel):
     start_date = models.DateTimeField(
         null=False, blank=False)
     end_date = models.DateTimeField(null=True, blank=True)
+    restaurant = models.ForeignKey(Restaurant,on_delete=models.SET_NULL)
 
     # discount_slot_start_time = models.TimeField(null=True, blank=True)
     # discount_slot_closing_time = models.TimeField(null=True, blank=True)
