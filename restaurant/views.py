@@ -1048,14 +1048,15 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         serializer = InvoiceGetSerializer(instance=qs,many=False)
         return ResponseWrapper(data=serializer.data)
 
+    def invoice(self, request, invoice_id, *args, **kwargs):
+        qs = Invoice.objects.filter(pk = invoice_id)
+        serializer = InvoiceGetSerializer(instance=qs)
+        return ResponseWrapper(data=serializer.data)
+
+
 
 class DiscountViewSet(LoggingMixin,CustomViewSet):
     queryset = Discount.objects.all()
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
-    def invoice(self, request, invoice_id, *args, **kwargs):
-        invoice_id =invoice_id
-        qs = Invoice.objects.filter(pk__icontains = invoice_id)
-        serializer = InvoiceGetSerializer(instance=qs,many=False)
-        return ResponseWrapper(data=serializer.data)
