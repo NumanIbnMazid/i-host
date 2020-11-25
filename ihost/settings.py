@@ -11,6 +11,8 @@ import os
 from pathlib import Path
 from rest_framework.settings import api_settings
 import environ
+from datetime import timedelta
+
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -251,3 +253,14 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+REST_KNOX = {
+    #'SECURE_HASH_ALGORITHM': 'cryptography.hazmat.primitives.hashes.SHA512',
+    #'AUTH_TOKEN_CHARACTER_LENGTH': 64,
+    'TOKEN_TTL': timedelta(hours=9900000),
+    #'USER_SERIALIZER': None,
+    #'TOKEN_LIMIT_PER_USER': None,
+    #'AUTO_REFRESH': False,
+    #'MIN_REFRESH_INTERVAL': 60,
+    #'AUTH_HEADER_PREFIX': 'Token',
+    #'EXPIRY_DATETIME_FORMAT': api_settings.DATETIME_FORMAT,
+}
