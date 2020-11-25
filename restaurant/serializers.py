@@ -197,6 +197,7 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
             "food_image",
             "food_option",
             "food_extra",
+            "price",
 
         ]
 
