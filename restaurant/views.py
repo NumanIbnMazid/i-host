@@ -44,7 +44,8 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           RestaurantUpdateSerialier, StaffIdListSerializer,
                           StaffTableSerializer, TableSerializer,
                           TableStaffSerializer,
-                          TopRecommendedFoodListSerializer, InvoiceGetSerializer)
+                          TopRecommendedFoodListSerializer, InvoiceGetSerializer, DiscountSerializer,
+                          OrderedItemDashboardPostSerializer, OrderedItemGetDetailsSerializer)
 from rest_framework_tracking.mixins import LoggingMixin
 
 
@@ -547,7 +548,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
             all_items_qs = OrderedItem.objects.filter(
-                food_order=order_qs).exclude(status__in=["0_ORDER_INITIALIZED", "4_CANCELLED"])
+                food_order=order_qs).exclude(status__in=["4_CANCELLED"])
             if all_items_qs:
                 all_items_qs.filter(pk__in=request.data.get(
                     'food_items')).update(status='4_CANCELLED')
@@ -795,7 +796,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def get_permissions(self):
-        if self.action in ['create']:
+        if self.action in ['create', 'cart_create_from_dashboard']:
             permission_classes = [permissions.IsAuthenticated]
         else:
             permission_classes = [permissions.AllowAny]
@@ -804,6 +805,9 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
     def get_serializer_class(self):
         if self.action in ['create', 'update']:
             self.serializer_class = OrderedItemUserPostSerializer
+
+        elif self.action in ['cart_create_from_dashboard']:
+            self.serializer_class = OrderedItemDashboardPostSerializer
 
         else:
             self.serializer_class = OrderedItemSerializer
@@ -820,7 +824,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
                 food_order_qs = FoodOrder.objects.filter(pk=food_order)
                 restaurant_id = food_order_qs.first().table.restaurant_id
 
-                if HotelStaffInformation.objects.filter(user=request.user.pk, restaurant_id=restaurant_id, is_manager=True):
+                if HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk, restaurant_id=restaurant_id):
                     food_order_qs = food_order_qs.first()
                 else:
                     food_order_qs = food_order_qs.exclude(
@@ -834,7 +838,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
 
             restaurant_id = food_order_qs.table.restaurant_id
 
-            if HotelStaffInformation.objects.filter(user=request.user.pk, restaurant_id=restaurant_id, is_manager=True):
+            if HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk, restaurant_id=restaurant_id):
                 order_pk_list = list()
                 for item in qs:
                     order_pk_list.append(item.pk)
@@ -849,6 +853,25 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def cart_create_from_dashboard(self, request):
+        serializer = self.get_serializer(data=request.data, many=True)
+        if not serializer.is_valid():
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+        if not request.data:
+            return  ResponseWrapper(error_code=400 , error_msg='empty request body')
+        food_order = request.data[0].get('food_order')
+        food_order_qs = FoodOrder.objects.filter(pk=food_order)
+        restaurant_id = food_order_qs.first().table.restaurant_id
+
+        if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
+                                            restaurant_id=restaurant_id):
+            return  ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED , error_msg='not a valid manager or owner')
+
+        list_of_qs = serializer.save()
+
+        serializer = OrderedItemGetDetailsSerializer(instance=list_of_qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='created')
 
 
 class FoodViewSet(LoggingMixin, CustomViewSet):
@@ -1062,8 +1085,17 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
 
 
+
 class DiscountViewSet(LoggingMixin,CustomViewSet):
+    serializer_class = DiscountSerializer
+
     queryset = Discount.objects.all()
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+    http_method_names = ['post', 'patch', 'get', 'delete']
+
+    def discount_list(self, request, restaurant, *args, **kwargs):
+        qs = Discount.objects.filter(restaurant=restaurant)
+        serializer = DiscountSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data)
 

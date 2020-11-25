@@ -228,6 +228,12 @@ class OrderedItemUserPostSerializer(serializers.ModelSerializer):
         # fields = '__all__'
         exclude = ['status']
 
+class OrderedItemDashboardPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderedItem
+        fields = '__all__'
+
+
 
 class FoodOrderCancelSerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
@@ -561,3 +567,10 @@ class ReportingDateRangeGraphSerializer(serializers.Serializer):
                                                     ("3_IN_TABLE", "Food Served"),
                                                     ("5_PAID", "Payment Done"),
                                                     ("6_CANCELLED", "Cancelled"), ], default="5_PAID", required=False)
+
+
+class DiscountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Discount
+        #fields ='__all__'
+        exclude = ['deleted_at']
