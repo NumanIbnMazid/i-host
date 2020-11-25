@@ -3,7 +3,7 @@ from account_management.models import HotelStaffInformation
 from account_management.serializers import StaffInfoGetSerializer
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
-from utils.calculate_price import calculate_price
+from utils.calculate_price import calculate_item_price_with_discount, calculate_price
 
 from .models import *
 
@@ -70,8 +70,6 @@ class FoodExtraGroupByTypeSerializer(serializers.ModelSerializer):
         list_serializer_class = FoodExtraGroupByListSerializer
 
 
-
-
 class FoodExtraPostPatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodExtra
@@ -92,8 +90,6 @@ class FoodCategorySerializer(serializers.ModelSerializer):
         model = FoodCategory
         #fields = '__all__'
         exclude = ['deleted_at']
-
-
 
 
 class FoodOptionSerializer(serializers.ModelSerializer):
@@ -183,9 +179,13 @@ class OrderedItemSerializer(serializers.ModelSerializer):
 class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
     food_extra = FoodExtraBasicSerializer(many=True, read_only=True)
     food_option = FoodOptionSerializer(read_only=True)
-    food_name = serializers.CharField(source="food_option.food.name",read_only=True)
-    food_image = serializers.ImageField(source="food_option.food.image",read_only=True)
+    food_name = serializers.CharField(
+        source="food_option.food.name", read_only=True)
+    food_image = serializers.ImageField(
+        source="food_option.food.image", read_only=True)
     #food_image = serializers.SerializerMethodField(read_only=True)
+    price = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = OrderedItem
         fields = [
@@ -199,14 +199,15 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
             "food_extra",
 
         ]
-    #def get_food_image(self,obj):
+
+    def get_price(self, obj):
+        return calculate_item_price_with_discount(ordered_item_qs=obj)
+
+    # def get_food_image(self,obj):
      #   if obj.food_options.food.image:
       #      return serializers.ImageField(source="food_option.food.image")
-        #else:
-           # return None
-
-
-
+        # else:
+        # return None
 
 
 class FoodOrderConfirmSerializer(serializers.Serializer):
@@ -235,7 +236,6 @@ class FoodOptionsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
 class FoodOrderSerializer(serializers.ModelSerializer):
     status_detail = serializers.CharField(source='get_status_display')
     price = serializers.SerializerMethodField()
@@ -252,13 +252,13 @@ class FoodOrderSerializer(serializers.ModelSerializer):
                   "status",
                   "price",
                   'ordered_items',
-                #   'grand_total_price',
-                #   "total_price",
-                #   "discount_amount",
-                #   "tax_amount",
-                #   "tax_percentage",
-                #   "service_charge",
-                #   "payable_amount",
+                  #   'grand_total_price',
+                  #   "total_price",
+                  #   "discount_amount",
+                  #   "tax_amount",
+                  #   "tax_percentage",
+                  #   "service_charge",
+                  #   "payable_amount",
                   ]
 
     def get_price(self, obj):
@@ -289,17 +289,15 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   'table_no',
                   'waiter',
                   'restaurant_info',
-                #   'grand_total_price',
-                #   "total_price",
-                #   "discount_amount",
-                #   "tax_amount",
-                #   "tax_percentage",
-                #   "service_charge",
-                #   "payable_amount",
+                  #   'grand_total_price',
+                  #   "total_price",
+                  #   "discount_amount",
+                  #   "tax_amount",
+                  #   "tax_percentage",
+                  #   "service_charge",
+                  #   "payable_amount",
                   ]
         #ordering = ['table']
-
-
 
     def get_price(self, obj):
         return calculate_price(food_order_obj=obj)
@@ -351,13 +349,13 @@ class FoodOrderForStaffSerializer(serializers.ModelSerializer):
                   "table",
                   "status",
                   "price",
-                #   'grand_total_price',
-                #   "total_price",
-                #   "discount_amount",
-                #   "tax_amount",
-                #   "tax_percentage",
-                #   "service_charge",
-                #   "payable_amount",
+                  #   'grand_total_price',
+                  #   "total_price",
+                  #   "discount_amount",
+                  #   "tax_amount",
+                  #   "tax_percentage",
+                  #   "service_charge",
+                  #   "payable_amount",
                   ]
 
     # def get_status(self, obj):
@@ -407,8 +405,8 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
             'id'
         ]
 
-        #extra_kwargs = {
-            #'price': {'max_digits': 16, 'decimal_places': 2}
+        # extra_kwargs = {
+        # 'price': {'max_digits': 16, 'decimal_places': 2}
        # }
     def get_price(self, obj):
         option_qs = obj.food_options.order_by('price').first()
@@ -448,8 +446,6 @@ class FoodDetailSerializer(serializers.ModelSerializer):
             'ingredients',
             'price',
         ]
-
-
 
     def get_price(self, obj):
         option_qs = obj.food_options.order_by('price').first()
@@ -539,15 +535,17 @@ class InvoiceSerializer(serializers.ModelSerializer):
 
     def get_order_info(self, obj):
         # data_dict = obj.__dict__
-        obj.__dict__.pop('_state',None)
-        order_info = obj.__dict__.pop('order_info',{})
+        obj.__dict__.pop('_state', None)
+        order_info = obj.__dict__.pop('order_info', {})
         order_info['invoice'] = obj.__dict__
         return order_info
+
 
 class InvoiceGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = '__all__'
+
 
 class ReportingDateRangeGraphSerializer(serializers.Serializer):
     from_date = serializers.DateField(required=False)
