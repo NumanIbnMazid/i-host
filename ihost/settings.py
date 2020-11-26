@@ -50,7 +50,7 @@ LIBRARY_APPS = [
     'drf_extra_fields',
     'softdelete',
     'rest_framework_tracking',
-    'autofixture',
+    # 'autofixture',
     # "mockups",
 ]
 DJANGO_APPS = [
