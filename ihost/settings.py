@@ -14,7 +14,6 @@ import environ
 from datetime import timedelta
 
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -51,6 +50,8 @@ LIBRARY_APPS = [
     'drf_extra_fields',
     'softdelete',
     'rest_framework_tracking',
+    'autofixture',
+    # "mockups",
 ]
 DJANGO_APPS = [
     'account_management',
@@ -254,13 +255,13 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 REST_KNOX = {
-    #'SECURE_HASH_ALGORITHM': 'cryptography.hazmat.primitives.hashes.SHA512',
-    #'AUTH_TOKEN_CHARACTER_LENGTH': 64,
+    # 'SECURE_HASH_ALGORITHM': 'cryptography.hazmat.primitives.hashes.SHA512',
+    # 'AUTH_TOKEN_CHARACTER_LENGTH': 64,
     'TOKEN_TTL': timedelta(hours=9900000),
-    #'USER_SERIALIZER': None,
-    #'TOKEN_LIMIT_PER_USER': None,
-    #'AUTO_REFRESH': False,
-    #'MIN_REFRESH_INTERVAL': 60,
-    #'AUTH_HEADER_PREFIX': 'Token',
-    #'EXPIRY_DATETIME_FORMAT': api_settings.DATETIME_FORMAT,
+    # 'USER_SERIALIZER': None,
+    # 'TOKEN_LIMIT_PER_USER': None,
+    # 'AUTO_REFRESH': False,
+    # 'MIN_REFRESH_INTERVAL': 60,
+    # 'AUTH_HEADER_PREFIX': 'Token',
+    # 'EXPIRY_DATETIME_FORMAT': api_settings.DATETIME_FORMAT,
 }
