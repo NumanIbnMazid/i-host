@@ -315,7 +315,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
             if qs:
                 return {"name": qs.user.first_name, 'id': qs.pk}
         else:
-            return None
+            return {}
 
     def get_restaurant_info(self, obj):
         restaurant_qs = None
