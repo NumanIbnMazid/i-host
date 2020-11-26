@@ -202,7 +202,6 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
         ]
         ordering = ['id']
 
-
     def get_price(self, obj):
         return calculate_item_price_with_discount(ordered_item_qs=obj)
 
@@ -228,11 +227,11 @@ class OrderedItemUserPostSerializer(serializers.ModelSerializer):
         # fields = '__all__'
         exclude = ['status']
 
+
 class OrderedItemDashboardPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderedItem
         fields = '__all__'
-
 
 
 class FoodOrderCancelSerializer(serializers.Serializer):
@@ -411,7 +410,8 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
             'price',
             'ingredients',
             'category',
-            'id'
+            'id',
+            'discount',
         ]
 
         # extra_kwargs = {

@@ -178,7 +178,6 @@ class FoodOrder(SoftDeleteModel):
     tax_percentage = models.FloatField(null=True, blank=True, default=0)
     service_charge = models.FloatField(null=True, blank=True, default=0)
     payable_amount = models.FloatField(null=True, blank=True, default=0)
-    
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -250,7 +249,8 @@ class Discount(SoftDeleteModel):
     start_date = models.DateTimeField(
         null=False, blank=False)
     end_date = models.DateTimeField(null=True, blank=True)
-    restaurant = models.ForeignKey(Restaurant,on_delete=models.SET_NULL,related_name='discount',null=True)
+    restaurant = models.ForeignKey(
+        Restaurant, on_delete=models.SET_NULL, related_name='discount', null=True)
 
     # discount_slot_start_time = models.TimeField(null=True, blank=True)
     # discount_slot_closing_time = models.TimeField(null=True, blank=True)
