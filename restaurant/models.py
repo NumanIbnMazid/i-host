@@ -267,4 +267,4 @@ class Discount(SoftDeleteModel):
     #     null=True, blank=True)
 
     def __str__(self):
-        return self.discount_name
+        return self.name
