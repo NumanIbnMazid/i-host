@@ -314,8 +314,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
             qs = obj.table.staff_assigned.filter(is_waiter=True).first()
             if qs:
                 return {"name": qs.user.first_name, 'id': qs.pk}
-        else:
-            return {}
+        return {}
 
     def get_restaurant_info(self, obj):
         restaurant_qs = None
