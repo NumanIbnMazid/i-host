@@ -240,11 +240,11 @@ class Discount(SoftDeleteModel):
     DISCOUNT_TYPE = [
         ("PERCENTAGE", "percentage"), ("AMOUNT", "amount")]
 
-    discount_name = models.CharField(max_length=200)
-    discount_description = models.CharField(
+    name = models.CharField(max_length=200)
+    description = models.CharField(
         max_length=500, default=None, null=True)
     # discount_promo_code = models.CharField(max_length=100)
-    discount_url = models.CharField(
+    url = models.CharField(
         max_length=250, default=None, null=True, blank=True)
     start_date = models.DateTimeField(
         null=False, blank=False)
@@ -257,7 +257,7 @@ class Discount(SoftDeleteModel):
 
     # discount_type = models.CharField(choices=DISCOUNT_TYPE,
     #                                  max_length=50, default="PERCENTAGE")
-    discount = models.FloatField()
+    amount = models.FloatField()
     # max_discount_amount = models.FloatField(null=True, blank=True)
     # number_of_uses = models.PositiveIntegerField(default=0)
     # maximum_number_of_uses = models.PositiveIntegerField(null=True, blank=True)

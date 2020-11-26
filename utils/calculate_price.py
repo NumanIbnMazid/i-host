@@ -62,8 +62,10 @@ def calculate_price(food_order_obj, include_initial_order=False):
 
 def calculate_item_price_with_discount(ordered_item_qs):
     total_price = 0.0
+    discount_amount = 0.0
     item_price = ordered_item_qs.quantity*ordered_item_qs.food_option.price
-    discount_amount = 0*item_price
+    if ordered_item_qs.food_option.food.discount:
+        discount_amount = ordered_item_qs.food_option.food.discount.amount*item_price
     total_price += item_price
     total_price = total_price-discount_amount
     extra_price = ordered_item_qs.quantity*sum(
