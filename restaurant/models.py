@@ -49,7 +49,9 @@ class Restaurant(SoftDeleteModel):
     subscription = models.ForeignKey(
         Subscription, on_delete=models.SET_NULL, null=True, related_name='restaurants')
     subscription_ends = models.DateField()
-
+    phone = models.CharField(null=True,blank=True,max_length=50)
+    vat_registration_no = models.CharField(max_length=250, null=True, blank=True)
+    trade_licence_no = models.CharField(max_length=250,null=True,blank=True)
     def __str__(self):
         return self.name
 
@@ -146,7 +148,7 @@ class Table(SoftDeleteModel):
         Restaurant, on_delete=models.CASCADE, related_name='tables')
     name = models.CharField(max_length=50, null=True, blank=True)
     staff_assigned = models.ManyToManyField(
-        to='account_management.HotelStaffInformation', blank=True)
+        to='account_management.HotelStaffInformation', blank=True,related_name='tables')
     is_occupied = models.BooleanField(default=False)
 
     def __str__(self):

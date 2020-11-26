@@ -795,6 +795,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
+
     def get_permissions(self):
         if self.action in ['create', 'cart_create_from_dashboard']:
             permission_classes = [permissions.IsAuthenticated]
@@ -813,6 +814,29 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = OrderedItemSerializer
 
         return self.serializer_class
+
+    def destroy(self, request, **kwargs):
+        qs = self.queryset.filter(**kwargs).first()
+        order_qs = qs.food_order
+        if qs:
+            qs.delete()
+            order_item_serializer = FoodOrderSerializer(instance=order_qs)
+            return ResponseWrapper(status=200, msg='deleted',data=order_item_serializer.data)
+        else:
+            return ResponseWrapper(error_msg="failed to delete", error_code=400)
+
+    def update(self, request, **kwargs):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data, partial=True)
+        if serializer.is_valid():
+            qs = serializer.update(instance=self.get_object(
+            ), validated_data=serializer.validated_data)
+            order_qs = qs.food_order
+
+            serializer = FoodOrderSerializer(instance=order_qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def create(self, request):
         serializer = self.get_serializer(data=request.data, many=True)

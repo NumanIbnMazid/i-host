@@ -47,7 +47,7 @@ def calculate_price(food_order_obj, include_initial_order=False):
     response_dict = {
         "grand_total_price": round(grand_total_price, 2),
         'discount_amount': round(discount_amount, 2),
-        'payable_amount': round(payable_amount, 2),
+        'payable_amount': round(payable_amount,2),
         "tax_amount": round(tax_amount, 2),
         'tax_percentage': round(restaurant_qs.tax_percentage, 2),
         "service_charge": round(service_charge, 2),
