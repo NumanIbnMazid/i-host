@@ -163,7 +163,7 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
             created_at=today_date, payment_status='1_PAID')
         grand_total_list = qs.values_list('grand_total', flat=True)
         total = sum(grand_total_list)
-        return ResponseWrapper(data={'total_sell': round(total,2)}, msg="success")
+        return ResponseWrapper(data={'total_sell': round(total, 2)}, msg="success")
 
 
 # class FoodCategoryViewSet(viewsets.GenericViewSet):
@@ -236,7 +236,6 @@ class FoodOrderedViewSet(LoggingMixin, CustomViewSet):
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
 
     # def ordered_item_list(self, request, ordered_id, *args, **kwargs):
     #     qs = FoodOrder.objects.filter(pk=ordered_id)
@@ -768,7 +767,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 return ResponseWrapper(error_msg=['please create invoice before payment'], error_code=400)
 
             remaining_item_counter = OrderedItem.objects.filter(
-                food_order=order_qs.pk).exclude(status__in=["0_ORDER_INITIALIZED","3_IN_TABLE", '4_CANCELLED']).count()
+                food_order=order_qs.pk).exclude(status__in=["0_ORDER_INITIALIZED", "3_IN_TABLE", '4_CANCELLED']).count()
 
             if remaining_item_counter > 0:
                 return ResponseWrapper(error_msg=['Order is running'], error_code=400)
@@ -795,7 +794,6 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
-
     def get_permissions(self):
         if self.action in ['create', 'cart_create_from_dashboard']:
             permission_classes = [permissions.IsAuthenticated]
@@ -821,7 +819,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         if qs:
             qs.delete()
             order_item_serializer = FoodOrderSerializer(instance=order_qs)
-            return ResponseWrapper(status=200, msg='deleted',data=order_item_serializer.data)
+            return ResponseWrapper(status=200, msg='deleted', data=order_item_serializer.data)
         else:
             return ResponseWrapper(error_msg="failed to delete", error_code=400)
 
@@ -883,18 +881,19 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
         if not request.data:
-            return  ResponseWrapper(error_code=400 , error_msg='empty request body')
+            return ResponseWrapper(error_code=400, error_msg='empty request body')
         food_order = request.data[0].get('food_order')
         food_order_qs = FoodOrder.objects.filter(pk=food_order)
         restaurant_id = food_order_qs.first().table.restaurant_id
 
         if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
-                                            restaurant_id=restaurant_id):
-            return  ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED , error_msg='not a valid manager or owner')
+                                                    restaurant_id=restaurant_id):
+            return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg='not a valid manager or owner')
 
         list_of_qs = serializer.save()
 
-        serializer = OrderedItemGetDetailsSerializer(instance=list_of_qs, many=True)
+        serializer = OrderedItemGetDetailsSerializer(
+            instance=list_of_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='created')
 
 
@@ -938,7 +937,7 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
 
-class FoodByRestaurantViewSet(LoggingMixin,CustomViewSet):
+class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
     serializer_class = FoodsByCategorySerializer
 
     # queryset = Food.objects.all()
@@ -1083,6 +1082,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
 class InvoiceViewSet(LoggingMixin, CustomViewSet):
     queryset = Invoice.objects.all()
+    serializer_class = InvoiceSerializer
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
@@ -1092,25 +1092,24 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data)
 
     def paid_cancel_invoice_history(self, request, restaurant, *args, **kwargs):
-        qs = Invoice.objects.filter(restaurant= restaurant, order__status__in=['5_PAID','6_CANCELLED'])
+        qs = Invoice.objects.filter(restaurant=restaurant, order__status__in=[
+                                    '5_PAID', '6_CANCELLED'])
         serializer = InvoiceSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
     def order_invoice(self, request, order_id, *args, **kwargs):
-        qs = Invoice.objects.filter(order_id = order_id).last()
-        serializer = InvoiceSerializer(instance=qs,many=False)
+        qs = Invoice.objects.filter(order_id=order_id).last()
+        serializer = InvoiceSerializer(instance=qs, many=False)
         return ResponseWrapper(data=serializer.data)
 
     def invoice(self, request, invoice_id, *args, **kwargs):
 
         qs = Invoice.objects.filter(pk__icontains=invoice_id)
-        serializer = InvoiceSerializer(instance=qs, many= True)
+        serializer = InvoiceSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
 
-
-
-class DiscountViewSet(LoggingMixin,CustomViewSet):
+class DiscountViewSet(LoggingMixin, CustomViewSet):
     serializer_class = DiscountSerializer
 
     queryset = Discount.objects.all()
@@ -1122,4 +1121,3 @@ class DiscountViewSet(LoggingMixin,CustomViewSet):
         qs = Discount.objects.filter(restaurant=restaurant)
         serializer = DiscountSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
-
