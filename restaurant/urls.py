@@ -35,6 +35,11 @@ dashboard_urls = [
     path('category_list/<int:restaurant>',
          FoodViewSet.as_view({'get': 'category_list'}, name='category_list')),
 
+    path('restaurant/create_discount/',
+         DiscountViewSet.as_view({'post': 'create_discount'}), name='create_discount'),
+    path('delete_discount/<int:discount_id>',
+         DiscountViewSet.as_view({'delete': 'discount_delete'}), name='discount_delete'),
+
 ]
 
 
@@ -185,12 +190,6 @@ urlpatterns = [
     path('restaurant/<int:restaurant>/discount_list/',
          DiscountViewSet.as_view({'get': 'discount_list'}), name='discount_list'),
 
-    path('restaurant/create_discount/',
-         DiscountViewSet.as_view({'post': 'create_discount'}), name='create_discount'),
-
-
-    path('delete_discount/<int:discount_id>',
-         DiscountViewSet.as_view({'delete': 'discount_delete'}), name='discount_delete'),
     #path('update_discount/<int:pk>',
      #    DiscountViewSet.as_view({'patch': 'update_discount'}), name='update_discount'),
 

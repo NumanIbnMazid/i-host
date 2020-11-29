@@ -1153,17 +1153,18 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         if not request.data:
             return ResponseWrapper(error_code=400, error_msg='empty request body')
 
-        discount_qs = FoodOrder.objects.filter(pk='id')
-        restaurant_id = discount_qs.first().restaurant_id
+        # discount_qs = Discount.objets.filter(id=restaurant)
+        # restaurant_id = discount_qs.first().restaurant_id
+        restaurant_id = request.data.get('restaurant')
+
 
         if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
                                                     restaurant_id=restaurant_id):
-            return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg='not a valid manager or owner')
+            return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg='user is not manager or owner')
 
         qs = serializer.save()
 
-        serializer = DiscountSerializer(
-            instance=qs, many=True)
+        serializer = self.get_serializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='created')
 
     def update_discount(self, request, pk, **kwargs):
