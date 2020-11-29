@@ -25,7 +25,8 @@ from account_management.models import CustomerInfo, HotelStaffInformation
 from account_management.models import UserAccount
 from account_management.models import UserAccount as User
 from account_management.serializers import (CustomerInfoSerializer, OtpLoginSerializer,
-                                            RestaurantUserSignUpSerializer, StaffInfoGetSerializer, StaffInfoSerializer, StaffLoginInfoGetSerializer,
+                                            RestaurantUserSignUpSerializer, StaffInfoGetSerializer, StaffInfoSerializer,
+                                            StaffLoginInfoGetSerializer,
                                             UserAccountPatchSerializer,
                                             UserAccountSerializer,
                                             UserSignupSerializer)
@@ -70,6 +71,7 @@ class LoginView(KnoxLoginView):
 
 class OtpSignUpView(KnoxLoginView):
     permission_classes = (permissions.AllowAny,)
+
     # TODO:need to check if otp is same
 
     @swagger_auto_schema(request_body=OtpLoginSerializer)
@@ -214,7 +216,8 @@ class RestaurantAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
             if staff_serializer.is_valid():
                 if not staff_qs:
                     staff_qs = HotelStaffInformation.objects.create(user=user_qs, restaurant=restaurant_qs,
-                                                                    is_manager=is_manager, is_owner=is_owner, is_waiter=is_waiter)
+                                                                    is_manager=is_manager, is_owner=is_owner,
+                                                                    is_waiter=is_waiter)
 
                 staff_qs = staff_serializer.update(
                     staff_qs, staff_serializer.validated_data)
@@ -390,3 +393,6 @@ class CustomerInfoViewset(LoggingMixin, viewsets.ModelViewSet):
             # permissions.DjangoObjectPermissions.has_permission()
             permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
+
+
+# class HotelStaffLogViewSet(LoggingMixin,viewsets.ModelViewSet):
