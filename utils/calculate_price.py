@@ -18,7 +18,9 @@ def calculate_price(food_order_obj, include_initial_order=False):
     grand_total_price = 0.0
     service_charge = 0.0
     hundred = 100.0
+    discount_amount = 0.0
     for ordered_item in ordered_items_qs:
+
         if not restaurant_qs:
             restaurant_qs = ordered_item.food_option.food.restaurant
         item_price = ordered_item.quantity*ordered_item.food_option.price
@@ -27,6 +29,9 @@ def calculate_price(food_order_obj, include_initial_order=False):
                 ordered_item.food_extra.values_list('price', flat=True)
             )
         )
+        if ordered_item.food_option.food.discount:
+            discount_amount += ordered_item.food_option.food.discount.amount*item_price
+
         total_price += item_price+extra_price
     grand_total_price += total_price
 
@@ -38,11 +43,11 @@ def calculate_price(food_order_obj, include_initial_order=False):
     grand_total_price += service_charge
     tax_amount = ((total_price * restaurant_qs.tax_percentage)/hundred)
     grand_total_price += tax_amount
-
+    payable_amount = grand_total_price - discount_amount
     response_dict = {
         "grand_total_price": round(grand_total_price, 2),
-        'discount_amount': 0.0,
-        'payable_amount': 0.0,
+        'discount_amount': round(discount_amount, 2),
+        'payable_amount': round(payable_amount,2),
         "tax_amount": round(tax_amount, 2),
         'tax_percentage': round(restaurant_qs.tax_percentage, 2),
         "service_charge": round(service_charge, 2),
@@ -62,8 +67,10 @@ def calculate_price(food_order_obj, include_initial_order=False):
 
 def calculate_item_price_with_discount(ordered_item_qs):
     total_price = 0.0
+    discount_amount = 0.0
     item_price = ordered_item_qs.quantity*ordered_item_qs.food_option.price
-    discount_amount = 0*item_price
+    if ordered_item_qs.food_option.food.discount:
+        discount_amount = ordered_item_qs.food_option.food.discount.amount*item_price
     total_price += item_price
     total_price = total_price-discount_amount
     extra_price = ordered_item_qs.quantity*sum(
@@ -73,4 +80,4 @@ def calculate_item_price_with_discount(ordered_item_qs):
     )
     total_price += extra_price
 
-    return total_price
+    return round(total_price, 2)

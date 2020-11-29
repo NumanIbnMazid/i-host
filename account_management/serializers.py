@@ -120,6 +120,7 @@ class StaffInfoGetSerializer(serializers.ModelSerializer):
             "nid",
             "restaurant",
             "phone",
+            "tables",
         ]
 
 

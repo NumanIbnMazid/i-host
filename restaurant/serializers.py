@@ -11,14 +11,14 @@ from .models import *
 class FoodOptionTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOptionType
-        #fields = '__all__'
+        # fields = '__all__'
         exclude = ['deleted_at']
 
 
 class FoodExtraTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodExtraType
-        #fields = '__all__'
+        # fields = '__all__'
         exclude = ['deleted_at']
 
 
@@ -27,7 +27,7 @@ class FoodExtraSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FoodExtra
-        #fields = '__all__'
+        # fields = '__all__'
         exclude = ['deleted_at']
 
 
@@ -73,7 +73,7 @@ class FoodExtraGroupByTypeSerializer(serializers.ModelSerializer):
 class FoodExtraPostPatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodExtra
-        #fields = '__all__'
+        # fields = '__all__'
         exclude = ['deleted_at']
 
 
@@ -88,7 +88,7 @@ class FoodExtraTypeDetailSerializer(serializers.ModelSerializer):
 class FoodCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodCategory
-        #fields = '__all__'
+        # fields = '__all__'
         exclude = ['deleted_at']
 
 
@@ -97,14 +97,14 @@ class FoodOptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FoodOption
-        #fields = '__all__'
+        # fields = '__all__'
         exclude = ['deleted_at']
 
 
 class FoodOptionBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOption
-        #fields = '__all__'
+        # fields = '__all__'
         exclude = ['deleted_at']
 
 
@@ -117,10 +117,9 @@ class FoodOptionTypeSerializer(serializers.ModelSerializer):
 
 
 class RestaurantSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Restaurant
-        #fields = '__all__'
+        # fields = '__all__'
         exclude = ['deleted_at']
 
 
@@ -129,7 +128,7 @@ class TableSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Table
-        #fields = '__all__'
+        # fields = '__all__'
         exclude = ['deleted_at']
 
 
@@ -164,7 +163,7 @@ class StaffIdListSerializer(serializers.Serializer):
 class FoodExtraBasicSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodExtra
-        #fields = '__all__'
+        # fields = '__all__'
         exclude = ['deleted_at']
 
 
@@ -183,7 +182,7 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
         source="food_option.food.name", read_only=True)
     food_image = serializers.ImageField(
         source="food_option.food.image", read_only=True)
-    #food_image = serializers.SerializerMethodField(read_only=True)
+    # food_image = serializers.SerializerMethodField(read_only=True)
     price = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -202,15 +201,14 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
         ]
         ordering = ['id']
 
-
     def get_price(self, obj):
         return calculate_item_price_with_discount(ordered_item_qs=obj)
 
     # def get_food_image(self,obj):
-     #   if obj.food_options.food.image:
-      #      return serializers.ImageField(source="food_option.food.image")
-        # else:
-        # return None
+    #   if obj.food_options.food.image:
+    #      return serializers.ImageField(source="food_option.food.image")
+    # else:
+    # return None
 
 
 class FoodOrderConfirmSerializer(serializers.Serializer):
@@ -228,11 +226,11 @@ class OrderedItemUserPostSerializer(serializers.ModelSerializer):
         # fields = '__all__'
         exclude = ['status']
 
+
 class OrderedItemDashboardPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderedItem
         fields = '__all__'
-
 
 
 class FoodOrderCancelSerializer(serializers.Serializer):
@@ -306,7 +304,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   #   "service_charge",
                   #   "payable_amount",
                   ]
-        #ordering = ['table']
+        # ordering = ['table']
 
     def get_price(self, obj):
         return calculate_price(food_order_obj=obj)
@@ -316,8 +314,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
             qs = obj.table.staff_assigned.filter(is_waiter=True).first()
             if qs:
                 return {"name": qs.user.first_name, 'id': qs.pk}
-        else:
-            return None
+        return {}
 
     def get_restaurant_info(self, obj):
         restaurant_qs = None
@@ -330,7 +327,13 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                 restaurant_qs = ordered_items_qs.food_option.food.restaurant
 
         if restaurant_qs:
-            return {'id': restaurant_qs.pk, 'name': restaurant_qs.name}
+            return {
+                'id': restaurant_qs.pk,
+                'name': restaurant_qs.name,
+                'phone': restaurant_qs.phone,
+                'vat_registration_no': restaurant_qs.vat_registration_no,
+                'trade_licence_no': restaurant_qs.trade_licence_no
+            }
         else:
             return {}
 
@@ -411,12 +414,14 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
             'price',
             'ingredients',
             'category',
-            'id'
+            'id',
+            'discount',
         ]
 
         # extra_kwargs = {
         # 'price': {'max_digits': 16, 'decimal_places': 2}
-       # }
+
+    # }
     def get_price(self, obj):
         option_qs = obj.food_options.order_by('price').first()
         if option_qs:
@@ -484,9 +489,10 @@ class HotelStaffInformationSerializer(serializers.ModelSerializer):
 
 class TableStaffSerializer(serializers.ModelSerializer):
     # staff_assigned = StaffInfoGetSerializer(read_only=True, many=True)
-    #order_item = OrderedItemSerializer(read_only=True, many=True)
+    # order_item = OrderedItemSerializer(read_only=True, many=True)
     order_info = serializers.SerializerMethodField(read_only=True)
-    #id = serializers.SerializerMethodField(read_only=True)
+
+    # id = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Table
@@ -523,7 +529,6 @@ class TableStaffSerializer(serializers.ModelSerializer):
 
 
 class FoodExtraByFoodSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = FoodExtra
         fields = '__all__'
@@ -572,5 +577,5 @@ class ReportingDateRangeGraphSerializer(serializers.Serializer):
 class DiscountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discount
-        #fields ='__all__'
+        # fields ='__all__'
         exclude = ['deleted_at']

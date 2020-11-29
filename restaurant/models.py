@@ -49,7 +49,9 @@ class Restaurant(SoftDeleteModel):
     subscription = models.ForeignKey(
         Subscription, on_delete=models.SET_NULL, null=True, related_name='restaurants')
     subscription_ends = models.DateField()
-
+    phone = models.CharField(null=True,blank=True,max_length=50)
+    vat_registration_no = models.CharField(max_length=250, null=True, blank=True)
+    trade_licence_no = models.CharField(max_length=250,null=True,blank=True)
     def __str__(self):
         return self.name
 
@@ -146,7 +148,7 @@ class Table(SoftDeleteModel):
         Restaurant, on_delete=models.CASCADE, related_name='tables')
     name = models.CharField(max_length=50, null=True, blank=True)
     staff_assigned = models.ManyToManyField(
-        to='account_management.HotelStaffInformation', blank=True)
+        to='account_management.HotelStaffInformation', blank=True,related_name='tables')
     is_occupied = models.BooleanField(default=False)
 
     def __str__(self):
@@ -178,7 +180,6 @@ class FoodOrder(SoftDeleteModel):
     tax_percentage = models.FloatField(null=True, blank=True, default=0)
     service_charge = models.FloatField(null=True, blank=True, default=0)
     payable_amount = models.FloatField(null=True, blank=True, default=0)
-    
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -241,23 +242,24 @@ class Discount(SoftDeleteModel):
     DISCOUNT_TYPE = [
         ("PERCENTAGE", "percentage"), ("AMOUNT", "amount")]
 
-    discount_name = models.CharField(max_length=200)
-    discount_description = models.CharField(
+    name = models.CharField(max_length=200)
+    description = models.CharField(
         max_length=500, default=None, null=True)
     # discount_promo_code = models.CharField(max_length=100)
-    discount_url = models.CharField(
+    url = models.CharField(
         max_length=250, default=None, null=True, blank=True)
     start_date = models.DateTimeField(
         null=False, blank=False)
     end_date = models.DateTimeField(null=True, blank=True)
-    restaurant = models.ForeignKey(Restaurant,on_delete=models.SET_NULL,related_name='discount',null=True)
+    restaurant = models.ForeignKey(
+        Restaurant, on_delete=models.SET_NULL, related_name='discount', null=True)
 
     # discount_slot_start_time = models.TimeField(null=True, blank=True)
     # discount_slot_closing_time = models.TimeField(null=True, blank=True)
 
     # discount_type = models.CharField(choices=DISCOUNT_TYPE,
     #                                  max_length=50, default="PERCENTAGE")
-    discount = models.FloatField()
+    amount = models.FloatField()
     # max_discount_amount = models.FloatField(null=True, blank=True)
     # number_of_uses = models.PositiveIntegerField(default=0)
     # maximum_number_of_uses = models.PositiveIntegerField(null=True, blank=True)
@@ -267,4 +269,4 @@ class Discount(SoftDeleteModel):
     #     null=True, blank=True)
 
     def __str__(self):
-        return self.discount_name
+        return self.name
