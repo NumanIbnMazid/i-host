@@ -1,3 +1,5 @@
+from rest_framework_tracking.models import APIRequestLog
+
 from restaurant.models import Restaurant
 
 from django.http import request
@@ -68,7 +70,8 @@ class UserSignupSerializer(serializers.ModelSerializer):
 class StaffInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelStaffInformation
-        fields = ['shift_start', 'shift_end', 'nid', 'image', 'name','email']
+        fields = ['shift_start', 'shift_end', 'nid', 'image', 'name', 'email']
+
 
 class RestaurantUserSignUpSerializer(serializers.Serializer):
     restaurant_id = serializers.IntegerField()
@@ -84,16 +87,16 @@ class RestaurantUserSignUpSerializer(serializers.Serializer):
 
 class UserAccountPatchSerializer(serializers.ModelSerializer):
     password = serializers.CharField(required=False)
+
     class Meta:
         model = UserAccount
-        fields = ["password","first_name"]
+        fields = ["password", "first_name"]
 
 
 class UserAccountSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = UserAccount
-        fields = ['phone','first_name',
+        fields = ['phone', 'first_name',
                   'id']
 
 
@@ -119,11 +122,11 @@ class StaffInfoGetSerializer(serializers.ModelSerializer):
             "restaurant",
             "phone",
             "tables",
+            "email",
         ]
 
 
 class RestaurantSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Restaurant
         fields = '__all__'
@@ -158,3 +161,13 @@ class ListOfIdSerializer(serializers.Serializer):
 class OtpLoginSerializer(serializers.Serializer):
     phone = serializers.CharField()
     otp = serializers.IntegerField(default=1234)
+
+
+class LogSerializerPost(serializers.Serializer):
+    restaurant = serializers.IntegerField()
+
+
+class LogSerializerGet(serializers.ModelSerializer):
+    class Meta:
+        model = APIRequestLog
+        fields = ['id']

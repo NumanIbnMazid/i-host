@@ -1,3 +1,5 @@
+from rest_framework_tracking.models import APIRequestLog
+
 from utils.custom_viewset import CustomViewSet
 from restaurant.serializers import HotelStaffInformationSerializer
 import uuid
@@ -29,10 +31,11 @@ from account_management.serializers import (CustomerInfoSerializer, OtpLoginSeri
                                             StaffLoginInfoGetSerializer,
                                             UserAccountPatchSerializer,
                                             UserAccountSerializer,
-                                            UserSignupSerializer)
+                                            UserSignupSerializer, LogSerializerGet, LogSerializerPost)
 
 from rest_framework_tracking.mixins import LoggingMixin
 
+from restaurant import permissions as custom_permissions
 
 class LoginView(KnoxLoginView):
     permission_classes = (permissions.AllowAny,)
@@ -415,4 +418,37 @@ class CustomerInfoViewset(LoggingMixin, viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
 
-# class HotelStaffLogViewSet(LoggingMixin,viewsets.ModelViewSet):
+
+class HotelStaffLogViewSet(LoggingMixin,CustomViewSet):
+    queryset = APIRequestLog.objects.all()
+    def get_serializer_class(self):
+        self.serializer_class = LogSerializerGet
+
+        if self.action == "hotel_staff_logger":
+            self.serializer_class = LogSerializerPost
+
+        return self.serializer_class
+
+    def get_permissions(self):
+        if self.action in ["hotel_staff_logger"]:
+            #     permission_classes = [permissions.AllowAny]
+            # elif self.action in ["retrieve", "update"]:
+            #     permission_classes = [permissions.IsAuthenticated]
+            # else:
+            # permissions.DjangoObjectPermissions.has_permission()
+            permission_classes = [custom_permissions.IsRestaurantOwner]#,custom_permissions.IsRestaurantManager,permissions.IsAdminUser]
+        else:
+            permission_classes = [permissions.IsAdminUser]
+
+        return [permission() for permission in permission_classes]
+
+
+    def hotel_staff_logger(self,request,*args, **kwargs):
+        restaurant_id = request.data.get('restaurant')
+        log_qs = self.get_queryset().filter(user__hotel_staff__restaurant_id=restaurant_id).distinct()
+        serializer = LogSerializerGet(instance = log_qs,many=True)
+        return  ResponseWrapper(serializer.data)
+
+        #return ResponseWrapper(data=waiter_qs.data,status=200)
+
+
