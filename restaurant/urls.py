@@ -32,6 +32,8 @@ router.register('food', FoodViewSet,
 dashboard_urls = [
     path('order/cart/items/',
          OrderedItemViewSet.as_view({'post': 'cart_create_from_dashboard'}, name='cart_create_from_dashboard')),
+    path('category_list/<int:restaurant>',
+         FoodViewSet.as_view({'get': 'category_list'}, name='category_list')),
 
 ]
 
@@ -150,8 +152,8 @@ urlpatterns = [
 
     path('order/status/in_table/',
          FoodOrderViewSet.as_view({'post': 'in_table_status'}, name='in_table_status')),
-    path('order/create_invoice/',
-         FoodOrderViewSet.as_view({'post': 'create_invoice'}, name='create_invoice')),
+   # path('order/create_invoice/',
+    #     FoodOrderViewSet.as_view({'post': 'create_invoice'}, name='create_invoice')),
     path('order/confirm_payment/',
          FoodOrderViewSet.as_view({'post': 'payment'}, name='confirm_payment')),
 
@@ -182,6 +184,9 @@ urlpatterns = [
 
     path('restaurant/<int:restaurant>/discount_list/',
          DiscountViewSet.as_view({'get': 'discount_list'}), name='discount_list'),
+
+    path('restaurant/create_discount/',
+         DiscountViewSet.as_view({'post': 'create_discount'}), name='create_discount'),
 
 
     path('delete_discount/<int:discount_id>',
