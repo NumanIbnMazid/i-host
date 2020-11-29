@@ -449,6 +449,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = FoodOrderConfirmSerializer
         elif self.action in ['payment', 'create_invoice']:
             self.serializer_class = PaymentSerializer
+        elif self.action in ['retrieve']:
+            self.serializer_class = FoodOrderByTableSerializer
         else:
             self.serializer_class = FoodOrderUserPostSerializer
 
@@ -1230,13 +1232,18 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-        food_qs = Food.objects.filter(discount=request.data.get("discount_id"))
+        food_qs = Food.objects.filter(pk__in= request.data.get('food_id_lists'))
         if not food_qs:
+            return ResponseWrapper(error_msg=['Food is invalid'], error_code=400)
+        discount_qs = Discount.objects.filter(pk=request.data.get('discount_id')).first()
+        if not discount_qs:
             return ResponseWrapper(error_msg=['Discount is invalid'], error_code=400)
 
-        qs = food_qs.save()
+        updated = food_qs.update(discount=discount_qs)
+        if not updated:
+            return ResponseWrapper(error_msg=['Food Discount is not update'], error_code=400)
 
-        serializer = FoodDetailsByDiscountSerializer(instance=qs, many=True)
+        serializer = FoodDetailsByDiscountSerializer(instance=food_qs, many=True)
 
         return ResponseWrapper(data=serializer.data, msg='success')
 
