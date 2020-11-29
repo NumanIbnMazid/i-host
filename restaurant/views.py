@@ -2,6 +2,7 @@ import decimal
 import json
 
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg2 import openapi
 
 from . import permissions as custom_permissions
 
@@ -901,21 +902,20 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
     serializer_class = FoodWithPriceSerializer
 
     def get_serializer_class(self):
-        if self.action == 'retrieve':
+        if self.action in ['retrieve']:
             self.serializer_class = FoodDetailSerializer
+        if self.action in ['dashboard_food_search']:
+            self.serializer_class = FoodSerializer
 
         return self.serializer_class
     # permission_classes = [permissions.IsAuthenticated]
 
 
     def get_permissions(self):
-        permission_classes = []
-        if self.action in []:
+        if self.action in ['dashboard_food_search','food_list']:
             permission_classes = [permissions.IsAuthenticated]
-        # elif self.action == "retrieve" or self.action == "update":
-        #     permission_classes = [permissions.AllowAny]
-        # else:
-        #     permission_classes = [permissions.IsAdminUser]
+        else:
+            permission_classes = [permissions.AllowAny]
         return [permission() for permission in permission_classes]
 
     queryset = Food.objects.all()
@@ -931,17 +931,43 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
         serializer = FoodCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
+
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter("restaurant", openapi.IN_QUERY,
+                          type=openapi.TYPE_INTEGER)
+    ])
     def food_list(self, request, *args,category_id, **kwargs):
-        category_qs = Food.objects.filter(id= category_id,restaurant_id = request.data.get('restaurant'))
+        category_qs = Food.objects.filter(category= category_id)
+        restaurant_id = int(request.query_params.get('restaurant'))
+        if not (
+            self.request.user.is_staff or HotelStaffInformation.objects.filter(
+                Q(is_owner=True) | Q(is_manager=True),
+                user_id=request.user.pk, restaurant_id=restaurant_id
+            )
+        ):
+            return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=["can't get food list"])
+
         serializer = self.get_serializer(instance=category_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter("restaurant", openapi.IN_QUERY,
+                          type=openapi.TYPE_INTEGER)
+    ])
     def dashboard_food_search(self, request, *args,food_name, **kwargs):
         food_name_qs = Food.objects.filter(name__icontains=food_name)
+        restaurant_id = int(request.query_params.get('restaurant'))
+
+        if not (
+            self.request.user.is_staff or HotelStaffInformation.objects.filter(
+                Q(is_owner=True) | Q(is_manager=True),
+                user_id=request.user.pk, restaurant_id=restaurant_id
+            )
+        ):
+            return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=["can't get food list,  please consult with manager or owner of the hotel"])
+
         serializer = FoodDetailSerializer(instance=food_name_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
-
-
 
 
     def food_extra_by_food(self, request, *args, **kwargs):
@@ -1200,7 +1226,6 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
                                                     restaurant_id=restaurant_id):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg='user is not manager or owner')
 
-        #serializer = serializer(data=request.data, partial=True)
         if serializer.is_valid():
             qs = serializer.update(instance=self.get_object(
             ), validated_data=serializer.validated_data)
