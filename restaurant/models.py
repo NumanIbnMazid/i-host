@@ -255,7 +255,7 @@ class Discount(SoftDeleteModel):
         Restaurant, on_delete=models.SET_NULL, related_name='discount', null=True)
 
     # discount_slot_start_time = models.TimeField(null=True, blank=True)
-    # discount_slot_closing_time = models.TimeField(null=True, blank=True)
+    # discounut_slot_closing_time = models.TimeField(null=True, blank=True)
 
     # discount_type = models.CharField(choices=DISCOUNT_TYPE,
     #                                  max_length=50, default="PERCENTAGE")

@@ -912,6 +912,14 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     http_method_names = ['post', 'patch', 'get', 'delete']
 
+
+
+    def category_list(self, request, *args,restaurant, **kwargs):
+        qs = FoodCategory.objects.filter(
+            foods__restaurant=restaurant).distinct()
+        serializer = FoodCategorySerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
     def food_extra_by_food(self, request, *args, **kwargs):
         instance = self.get_object()
 
@@ -1119,7 +1127,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['discount_delete', 'update_discount']:
+        if self.action in ['discount_delete', 'update_discount','create_discount']:
             permission_classes = [permissions.IsAuthenticated]
         # elif self.action == "retrieve" or self.action == "update":
         #     permission_classes = [permissions.AllowAny]
@@ -1136,6 +1144,27 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         qs = Discount.objects.filter(restaurant=restaurant)
         serializer = DiscountSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
+
+
+    def create_discount(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+        if not request.data:
+            return ResponseWrapper(error_code=400, error_msg='empty request body')
+
+        discount_qs = FoodOrder.objects.filter(pk='id')
+        restaurant_id = discount_qs.first().restaurant_id
+
+        if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
+                                                    restaurant_id=restaurant_id):
+            return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg='not a valid manager or owner')
+
+        qs = serializer.save()
+
+        serializer = DiscountSerializer(
+            instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='created')
 
     def update_discount(self, request, pk, **kwargs):
         serializer_class = self.get_serializer_class()
