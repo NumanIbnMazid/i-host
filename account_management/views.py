@@ -341,12 +341,16 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
         return ResponseWrapper(data=user_serializer.data, status=200)
 
     def update(self, request, *args, **kwargs):
-        password = request.data.pop("password")
+        password = request.data.pop("password",None)
         user_qs = User.objects.filter(pk=request.user.pk)
 
         # if user_qs:
-        password = make_password(password=password)
-        updated = user_qs.update(password=password, **request.data)
+        if password:
+            password = make_password(password=password)
+            updated = user_qs.update(password=password, **request.data)
+        else:
+            updated = user_qs.update(**request.data)
+
         if not updated:
             return ResponseWrapper(error_code=status.HTTP_400_BAD_REQUEST, error_msg=['failed to update'])
         user_serializer = UserAccountSerializer(
