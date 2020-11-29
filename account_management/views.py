@@ -436,7 +436,7 @@ class HotelStaffLogViewSet(LoggingMixin,CustomViewSet):
             #     permission_classes = [permissions.IsAuthenticated]
             # else:
             # permissions.DjangoObjectPermissions.has_permission()
-            permission_classes = (custom_permissions.IsRestaurantOwner)#,custom_permissions.IsRestaurantManager,permissions.IsAdminUser]
+            permission_classes = [custom_permissions.IsRestaurantOwner]#,custom_permissions.IsRestaurantManager,permissions.IsAdminUser]
         else:
             permission_classes = [permissions.IsAdminUser]
 
