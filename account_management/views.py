@@ -172,8 +172,6 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
         restaurant_id = serializer.data.get('restaurant_id')
         user_info_dict = {}
 
-        if serializer.data.get("email"):
-            user_info_dict['email'] = serializer.data.get("email")
 
         if serializer.data.get('phone'):
             user_info_dict['phone'] = serializer.data.get("phone")
@@ -188,6 +186,8 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
             staff_info['shift_end'] = request.data.get('shift_end')
         if serializer.data.get("name"):
             staff_info['name'] = serializer.data.get("name")
+        if serializer.data.get("email_address"):
+            staff_info['email'] = serializer.data.get("email_address")
 
         if request.data.get('nid'):
             staff_info['nid'] = request.data.get('nid')
