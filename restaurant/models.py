@@ -23,8 +23,8 @@ class Subscription(models.Model):
     code = models.CharField(max_length=5, unique=True)
     details = models.TextField(null=True, blank=True)
 
-    def __str__(self):
-        return self.name
+    # def __str__(self):
+    #     return self.name
 
 
 class Restaurant(SoftDeleteModel):
@@ -49,11 +49,13 @@ class Restaurant(SoftDeleteModel):
     subscription = models.ForeignKey(
         Subscription, on_delete=models.SET_NULL, null=True, related_name='restaurants')
     subscription_ends = models.DateField()
-    phone = models.CharField(null=True,blank=True,max_length=50)
-    vat_registration_no = models.CharField(max_length=250, null=True, blank=True)
-    trade_licence_no = models.CharField(max_length=250,null=True,blank=True)
+    phone = models.CharField(null=True, blank=True, max_length=50)
+    vat_registration_no = models.CharField(
+        max_length=250, null=True, blank=True)
+    trade_licence_no = models.CharField(max_length=250, null=True, blank=True)
+
     def __str__(self):
-        return self.name
+        return str(self.name)
 
 
 class RestaurantContactPerson(models.Model):
@@ -64,15 +66,15 @@ class RestaurantContactPerson(models.Model):
     restaurant = models.ForeignKey(
         Restaurant, on_delete=models.CASCADE, related_name='contact_persons')
 
-    def __str__(self):
-        return self.name
+    # def __str__(self):
+    #     return self.name
 
 
 class RestaurantPromoCategory(models.Model):
     category_name = models.CharField(max_length=80)
 
-    def __str__(self):
-        return self.category_name
+    # def __str__(self):
+    #     return self.category_name
 
 
 class FoodCategory(SoftDeleteModel):
@@ -80,8 +82,8 @@ class FoodCategory(SoftDeleteModel):
     image = models.ImageField(null=True, blank=True)
     # restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE,related_name='food_category')
 
-    def __str__(self):
-        return self.name
+    # def __str__(self):
+    #     return self.name
 
 
 class Food(SoftDeleteModel):
@@ -100,22 +102,22 @@ class Food(SoftDeleteModel):
     discount = models.ForeignKey(
         to="restaurant.Discount", null=True, blank=True, on_delete=models.SET_NULL, related_name='foods')
 
-    def __str__(self):
-        return self.name
+    # def __str__(self):
+    #     return self.name
 
 
 class FoodOptionType(SoftDeleteModel):
     name = models.CharField(max_length=50)
 
-    def __str__(self):
-        return self.name
+    # def __str__(self):
+    #     return self.name
 
 
 class FoodExtraType(SoftDeleteModel):
     name = models.CharField(max_length=50)
 
-    def __str__(self):
-        return self.name
+    # def __str__(self):
+    #     return self.name
 
 
 class FoodExtra(SoftDeleteModel):
@@ -126,8 +128,8 @@ class FoodExtra(SoftDeleteModel):
     extra_type = models.ForeignKey(
         FoodExtraType, on_delete=models.CASCADE, related_name='food_extras')
 
-    def __str__(self):
-        return self.name
+    # def __str__(self):
+    #     return self.name
 
 
 class FoodOption(SoftDeleteModel):
@@ -138,8 +140,8 @@ class FoodOption(SoftDeleteModel):
     option_type = models.ForeignKey(
         FoodOptionType, on_delete=models.CASCADE, related_name='food_options')
 
-    def __str__(self):
-        return self.name
+    # def __str__(self):
+    #     return self.name
 
 
 class Table(SoftDeleteModel):
@@ -148,11 +150,13 @@ class Table(SoftDeleteModel):
         Restaurant, on_delete=models.CASCADE, related_name='tables')
     name = models.CharField(max_length=50, null=True, blank=True)
     staff_assigned = models.ManyToManyField(
-        to='account_management.HotelStaffInformation', blank=True,related_name='tables')
+        to='account_management.HotelStaffInformation', blank=True, related_name='tables')
     is_occupied = models.BooleanField(default=False)
 
-    def __str__(self):
-        return self.name+'  ' + self.id.__str__()
+    # def __str__(self):
+    #     return self.name
+    #            #+'' + self.id.__str__()
+
 
 
 class FoodOrder(SoftDeleteModel):
@@ -186,7 +190,7 @@ class FoodOrder(SoftDeleteModel):
 
     def __str__(self):
         if self.table:
-            return self.table.name
+            return str(self.table.name)
         else:
             return 'table null'
 
@@ -268,5 +272,5 @@ class Discount(SoftDeleteModel):
     # number_of_times_allowed_by_each_user = models.PositiveIntegerField(
     #     null=True, blank=True)
 
-    def __str__(self):
-        return self.name
+    # def __str__(self):
+    #     return self.name
