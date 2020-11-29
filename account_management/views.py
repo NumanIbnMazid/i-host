@@ -175,6 +175,9 @@ class RestaurantAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
         if serializer.data.get('phone'):
             user_info_dict['phone'] = serializer.data.get("phone")
 
+        if serializer.data.get("name"):
+            user_info_dict['first_name'] = serializer.data.get("name")
+
         staff_info = {}
         if request.data.get('shift_start'):
             staff_info['shift_start'] = request.data.get('shift_start')
@@ -341,7 +344,7 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
         return ResponseWrapper(data=user_serializer.data, status=200)
 
     def update(self, request, *args, **kwargs):
-        password = request.data.pop("password",None)
+        password = request.data.pop("password", None)
         user_qs = User.objects.filter(pk=request.user.pk)
 
         # if user_qs:
