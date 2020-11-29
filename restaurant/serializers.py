@@ -585,7 +585,7 @@ class DiscountSerializer(serializers.ModelSerializer):
         exclude = ['deleted_at']
 
 class FoodDetailsByDiscountSerializer(serializers.ModelSerializer):
-    discount = DiscountSerializer( read_only= True, many= True)
+    discount = DiscountSerializer(read_only= True, many= True)
     class Meta:
         model = Food
         fields =['id', 'image','discount']
