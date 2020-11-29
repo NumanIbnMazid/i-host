@@ -357,7 +357,7 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
         return ResponseWrapper(data=user_serializer.data, status=200)
 
     def update(self, request, *args, **kwargs):
-        password = request.data.pop("password", None)
+        password = request.data.pop("password",None)
         user_qs = User.objects.filter(pk=request.user.pk)
 
         # if user_qs:

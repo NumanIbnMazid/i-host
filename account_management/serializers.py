@@ -70,7 +70,6 @@ class StaffInfoSerializer(serializers.ModelSerializer):
         model = HotelStaffInformation
         fields = ['shift_start', 'shift_end', 'nid', 'image', 'name','email']
 
-
 class RestaurantUserSignUpSerializer(serializers.Serializer):
     restaurant_id = serializers.IntegerField()
     email_address = serializers.EmailField(required=False, allow_blank=True)
@@ -136,6 +135,7 @@ class StaffLoginInfoGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelStaffInformation
         fields = [
+            "id",
             "user",
             "image",
             "is_manager",
