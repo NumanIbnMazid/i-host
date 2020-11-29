@@ -105,6 +105,7 @@ class HotelStaffInformation(SoftDeleteModel):
     #     choices=DAYS_OF_WEEK, max_length=20, null=True, blank=True)
     restaurant = models.ForeignKey(
         to='restaurant.Restaurant', on_delete=models.CASCADE, null=True, blank=True, related_name='hotel_staff')
+    email = models.EmailField(null=True, blank=True)
 
     class Meta:
         constraints = [
