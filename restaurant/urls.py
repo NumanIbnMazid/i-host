@@ -55,8 +55,8 @@ dashboard_urls = [
     path('food_discount/',
          DiscountViewSet.as_view({'post': 'food_discount'}), name='food_discount'),
 
-     path('table/<int:table_id>/order_item_list/',
-          TableViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),
+    path('table/<int:table_id>/order_item_list/',
+         TableViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),
 
 ] + fake_dashboard_urls
 
@@ -171,8 +171,8 @@ urlpatterns = [
 
     path('order/status/in_table/',
          FoodOrderViewSet.as_view({'post': 'in_table_status'}, name='in_table_status')),
-    # path('order/create_invoice/',
-    #     FoodOrderViewSet.as_view({'post': 'create_invoice'}, name='create_invoice')),
+    path('order/create_invoice/',
+         FoodOrderViewSet.as_view({'post': 'create_invoice'}, name='create_invoice')),
     path('order/confirm_payment/',
          FoodOrderViewSet.as_view({'post': 'payment'}, name='confirm_payment')),
 
