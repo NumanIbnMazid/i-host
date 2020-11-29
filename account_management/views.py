@@ -402,4 +402,7 @@ class CustomerInfoViewset(LoggingMixin, viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
 
-# class HotelStaffLogViewSet(LoggingMixin,viewsets.ModelViewSet):
+class HotelStaffLogViewSet(LoggingMixin,viewsets.ModelViewSet):
+    def get_permissions(self):
+        if self.action == "post":
+            permission_classes = [permissions.IsAdminUser]
