@@ -449,6 +449,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = FoodOrderConfirmSerializer
         elif self.action in ['payment', 'create_invoice']:
             self.serializer_class = PaymentSerializer
+        elif self.action in ['retrieve']:
+            self.serializer_class = FoodOrderByTableSerializer
         else:
             self.serializer_class = FoodOrderUserPostSerializer
 
