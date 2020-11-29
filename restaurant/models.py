@@ -49,11 +49,13 @@ class Restaurant(SoftDeleteModel):
     subscription = models.ForeignKey(
         Subscription, on_delete=models.SET_NULL, null=True, related_name='restaurants')
     subscription_ends = models.DateField()
-    phone = models.CharField(null=True,blank=True,max_length=50)
-    vat_registration_no = models.CharField(max_length=250, null=True, blank=True)
-    trade_licence_no = models.CharField(max_length=250,null=True,blank=True)
-    # def __str__(self):
-    #     return self.name
+    phone = models.CharField(null=True, blank=True, max_length=50)
+    vat_registration_no = models.CharField(
+        max_length=250, null=True, blank=True)
+    trade_licence_no = models.CharField(max_length=250, null=True, blank=True)
+
+    def __str__(self):
+        return str(self.name)
 
 
 class RestaurantContactPerson(models.Model):
@@ -148,7 +150,7 @@ class Table(SoftDeleteModel):
         Restaurant, on_delete=models.CASCADE, related_name='tables')
     name = models.CharField(max_length=50, null=True, blank=True)
     staff_assigned = models.ManyToManyField(
-        to='account_management.HotelStaffInformation', blank=True,related_name='tables')
+        to='account_management.HotelStaffInformation', blank=True, related_name='tables')
     is_occupied = models.BooleanField(default=False)
 
     # def __str__(self):
@@ -188,7 +190,7 @@ class FoodOrder(SoftDeleteModel):
 
     def __str__(self):
         if self.table:
-            return self.table.name
+            return str(self.table.name)
         else:
             return 'table null'
 
@@ -257,7 +259,7 @@ class Discount(SoftDeleteModel):
         Restaurant, on_delete=models.SET_NULL, related_name='discount', null=True)
 
     # discount_slot_start_time = models.TimeField(null=True, blank=True)
-    # discount_slot_closing_time = models.TimeField(null=True, blank=True)
+    # discounut_slot_closing_time = models.TimeField(null=True, blank=True)
 
     # discount_type = models.CharField(choices=DISCOUNT_TYPE,
     #                                  max_length=50, default="PERCENTAGE")

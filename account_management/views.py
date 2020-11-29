@@ -175,6 +175,9 @@ class RestaurantAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
         if serializer.data.get('phone'):
             user_info_dict['phone'] = serializer.data.get("phone")
 
+        if serializer.data.get("name"):
+            user_info_dict['first_name'] = serializer.data.get("name")
+
         staff_info = {}
         if request.data.get('shift_start'):
             staff_info['shift_start'] = request.data.get('shift_start')
@@ -399,9 +402,4 @@ class CustomerInfoViewset(LoggingMixin, viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
 
-class HotelStaffLogViewSet(LoggingMixin,viewsets.ModelViewSet):
-    def get_permissions(self):
-        if self.action == "post":
-            permission_classes = [permissions.IsAdminUser]
-        return [permission() for permission in permission_classes]
-
+# class HotelStaffLogViewSet(LoggingMixin,viewsets.ModelViewSet):
