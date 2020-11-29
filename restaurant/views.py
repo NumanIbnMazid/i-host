@@ -537,7 +537,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 return ResponseWrapper(
                     error_msg=['Order order not found'], error_code=400)
 
-            serializer = FoodOrderUserPostSerializer(instance=order_qs)
+            serializer = FoodOrderByTableSerializer(instance=order_qs)
+            #  FoodOrderUserPostSerializer
             return ResponseWrapper(data=serializer.data, msg='Cancel')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -913,9 +914,8 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
         return self.serializer_class
     # permission_classes = [permissions.IsAuthenticated]
 
-
     def get_permissions(self):
-        if self.action in ['dashboard_food_search','food_list']:
+        if self.action in ['dashboard_food_search', 'food_list']:
             permission_classes = [permissions.IsAuthenticated]
         else:
             permission_classes = [permissions.AllowAny]
@@ -926,21 +926,18 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     http_method_names = ['post', 'patch', 'get', 'delete']
 
-
-
-    def category_list(self, request, *args,restaurant, **kwargs):
+    def category_list(self, request, *args, restaurant, **kwargs):
         qs = FoodCategory.objects.filter(
             foods__restaurant=restaurant).distinct()
         serializer = FoodCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
-
     @swagger_auto_schema(manual_parameters=[
         openapi.Parameter("restaurant", openapi.IN_QUERY,
                           type=openapi.TYPE_INTEGER)
     ])
-    def food_list(self, request, *args,category_id, **kwargs):
-        category_qs = Food.objects.filter(category= category_id)
+    def food_list(self, request, *args, category_id, **kwargs):
+        category_qs = Food.objects.filter(category=category_id)
         restaurant_id = int(request.query_params.get('restaurant'))
         if not (
             self.request.user.is_staff or HotelStaffInformation.objects.filter(
@@ -957,7 +954,7 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
         openapi.Parameter("restaurant", openapi.IN_QUERY,
                           type=openapi.TYPE_INTEGER)
     ])
-    def dashboard_food_search(self, request, *args,food_name, **kwargs):
+    def dashboard_food_search(self, request, *args, food_name, **kwargs):
         food_name_qs = Food.objects.filter(name__icontains=food_name)
         restaurant_id = int(request.query_params.get('restaurant'))
 
@@ -971,7 +968,6 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
 
         serializer = FoodDetailSerializer(instance=food_name_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
-
 
     def food_extra_by_food(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1173,7 +1169,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
     serializer_class = DiscountSerializer
 
     def get_serializer_class(self):
-        if self.action in ['retrieve','update_discount']:
+        if self.action in ['retrieve', 'update_discount']:
             self.serializer_class = DiscountSerializer
 
         elif self.action in ['food_discount']:
@@ -1183,7 +1179,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['discount_delete', 'update_discount','create_discount']:
+        if self.action in ['discount_delete', 'update_discount', 'create_discount']:
             permission_classes = [permissions.IsAuthenticated]
         # elif self.action == "retrieve" or self.action == "update":
         #     permission_classes = [permissions.AllowAny]
@@ -1200,6 +1196,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         qs = Discount.objects.filter(restaurant=restaurant)
         serializer = DiscountSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
+
     def all_discount_list(self, request, *args, **kwargs):
         qs = Discount.objects.all()
         serializer = DiscountSerializer(instance=qs, many=True)
@@ -1232,10 +1229,11 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-        food_qs = Food.objects.filter(pk__in= request.data.get('food_id_lists'))
+        food_qs = Food.objects.filter(pk__in=request.data.get('food_id_lists'))
         if not food_qs:
             return ResponseWrapper(error_msg=['Food is invalid'], error_code=400)
-        discount_qs = Discount.objects.filter(pk=request.data.get('discount_id')).first()
+        discount_qs = Discount.objects.filter(
+            pk=request.data.get('discount_id')).first()
         if not discount_qs:
             return ResponseWrapper(error_msg=['Discount is invalid'], error_code=400)
 
@@ -1243,7 +1241,8 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         if not updated:
             return ResponseWrapper(error_msg=['Food Discount is not update'], error_code=400)
 
-        serializer = FoodDetailsByDiscountSerializer(instance=food_qs, many=True)
+        serializer = FoodDetailsByDiscountSerializer(
+            instance=food_qs, many=True)
 
         return ResponseWrapper(data=serializer.data, msg='success')
 
@@ -1268,16 +1267,13 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def delete_discount(self, request,discount_id, *args, **kwargs):
-        discount_qs = Discount.objects.filter(id = discount_id)
+    def delete_discount(self, request, discount_id, *args, **kwargs):
+        discount_qs = Discount.objects.filter(id=discount_id)
         restaurant_id = discount_qs.first().restaurant_id
-        qs = HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk, restaurant = restaurant_id)
+        qs = HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(
+            is_owner=True), user=request.user.pk, restaurant=restaurant_id)
         if qs:
             discount_qs.delete()
             return ResponseWrapper(status=200, msg='deleted')
         else:
             return ResponseWrapper(error_msg="failed to delete", error_code=400)
-
-
-
-
