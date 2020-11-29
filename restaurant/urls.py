@@ -26,8 +26,10 @@ router.register('food_option', FoodOptionViewSet,
 router.register('food', FoodViewSet,
                 basename="food")
 
-#router.register('discount', DiscountViewSet,
- #               basename="discount")
+# router.register('discount', DiscountViewSet,
+#               basename="discount")
+
+fake_dashboard_urls = []
 
 dashboard_urls = [
     path('order/cart/items/',
@@ -51,7 +53,7 @@ dashboard_urls = [
     path('update_discount/<int:pk>',
          DiscountViewSet.as_view({'patch': 'update_discount'}), name='update_discount'),
 
-]
+] + fake_dashboard_urls
 
 
 urlpatterns = [
@@ -166,7 +168,7 @@ urlpatterns = [
 
     path('order/status/in_table/',
          FoodOrderViewSet.as_view({'post': 'in_table_status'}, name='in_table_status')),
-   # path('order/create_invoice/',
+    # path('order/create_invoice/',
     #     FoodOrderViewSet.as_view({'post': 'create_invoice'}, name='create_invoice')),
     path('order/confirm_payment/',
          FoodOrderViewSet.as_view({'post': 'payment'}, name='confirm_payment')),
