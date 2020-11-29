@@ -26,8 +26,8 @@ router.register('food_option', FoodOptionViewSet,
 router.register('food', FoodViewSet,
                 basename="food")
 
-router.register('discount', DiscountViewSet,
-                basename="discount")
+#router.register('discount', DiscountViewSet,
+ #               basename="discount")
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -177,6 +177,11 @@ urlpatterns = [
 
     path('restaurant/<int:restaurant>/discount_list/',
          DiscountViewSet.as_view({'get': 'discount_list'}), name='discount_list'),
+
+    path('delete_discount/<int:discount_id>',
+         DiscountViewSet.as_view({'delete': 'discount_delete'}), name='discount_delete'),
+    #path('update_discount/<int:pk>',
+     #    DiscountViewSet.as_view({'patch': 'update_discount'}), name='update_discount'),
 
 
 ]

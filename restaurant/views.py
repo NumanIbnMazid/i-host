@@ -1089,13 +1089,58 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 class DiscountViewSet(LoggingMixin,CustomViewSet):
     serializer_class = DiscountSerializer
 
+    def get_serializer_class(self):
+        if self.action in ['retrieve','update_discount']:
+            self.serializer_class = DiscountSerializer
+
+        return self.serializer_class
+
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['discount_delete', 'update_discount']:
+            permission_classes = [permissions.IsAuthenticated]
+        # elif self.action == "retrieve" or self.action == "update":
+        #     permission_classes = [permissions.AllowAny]
+        # else:
+        #     permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+
     queryset = Discount.objects.all()
     lookup_field = 'pk'
-    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+    logging_methods = ['GET', 'POST', 'PATCH']
     http_method_names = ['post', 'patch', 'get', 'delete']
 
     def discount_list(self, request, restaurant, *args, **kwargs):
         qs = Discount.objects.filter(restaurant=restaurant)
         serializer = DiscountSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
+
+    def update_discount(self, request, pk, **kwargs):
+        serializer_class = self.get_serializer_class()
+        discount_qs = serializer_class(data=request.data, partial=True)
+        #discount_qs = Invoice.objects.all()
+        restaurant_id = discount_qs.first().restaurant_id
+        discount_qs = HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
+                                                  restaurant=restaurant_id)
+
+        if discount_qs.is_valid():
+            qs = discount_qs.update(instance=self.get_object(
+            ), validated_data=discount_qs.validated_data)
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_msg=discount_qs.errors, error_code=400)
+
+    def delete_discount(self, request,discount_id, *args, **kwargs):
+        discount_qs = Discount.objects.filter(id = discount_id)
+        restaurant_id = discount_qs.first().restaurant_id
+        qs = HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk, restaurant = restaurant_id)
+        if qs:
+            discount_qs.delete()
+            return ResponseWrapper(status=200, msg='deleted')
+        else:
+            return ResponseWrapper(error_msg="failed to delete", error_code=400)
+
+
+
 
