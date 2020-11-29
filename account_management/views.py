@@ -445,7 +445,7 @@ class HotelStaffLogViewSet(LoggingMixin,CustomViewSet):
 
     def hotel_staff_logger(self,request,*args, **kwargs):
         restaurant_id = request.data.get('restaurant')
-        log_qs = self.get_queryset().filter(user__hotel_staff__restaurant_id=restaurant_id).distinct()
+        log_qs = self.get_queryset().filter(user__hotel_staff__restaurant_id=restaurant_id).distinct().order_by('-id')
         serializer = LogSerializerGet(instance = log_qs,many=True)
         return  ResponseWrapper(serializer.data)
 
