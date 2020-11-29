@@ -216,6 +216,7 @@ class FoodOrderConfirmSerializer(serializers.Serializer):
     food_items = serializers.ListSerializer(child=serializers.IntegerField())
 
 
+
 class PaymentSerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
 
@@ -573,9 +574,18 @@ class ReportingDateRangeGraphSerializer(serializers.Serializer):
                                                     ("5_PAID", "Payment Done"),
                                                     ("6_CANCELLED", "Cancelled"), ], default="5_PAID", required=False)
 
+class DiscountByFoodSerializer(serializers.Serializer):
+    discount_id = serializers.IntegerField()
+    food_id_lists = serializers.ListSerializer(child=serializers.IntegerField())
 
 class DiscountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discount
         # fields ='__all__'
         exclude = ['deleted_at']
+
+class FoodDetailsByDiscountSerializer(serializers.ModelSerializer):
+    discount = DiscountSerializer( read_only= True, many= True)
+    class Meta:
+        model = Food
+        fields =['id', 'image','discount']

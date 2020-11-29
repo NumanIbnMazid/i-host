@@ -46,7 +46,8 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           StaffTableSerializer, TableSerializer,
                           TableStaffSerializer,
                           TopRecommendedFoodListSerializer, InvoiceGetSerializer, DiscountSerializer,
-                          OrderedItemDashboardPostSerializer, OrderedItemGetDetailsSerializer)
+                          OrderedItemDashboardPostSerializer, OrderedItemGetDetailsSerializer, DiscountByFoodSerializer,
+                          FoodDetailsByDiscountSerializer)
 from rest_framework_tracking.mixins import LoggingMixin
 
 
@@ -406,7 +407,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
 
     def order_item_list(self, request, table_id, *args, **kwargs):
 
-        qs = FoodOrder.objects.filter(pk=table_id)
+        qs = FoodOrder.objects.filter(table=table_id)
         # qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
 
         serializer = FoodOrderByTableSerializer(instance=qs, many=True)
@@ -1173,6 +1174,9 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         if self.action in ['retrieve','update_discount']:
             self.serializer_class = DiscountSerializer
 
+        elif self.action in ['food_discount']:
+            self.serializer_class = DiscountByFoodSerializer
+
         return self.serializer_class
 
     def get_permissions(self):
@@ -1220,6 +1224,21 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
 
         serializer = self.get_serializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='created')
+
+    def food_discount(self, request,  *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+        food_qs = Food.objects.filter(discount=request.data.get("discount_id"))
+        if not food_qs:
+            return ResponseWrapper(error_msg=['Discount is invalid'], error_code=400)
+
+        qs = food_qs.save()
+
+        serializer = FoodDetailsByDiscountSerializer(instance=qs, many=True)
+
+        return ResponseWrapper(data=serializer.data, msg='success')
 
     def update_discount(self, request, pk, **kwargs):
         serializer = self.get_serializer(data=request.data, partial=True)
