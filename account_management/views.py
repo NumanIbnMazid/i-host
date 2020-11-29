@@ -109,7 +109,7 @@ def verify_login(request):
     return ResponseWrapper(data="Token is Valid", status=200)
 
 
-class RestaurantAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
+class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def get_serializer_class(self):
@@ -266,6 +266,19 @@ class RestaurantAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
             restaurant_id=id, is_manager=True)
         serializer = StaffInfoGetSerializer(instance=manager_qs, many=True)
         return ResponseWrapper(data=serializer.data)
+
+    def update(self, request, **kwargs):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data, partial=True)
+        if serializer.is_valid():
+            qs = serializer.update(instance=self.get_object(
+            ), validated_data=serializer.validated_data)
+            serializer = self.serializer_class(instance=qs)
+            qs.user.first_name = request.data.get('name')
+            qs.user.save()
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
 
 class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
