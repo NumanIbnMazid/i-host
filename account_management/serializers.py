@@ -170,4 +170,4 @@ class LogSerializerPost(serializers.Serializer):
 class LogSerializerGet(serializers.ModelSerializer):
     class Meta:
         model = APIRequestLog
-        fields = ['id']
+        exclude = ['response']
