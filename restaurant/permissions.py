@@ -150,7 +150,8 @@ class IsRestaurantManagementOrAdmin(permissions.BasePermission):
         """
         Return `True` if permission is granted, `False` otherwise.
         """
-        request.user.is_admin
+        if request.user.is_staff or request.user.is_superuser:
+            return True
         hotel_staff_qs = HotelStaffInformation.objects.filter(
             Q(user=request.user), Q(is_owner=True) | Q(is_manager=True) | Q(user__is_staff=True) | Q(user__is_superuser=True))
         if hotel_staff_qs:
