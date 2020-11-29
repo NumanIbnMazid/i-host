@@ -1,6 +1,6 @@
 from django.db.models import Q
 from restaurant.models import Restaurant
-from account_management.models import HotelStaffInformation
+from account_management.models import HotelStaffInformation, UserAccount
 from rest_framework import permissions
 
 """
@@ -132,6 +132,42 @@ class IsRestaurantStaff(permissions.BasePermission):
         #     restaurant=obj.pk, user=request.user, is_waiter=True)
         hotel_staff_qs = HotelStaffInformation.objects.filter(
             Q(user=request.user, restaurant=obj.pk), Q(is_waiter=True) | Q(is_owner=True) | Q(is_manager=True))
+
+        if hotel_staff_qs:
+            return True
+        else:
+            return False
+
+
+class IsRestaurantManagementOrAdmin(permissions.BasePermission):
+    """
+    Object-level permission to only allow owners of an object to edit it.
+    Assumes the model instance has an `owner` attribute.
+    """
+    message = 'Not a restaurant staff.'
+
+    def has_permission(self, request, view):
+        """
+        Return `True` if permission is granted, `False` otherwise.
+        """
+        request.user.is_admin
+        hotel_staff_qs = HotelStaffInformation.objects.filter(
+            Q(user=request.user), Q(is_owner=True) | Q(is_manager=True) | Q(user__is_staff=True) | Q(user__is_superuser=True))
+        if hotel_staff_qs:
+            return True
+        else:
+            return False
+
+    def has_object_permission(self, request, view, obj):
+        # Read permissions are allowed to any request,
+        # so we'll always allow GET, HEAD or OPTIONS requests.
+        # hotel_staff_qs = HotelStaffInformation.objects.filter(
+        #     restaurant=obj.pk, user=request.user, is_waiter=True)
+        if UserAccount.objects.filter(Q(user__is_staff=True) | Q(user__is_superuser=True), pk=request.user.pk):
+            return True
+
+        hotel_staff_qs = HotelStaffInformation.objects.filter(
+            Q(user=request.user, restaurant=obj.pk),   Q(is_owner=True) | Q(is_manager=True))
 
         if hotel_staff_qs:
             return True
