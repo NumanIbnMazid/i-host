@@ -1194,7 +1194,15 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         qs = Discount.objects.filter(restaurant=restaurant)
         serializer = DiscountSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
+    def all_discount_list(self, request, *args, **kwargs):
+        qs = Discount.objects.all()
+        serializer = DiscountSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data)
 
+    def discount(self, request, pk, *args, **kwargs):
+        qs = Discount.objects.filter(id=pk)
+        serializer = DiscountSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data)
 
     def create_discount(self, request):
         serializer = self.get_serializer(data=request.data)

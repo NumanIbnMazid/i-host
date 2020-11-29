@@ -196,10 +196,13 @@ urlpatterns = [
     path('restaurant/<int:restaurant>/paid_cancel_invoice_history/',
          InvoiceViewSet.as_view({'get': 'paid_cancel_invoice_history'}), name='paid_cancel_invoice_history'),
 
+    path('restaurant/all_discount_list/',
+         DiscountViewSet.as_view({'get': 'all_discount_list'}), name='all_discount_list'),
+
     path('restaurant/<int:restaurant>/discount_list/',
          DiscountViewSet.as_view({'get': 'discount_list'}), name='discount_list'),
-
-
+    path('restaurant/discount/<int:pk>/',
+         DiscountViewSet.as_view({'get': 'discount'}), name='discount'),
     path('dashboard/', include(dashboard_urls)),
 
 
