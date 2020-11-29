@@ -50,6 +50,9 @@ restaurant_account_management = [
     path("restaurant/<int:id>/manager_info/", RestaurantAccountManagerViewSet.as_view({
         "get": "manager_info"
     }), name="manager_info"),
+    path("restaurant/<int:restaurant_id>/hotel_staff_logger",HotelStaffLogViewSet.as_view({
+        "get":"hotel_staff_logger"
+    }),name="hotel_staff_logger")
 ]
 
 auth_urlpatterns = [
