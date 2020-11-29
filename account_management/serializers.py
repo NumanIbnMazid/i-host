@@ -122,6 +122,7 @@ class StaffInfoGetSerializer(serializers.ModelSerializer):
             "restaurant",
             "phone",
             "tables",
+            "email",
         ]
 
 
