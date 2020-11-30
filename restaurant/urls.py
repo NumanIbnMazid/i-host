@@ -363,4 +363,5 @@ urlpatterns = [
     path('dashboard/', include(dashboard_urls)),
     path('apps/', include(dashboard_urls)),
 
-]+apps
+]
+#+apps
