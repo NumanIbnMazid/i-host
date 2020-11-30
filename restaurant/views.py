@@ -1158,6 +1158,23 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
         return ResponseWrapper(data = response, msg='success')
 
+    @swagger_auto_schema(
+        request_body=ReportDateRangeSerializer
+    )
+    def food_report_by_date_range(self, request, *args, **kwargs):
+        start_date = request.data.get('start_date')
+        end_date = request.data.get('end_date')
+
+        food_items_date_range_qs = Invoice.objects.filter(created_at__gte= start_date,updated_at__lte=end_date,payment_status='1_PAID')
+        order_info_qs = food_items_date_range_qs.values_list('order_info__ordered_items', flat=True)
+
+        for order_info in order_info_qs:
+            order_info_name = order_info.get
+
+        response = {'order_info':order_info_name}
+        return ResponseWrapper(data=response, msg='success')
+
+
 class InvoiceViewSet(LoggingMixin, CustomViewSet):
     serializer_class = InvoiceSerializer
 

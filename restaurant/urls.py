@@ -210,6 +210,9 @@ dashboard_urls = [
     path('report_by_date_range/',
           ReportingViewset.as_view({'post': 'report_by_date_range'}), name='report_by_date_range'),
 
+    path('food_report_by_date_range/',
+          ReportingViewset.as_view({'post': 'food_report_by_date_range'}), name='food_report_by_date_range'),
+
 ] + fake_dashboard_urls
 
 
