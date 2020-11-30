@@ -47,7 +47,7 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           TableStaffSerializer,
                           TopRecommendedFoodListSerializer, InvoiceGetSerializer, DiscountSerializer,
                           OrderedItemDashboardPostSerializer, OrderedItemGetDetailsSerializer, DiscountByFoodSerializer,
-                          FoodDetailsByDiscountSerializer)
+                          FoodDetailsByDiscountSerializer, ReportDateRangeSerializer)
 from rest_framework_tracking.mixins import LoggingMixin
 
 
@@ -1090,6 +1090,8 @@ class FoodOrderViewSet(CustomViewSet):
 class ReportingViewset(LoggingMixin, viewsets.ViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
+    """
+
     def get_permissions(self):
         permission_classes = []
         if self.action == "create":
@@ -1135,9 +1137,33 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             order_date_range_qs = FoodOrder.objects.filter(table__restaurant__id=restaurant_id,
                                                            status__icontains=order_status, created_at__gte=from_date, created_at__lte=to_date)
         return order_date_range_qs
+        """
 
+    @swagger_auto_schema(
+        request_body=ReportDateRangeSerializer
+    )
+    def report_by_date_range(self,request, *args, **kwargs):
+        start_date = request.data.get('start_date')
+        end_date = request.data.get('end_date')
+        food_items = request.data.get('food_items','')
+        food_items_date_range_qs = self.get_queryset().filter(created_at= start_date,updated_at=end_date,order_info=food_items )
+        #order_info = food_items_date_range_qs.values_list('order_info', flat=True)
+        order_info = self.get_queryset().values_list('order_info', flat=True)
+        serializer = {'order_info': order_info}
+
+
+        return ResponseWrapper(data = serializer, msg='success')
 
 class InvoiceViewSet(LoggingMixin, CustomViewSet):
+    serializer_class = InvoiceSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['invoice_history']:
+            self.serializer_class = InvoiceSerializer
+
+        return self.serializer_class
+
+
     queryset = Invoice.objects.all()
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
@@ -1159,10 +1185,12 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data)
 
     def invoice(self, request, invoice_id, *args, **kwargs):
-
         qs = Invoice.objects.filter(pk__icontains=invoice_id)
         serializer = InvoiceSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
+
+
+
 
 
 class DiscountViewSet(LoggingMixin, CustomViewSet):

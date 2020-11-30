@@ -589,3 +589,13 @@ class FoodDetailsByDiscountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Food
         fields =['id', 'image','discount']
+
+
+
+class ReportDateRangeSerializer(serializers.Serializer):
+    start_date = serializers.DateField(required=False)
+    end_date = serializers.DateField(required=False)
+    food_items = serializers.ChoiceField(choices=[('name', 'name'),
+                                                  ('id', 'id'),
+                                                  ('quantity', 'quantity'),
+                                                  ('price', 'price')], required=False)

@@ -55,8 +55,11 @@ dashboard_urls = [
     path('food_discount/',
          DiscountViewSet.as_view({'post': 'food_discount'}), name='food_discount'),
 
-     path('table/<int:table_id>/order_item_list/',
+    path('table/<int:table_id>/order_item_list/',
           TableViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),
+
+    path('report_by_date_range/',
+          ReportingViewset.as_view({'post': 'report_by_date_range'}), name='report_by_date_range'),
 
 ] + fake_dashboard_urls
 
@@ -76,6 +79,7 @@ urlpatterns = [
     # New Add
     path('table/<int:table_id>/quantity_list/',
          TableViewSet.as_view({'get': 'quantity_list', }), name='quantity_list'),
+
 
 
     path('restaurant/',
