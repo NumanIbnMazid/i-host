@@ -146,7 +146,7 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
             #     permission_classes = [permissions.IsAuthenticated]
             # else:
             # permissions.DjangoObjectPermissions.has_permission()
-            permission_classes = [permissions.IsAdminUser]
+            permission_classes = [permissions.IsAdminUser,custom_permissions.IsRestaurantOwner]
         elif self.action in ["manager_info", "waiter_info"]:
             permission_classes = [permissions.AllowAny]
         else:
