@@ -140,13 +140,12 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
         return self.serializer_class
 
     def get_permissions(self):
-        if self.action in ["create_owner", "create_manager"]:
-            #     permission_classes = [permissions.AllowAny]
-            # elif self.action in ["retrieve", "update"]:
-            #     permission_classes = [permissions.IsAuthenticated]
-            # else:
-            # permissions.DjangoObjectPermissions.has_permission()
+        if self.action in ["create_owner"]:
+
             permission_classes = [permissions.IsAdminUser]
+        if self.action in [ "create_manager"]:
+            permission_classes = [custom_permissions.IsRestaurantOwnerOrAdmin]
+
         elif self.action in ["manager_info", "waiter_info"]:
             permission_classes = [permissions.AllowAny]
         else:
@@ -161,6 +160,7 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
 
     def create_manager(self, request, *args, **kwargs):
         # email = request.data.pop("email")
+        # self.check_object_permissions(request, obj=RestaurantUserSignUpSerializer)
         return self.create_staff(request, is_manager=True)
 
     def create_waiter(self, request, *args, **kwargs):
@@ -423,7 +423,9 @@ class CustomerInfoViewset(LoggingMixin, viewsets.ModelViewSet):
 
 
 
-class HotelStaffLogViewSet(LoggingMixin,CustomViewSet):
+class HotelStaffLogViewSet(CustomViewSet):
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+
     queryset = APIRequestLog.objects.all()
     def get_serializer_class(self):
         self.serializer_class = LogSerializerGet
@@ -435,11 +437,9 @@ class HotelStaffLogViewSet(LoggingMixin,CustomViewSet):
 
     def get_permissions(self):
         if self.action in ["hotel_staff_logger"]:
-            #     permission_classes = [permissions.AllowAny]
-            # elif self.action in ["retrieve", "update"]:
-            #     permission_classes = [permissions.IsAuthenticated]
-            # else:
-            # permissions.DjangoObjectPermissions.has_permission()
+
+            # permission_classes = [permissions.IsAdminUser,custom_permissions.IsRestaurantOwner]
+
             permission_classes = [custom_permissions.IsRestaurantManagementOrAdmin]
         else:
             permission_classes = [permissions.IsAdminUser]
