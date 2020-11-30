@@ -48,7 +48,7 @@ class UserManager(BaseUserManager):
         return self._create_user(username, email, password, **extra_fields)
 
 
-class UserAccount(AbstractUser):
+class   UserAccount(AbstractUser):
     USERS_IN_STATUS_CHOICES = [
         ("ACT", "Active"),
         ("UNV", "Unverified"),
