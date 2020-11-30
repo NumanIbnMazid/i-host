@@ -1,7 +1,6 @@
 from calendar import month
 from datetime import datetime
 from drf_yasg2 import openapi
-import day as day
 from rest_framework_tracking.models import APIRequestLog
 
 from utils.custom_viewset import CustomViewSet
