@@ -1090,11 +1090,11 @@ class FoodOrderViewSet(CustomViewSet):
 class ReportingViewset(LoggingMixin, viewsets.ViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
-    """
+
 
     def get_permissions(self):
         permission_classes = []
-        if self.action == "create":
+        if self.action in [""]:
             permission_classes = [permissions.IsAuthenticated]
         # elif self.action == "retrieve" or self.action == "update":
         #     permission_classes = [permissions.AllowAny]
@@ -1102,6 +1102,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         #     permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
 
+    """
     @swagger_auto_schema(
         request_body=ReportingDateRangeGraphSerializer
     )
@@ -1137,7 +1138,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             order_date_range_qs = FoodOrder.objects.filter(table__restaurant__id=restaurant_id,
                                                            status__icontains=order_status, created_at__gte=from_date, created_at__lte=to_date)
         return order_date_range_qs
-        """
+    """
 
     @swagger_auto_schema(
         request_body=ReportDateRangeSerializer
@@ -1145,14 +1146,17 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
     def report_by_date_range(self,request, *args, **kwargs):
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
-        food_items = request.data.get('food_items','')
-        food_items_date_range_qs = self.get_queryset().filter(created_at= start_date,updated_at=end_date,order_info=food_items )
-        #order_info = food_items_date_range_qs.values_list('order_info', flat=True)
-        order_info = self.get_queryset().values_list('order_info', flat=True)
-        serializer = {'order_info': order_info}
+        #restaurant_id =Invoice.objects.filter(inv)
+        #if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
+        #                                           restaurant_id=restaurant_id):
+        #   return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg='not a valid manager or owner')
+
+        food_items_date_range_qs = Invoice.objects.filter(created_at__gte= start_date,updated_at__lte=end_date,payment_status='1_PAID')
+        sum_of_grand_total = sum(food_items_date_range_qs.values_list('grand_total', flat=True))
+        response = {'sum_of_grand_total': round(sum_of_grand_total, 2)}
 
 
-        return ResponseWrapper(data = serializer, msg='success')
+        return ResponseWrapper(data = response, msg='success')
 
 class InvoiceViewSet(LoggingMixin, CustomViewSet):
     serializer_class = InvoiceSerializer
