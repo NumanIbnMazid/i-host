@@ -1,3 +1,7 @@
+from calendar import month
+from datetime import datetime
+from drf_yasg2 import openapi
+import day as day
 from rest_framework_tracking.models import APIRequestLog
 
 from utils.custom_viewset import CustomViewSet
@@ -442,12 +446,21 @@ class HotelStaffLogViewSet(LoggingMixin,CustomViewSet):
 
         return [permission() for permission in permission_classes]
 
-
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter("start_date", openapi.IN_QUERY,
+                          type=openapi.FORMAT_DATE),
+        openapi.Parameter("end_date", openapi.IN_QUERY,
+                          type=openapi.FORMAT_DATE)
+    ])
     def hotel_staff_logger(self,request,*args, **kwargs):
         restaurant_id = request.data.get('restaurant')
-        log_qs = self.get_queryset().filter(user__hotel_staff__restaurant_id=restaurant_id).distinct().order_by('-id')
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        log_qs = self.get_queryset().filter(user__hotel_staff__restaurant_id=restaurant_id,requested_at__gte=start_date,requested_at__lte=end_date).distinct().order_by('-id')
+
         serializer = LogSerializerGet(instance = log_qs,many=True)
         return  ResponseWrapper(serializer.data)
+
 
         #return ResponseWrapper(data=waiter_qs.data,status=200)
 
