@@ -131,6 +131,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'ihost.wsgi.application'
+ASGI_APPLICATION = 'ihost.asgi.application'
 
 
 # Database
