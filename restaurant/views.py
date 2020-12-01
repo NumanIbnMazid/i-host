@@ -530,28 +530,51 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
     def cancel_order(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            order_qs = FoodOrder.objects.filter(pk=request.data.get(
-                'order_id')).exclude(status='5_PAID').first()
-            if order_qs:
-                order_qs.status = '6_CANCELLED'
-                order_qs.save()
-                order_qs.ordered_items.update(status="4_CANCELLED")
-                table_qs = order_qs.table
-                if table_qs:
-                    if table_qs.is_occupied:
-                        table_qs.is_occupied = False
-                        table_qs.save()
-
-            else:
-                return ResponseWrapper(
-                    error_msg=['Order order not found'], error_code=400)
-
-            serializer = FoodOrderByTableSerializer(instance=order_qs)
-            #  FoodOrderUserPostSerializer
-            return ResponseWrapper(data=serializer.data, msg='Cancel')
-        else:
+        if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+        order_qs = FoodOrder.objects.filter(pk=request.data.get(
+            'order_id')).exclude(status='5_PAID').first()
+        if not order_qs:
+            return ResponseWrapper(
+                error_msg=['Order order not found'], error_code=400)
+
+        order_qs.status = '6_CANCELLED'
+        order_qs.save()
+        order_qs.ordered_items.update(status="4_CANCELLED")
+        table_qs = order_qs.table
+        if table_qs:
+            if table_qs.is_occupied:
+                table_qs.is_occupied = False
+                table_qs.save()
+
+        serializer = FoodOrderByTableSerializer(instance=order_qs)
+        #  FoodOrderUserPostSerializer
+        return ResponseWrapper(data=serializer.data, msg='Cancel')
+
+    def apps_cancel_order(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+        order_qs = FoodOrder.objects.filter(pk=request.data.get(
+            'order_id')).exclude(status='5_PAID').first()
+        if not order_qs:
+            return ResponseWrapper(
+                error_msg=['Order order not found'], error_code=400)
+
+        order_qs.status = '6_CANCELLED'
+        order_qs.save()
+        order_qs.ordered_items.update(status="4_CANCELLED")
+        table_qs = order_qs.table
+        if table_qs:
+            if table_qs.is_occupied:
+                table_qs.is_occupied = False
+                table_qs.save()
+
+        # serializer = FoodOrderByTableSerializer(instance=order_qs)
+        #  FoodOrderUserPostSerializer
+        return ResponseWrapper(data={}, msg='Cancel')
 
     def cancel_items(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -1174,14 +1197,16 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
 
-        food_items_date_range_qs = Invoice.objects.filter(created_at__gte= start_date,updated_at__lte=end_date,payment_status='1_PAID')
+        food_items_date_range_qs = Invoice.objects.filter(
+            created_at__gte=start_date, updated_at__lte=end_date, payment_status='1_PAID')
 
-        order_items_list = food_items_date_range_qs.values_list('order_info__ordered_items', flat=True)
-        food_dict={}
+        order_items_list = food_items_date_range_qs.values_list(
+            'order_info__ordered_items', flat=True)
+        food_dict = {}
         for items_per_invoice in order_items_list:
             for item in items_per_invoice:
 
-                food_id = item.get("food_option",{}).get("food")
+                food_id = item.get("food_option", {}).get("food")
                 if not food_id:
                     continue
                 name = item.get('food_name')
@@ -1194,14 +1219,12 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                 else:
                     food_dict[price] += price
                 if not food_dict.get(quantity):
-                    food_dict[quantity]=quantity
+                    food_dict[quantity] = quantity
                 else:
                     food_dict[quantity] += quantity
 
-
-
-        response = {'order_info':food_dict.values()}
-        return ResponseWrapper(data=response,msg='success')
+        response = {'order_info': food_dict.values()}
+        return ResponseWrapper(data=response, msg='success')
 
 
 # food.id = food_id
