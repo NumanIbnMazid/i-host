@@ -50,6 +50,7 @@ LIBRARY_APPS = [
     'drf_extra_fields',
     'softdelete',
     'rest_framework_tracking',
+    "channels",
     # 'autofixture',
     # "mockups",
 ]
@@ -264,4 +265,10 @@ REST_KNOX = {
     # 'MIN_REFRESH_INTERVAL': 60,
     # 'AUTH_HEADER_PREFIX': 'Token',
     # 'EXPIRY_DATETIME_FORMAT': api_settings.DATETIME_FORMAT,
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
 }
