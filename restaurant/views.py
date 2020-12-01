@@ -1166,13 +1166,41 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         end_date = request.data.get('end_date')
 
         food_items_date_range_qs = Invoice.objects.filter(created_at__gte= start_date,updated_at__lte=end_date,payment_status='1_PAID')
-        order_info_qs = food_items_date_range_qs.values_list('order_info__ordered_items', flat=True)
 
-        for order_info in order_info_qs:
-            order_info_name = order_info.get
+        order_items_list = food_items_date_range_qs.values_list('order_info__ordered_items', flat=True)
+        food_dict={}
+        for items_per_invoice in order_items_list:
+            for item in items_per_invoice:
 
-        response = {'order_info':order_info_name}
-        return ResponseWrapper(data=response, msg='success')
+                food_id = item.get("food_option",{}).get("food")
+                if not food_id:
+                    continue
+                name = item.get('food_name')
+                price = item.get('price', 0)
+                quantity = item.get('quantity', 0)
+                if not food_dict.get(name):
+                    food_dict[name] = name
+                if not food_dict.get(price):
+                    food_dict[price] = price
+                else:
+                    food_dict[price] += price
+                if not food_dict.get(quantity):
+                    food_dict[quantity]=quantity
+                else:
+                    food_dict[quantity] += quantity
+
+
+
+        response = {'order_info':food_dict.values()}
+        return ResponseWrapper(data=response,msg='success')
+
+
+# food.id = food_id
+# food.values.price = 10
+# food.values.qnty = 10
+# food.values.name = pasta
+#
+# food_dict = food
 
 
 class InvoiceViewSet(LoggingMixin, CustomViewSet):
