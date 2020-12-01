@@ -414,6 +414,16 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         #serializer = self.get_serializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg="success")
 
+    def apps_running_order_item_list(self, request, table_id, *args, **kwargs):
+
+        qs = FoodOrder.objects.filter(table=table_id).exclude(
+            status__in=['5_PAID', '6_CANCELLED', '0_ORDER_INITIALIZED']).last()
+        # qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
+
+        serializer = FoodOrderByTableSerializer(instance=qs, many=False)
+        #serializer = self.get_serializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg="success")
+
     def destroy(self, request, **kwargs):
         qs = self.queryset.filter(**kwargs).first()
         if qs:
@@ -1090,8 +1100,6 @@ class FoodOrderViewSet(CustomViewSet):
 class ReportingViewset(LoggingMixin, viewsets.ViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
-
-
     def get_permissions(self):
         permission_classes = []
         if self.action in [""]:
@@ -1143,20 +1151,21 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
     @swagger_auto_schema(
         request_body=ReportDateRangeSerializer
     )
-    def report_by_date_range(self,request, *args, **kwargs):
+    def report_by_date_range(self, request, *args, **kwargs):
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
         #restaurant_id =Invoice.objects.filter(inv)
-        #if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
+        # if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
         #                                           restaurant_id=restaurant_id):
         #   return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg='not a valid manager or owner')
 
-        food_items_date_range_qs = Invoice.objects.filter(created_at__gte= start_date,updated_at__lte=end_date,payment_status='1_PAID')
-        sum_of_grand_total = sum(food_items_date_range_qs.values_list('grand_total', flat=True))
+        food_items_date_range_qs = Invoice.objects.filter(
+            created_at__gte=start_date, updated_at__lte=end_date, payment_status='1_PAID')
+        sum_of_grand_total = sum(
+            food_items_date_range_qs.values_list('grand_total', flat=True))
         response = {'sum_of_grand_total': round(sum_of_grand_total, 2)}
 
-
-        return ResponseWrapper(data = response, msg='success')
+        return ResponseWrapper(data=response, msg='success')
 
     @swagger_auto_schema(
         request_body=ReportDateRangeSerializer
@@ -1165,13 +1174,15 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
 
-        food_items_date_range_qs = Invoice.objects.filter(created_at__gte= start_date,updated_at__lte=end_date,payment_status='1_PAID')
-        order_info_qs = food_items_date_range_qs.values_list('order_info__ordered_items', flat=True)
+        food_items_date_range_qs = Invoice.objects.filter(
+            created_at__gte=start_date, updated_at__lte=end_date, payment_status='1_PAID')
+        order_info_qs = food_items_date_range_qs.values_list(
+            'order_info__ordered_items', flat=True)
 
         for order_info in order_info_qs:
             order_info_name = order_info.get
 
-        response = {'order_info':order_info_name}
+        response = {'order_info': order_info_name}
         return ResponseWrapper(data=response, msg='success')
 
 
@@ -1183,7 +1194,6 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = InvoiceSerializer
 
         return self.serializer_class
-
 
     queryset = Invoice.objects.all()
     lookup_field = 'pk'
@@ -1209,9 +1219,6 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         qs = Invoice.objects.filter(pk__icontains=invoice_id)
         serializer = InvoiceSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
-
-
-
 
 
 class DiscountViewSet(LoggingMixin, CustomViewSet):

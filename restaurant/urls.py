@@ -202,16 +202,15 @@ dashboard_urls = [
     path('food_discount/',
          DiscountViewSet.as_view({'post': 'food_discount'}), name='food_discount'),
 
-    path('table/<int:table_id>/order_item_list/',
-          TableViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),
+
     path('table/<int:table_id>/order_item_list/',
          TableViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),
 
     path('report_by_date_range/',
-          ReportingViewset.as_view({'post': 'report_by_date_range'}), name='report_by_date_range'),
+         ReportingViewset.as_view({'post': 'report_by_date_range'}), name='report_by_date_range'),
 
     path('food_report_by_date_range/',
-          ReportingViewset.as_view({'post': 'food_report_by_date_range'}), name='food_report_by_date_range'),
+         ReportingViewset.as_view({'post': 'food_report_by_date_range'}), name='food_report_by_date_range'),
 
 ] + fake_dashboard_urls
 
@@ -365,12 +364,15 @@ apps_fake = [
 
 ]
 
-apps = []+apps_fake
+apps_url = [
+    path('table/<int:table_id>/order_item_list/',
+         TableViewSet.as_view({'get': 'apps_running_order_item_list'}), name='apps_running_order_item_list'),
+]+apps_fake
 
 
 urlpatterns = [
     path('dashboard/', include(dashboard_urls)),
-    path('apps/', include(dashboard_urls)),
+    path('apps/', include(apps_url)),
 
 ]
-#+apps
+# +apps
