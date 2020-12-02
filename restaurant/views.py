@@ -1215,16 +1215,20 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                 name = item.get('food_name')
                 price = item.get('price', 0)
                 quantity = item.get('quantity', 0)
+
                 if not food_dict.get(name):
                     food_dict[name] = name
+
                 if not food_dict.get(price):
                     food_dict[price] = price
+                    """
                 else:
                     food_dict[price] += price
                 if not food_dict.get(quantity):
                     food_dict[quantity] = quantity
                 else:
                     food_dict[quantity] += quantity
+ """
 
         #list_of_food_info = list(order_items_list.values_list('food_count', flat=True))
         response = {'order_info': food_dict.values()}
