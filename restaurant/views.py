@@ -1203,6 +1203,9 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         order_items_list = food_items_date_range_qs.values_list(
             'order_info__ordered_items', flat=True)
         food_dict = {}
+        food_price =0
+        food_quantity =0
+
         for items_per_invoice in order_items_list:
             for item in items_per_invoice:
 
@@ -1223,6 +1226,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                 else:
                     food_dict[quantity] += quantity
 
+        #list_of_food_info = list(order_items_list.values_list('food_count', flat=True))
         response = {'order_info': food_dict.values()}
         return ResponseWrapper(data=response, msg='success')
 
