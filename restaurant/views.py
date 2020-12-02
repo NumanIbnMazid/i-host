@@ -1196,27 +1196,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         request_body=ReportDateRangeSerializer
     )
     def food_report_by_date_range(self, request, *args, **kwargs):
-        '''
-        {
-  "food_report": {
-    "12": {
-      "priece": 2000,
-      "quantity": 20,
-      "name": "thai soupe"
-    },
-    "13": {
-      "priece": 2000,
-      "quantity": 20,
-      "name": "thai soupe"
-    },
-    "15": {
-      "priece": 2000,
-      "quantity": 20,
-      "name": "thai soupe"
-    }
-  }
-}
-        '''
+
 
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
@@ -1228,6 +1208,8 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         order_items_list = food_items_date_range_qs.values_list(
             'order_info__ordered_items', flat=True)
         food_dict = {}
+        food_option_report= {}
+        food_extra_report ={}
 
         for items_per_invoice in order_items_list:
             for item in items_per_invoice:
@@ -1235,16 +1217,14 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                 food_id = item.get("food_option", {}).get("food")
                 if (not food_id) or (not item.get('status')=="3_IN_TABLE"):
                     continue
-                # if not item.get('status')=="3_IN_TABLE":
-                #     continue
 
                 name = item.get('food_name')
                 price = item.get('price', 0)
                 quantity = item.get('quantity', 0)
+
+
                 if not food_dict.get(food_id):
                     food_dict[food_id]= {}
-
-
 
                 if not food_dict.get(food_id,{}).get(name):
                     food_dict[food_id]['name'] = name
@@ -1258,17 +1238,44 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                     food_dict[food_id]['quantity'] = quantity
                 else:
                     food_dict[food_id]['quantity'] += quantity
+                #food_option_report[food_id]['food_option_report'] = food_option
+                #food_option_report[food_id]['food_extra'] = food_extra_name
 
-        response = {'order_info': food_dict.values()}
+
+        for food_option in order_items_list:
+            for option in food_option:
+
+                food_id = option.get("food_option", {}).get("food")
+                if (not food_id) or (not item.get('status')=="3_IN_TABLE"):
+                    continue
+
+
+
+                food_option_name = option.get("food_option", {}).get("name")
+                food_option_quantity = option.get('quantity', 0)
+                if not food_option_report.get(food_id):
+                    food_option_report[food_id] ={}
+                if not food_option_report.get(food_id,{}).get(food_option_name):
+                    food_option_report[food_id]['name'] = food_option_name
+                if not food_option_report.get(food_id,{}).get(food_option_quantity):
+                    food_option_report[food_id]['quantity'] = food_option_quantity
+                else:
+                    food_option_report[food_id]['quantity'] += food_option_quantity
+
+        for food_extra in order_items_list:
+            for extra in food_extra:
+                food_id = extra.get("food_extra", {})
+                if (not food_id) or (not item.get('status') == "3_IN_TABLE"):
+                    continue
+                for extra_info in extra:
+                    food_extra_info= extra_info.get("food_extra",{})
+                    if not food_option_report.get(food_id):
+                        food_extra_report[food_id]['food_extra'] = food_extra_info
+
+        response = {'food_report':food_dict.values(), 'food_option_report':food_option_report.values(),'food_extra_report':food_extra_report.values()}
         return ResponseWrapper(data=response, msg='success')
 
 
-# food.id = food_id
-# food.values.price = 10
-# food.values.qnty = 10
-# food.values.name = pasta
-#
-# food_dict = food
 
 
 class InvoiceViewSet(LoggingMixin, CustomViewSet):
