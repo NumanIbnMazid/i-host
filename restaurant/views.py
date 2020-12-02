@@ -1,15 +1,9 @@
 import decimal
 import json
 
-from django_filters.rest_framework import DjangoFilterBackend
-from drf_yasg2 import openapi
-
-from . import permissions as custom_permissions
-
-from rest_framework import viewsets, filters
-
 from account_management import serializers
-from account_management.models import HotelStaffInformation, UserAccount, CustomerInfo
+from account_management.models import (CustomerInfo, HotelStaffInformation,
+                                       UserAccount)
 from account_management.serializers import (ListOfIdSerializer,
                                             StaffInfoSerializer)
 from django.core.serializers.json import DjangoJSONEncoder
@@ -17,20 +11,27 @@ from django.db.models import Count, Min, Q, query_utils
 from django.db.models.aggregates import Sum
 from django.http import request
 from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg2 import openapi
 from drf_yasg2.utils import get_serializer_class, swagger_auto_schema
-from rest_framework import permissions, status, viewsets
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.permissions import IsAdminUser
 from rest_framework.serializers import Serializer
+from rest_framework_tracking.mixins import LoggingMixin
 from utils.custom_viewset import CustomViewSet
 from utils.response_wrapper import ResponseWrapper
 
-from restaurant.models import (Discount, Food, FoodCategory, FoodExtra, FoodExtraType,
-                               FoodOption, FoodOptionType, FoodOrder, Invoice,
-                               OrderedItem, Restaurant, Table)
+from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
+                               FoodExtraType, FoodOption, FoodOptionType,
+                               FoodOrder, Invoice, OrderedItem, Restaurant,
+                               Table)
 
-from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
-                          FoodExtraPostPatchSerializer, FoodExtraSerializer,
-                          FoodExtraTypeDetailSerializer,
+from . import permissions as custom_permissions
+from .serializers import (DiscountByFoodSerializer, DiscountSerializer,
+                          FoodCategorySerializer,
+                          FoodDetailsByDiscountSerializer,
+                          FoodDetailSerializer, FoodExtraPostPatchSerializer,
+                          FoodExtraSerializer, FoodExtraTypeDetailSerializer,
                           FoodExtraTypeSerializer, FoodOptionBaseSerializer,
                           FoodOptionSerializer, FoodOptionTypeSerializer,
                           FoodOrderByTableSerializer,
@@ -38,17 +39,18 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           FoodOrderConfirmSerializer, FoodOrderSerializer,
                           FoodOrderUserPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
-                          FoodWithPriceSerializer, InvoiceSerializer,
+                          FoodWithPriceSerializer, InvoiceGetSerializer,
+                          InvoiceSerializer,
+                          OrderedItemDashboardPostSerializer,
+                          OrderedItemGetDetailsSerializer,
                           OrderedItemSerializer, OrderedItemUserPostSerializer,
-                          PaymentSerializer, ReportingDateRangeGraphSerializer,
+                          PaymentSerializer, ReportDateRangeSerializer,
+                          ReportingDateRangeGraphSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
                           RestaurantUpdateSerialier, StaffIdListSerializer,
                           StaffTableSerializer, TableSerializer,
                           TableStaffSerializer,
-                          TopRecommendedFoodListSerializer, InvoiceGetSerializer, DiscountSerializer,
-                          OrderedItemDashboardPostSerializer, OrderedItemGetDetailsSerializer, DiscountByFoodSerializer,
-                          FoodDetailsByDiscountSerializer, ReportDateRangeSerializer)
-from rest_framework_tracking.mixins import LoggingMixin
+                          TopRecommendedFoodListSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -1194,8 +1196,31 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         request_body=ReportDateRangeSerializer
     )
     def food_report_by_date_range(self, request, *args, **kwargs):
+        '''
+        {
+  "food_report": {
+    "12": {
+      "priece": 2000,
+      "quantity": 20,
+      "name": "thai soupe"
+    },
+    "13": {
+      "priece": 2000,
+      "quantity": 20,
+      "name": "thai soupe"
+    },
+    "15": {
+      "priece": 2000,
+      "quantity": 20,
+      "name": "thai soupe"
+    }
+  }
+}
+        '''
+
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
+
 
         food_items_date_range_qs = Invoice.objects.filter(
             created_at__gte=start_date, updated_at__lte=end_date, payment_status='1_PAID')
@@ -1208,24 +1233,31 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             for item in items_per_invoice:
 
                 food_id = item.get("food_option", {}).get("food")
-                if not food_id:
+                if (not food_id) or (not item.get('status')=="3_IN_TABLE"):
                     continue
+                # if not item.get('status')=="3_IN_TABLE":
+                #     continue
+
                 name = item.get('food_name')
                 price = item.get('price', 0)
                 quantity = item.get('quantity', 0)
+                if not food_dict.get(food_id):
+                    food_dict[food_id]= {}
 
-                if not food_dict.get(name):
-                    food_dict[name] = name
 
-                if not food_dict.get(price):
-                    food_dict[price] = price
 
+                if not food_dict.get(food_id,{}).get(name):
+                    food_dict[food_id]['name'] = name
+
+                if not food_dict.get(food_id,{}).get(price):
+                    food_dict[food_id]['price'] = price
                 else:
-                    food_dict[price] += price
-                if not food_dict.get(quantity):
-                    food_dict[quantity] = quantity
+                    food_dict[food_id]['price'] += price
+
+                if not food_dict.get(food_id,{}).get(quantity):
+                    food_dict[food_id]['quantity'] = quantity
                 else:
-                    food_dict[quantity] += quantity
+                    food_dict[food_id]['quantity'] += quantity
 
         response = {'order_info': food_dict.values()}
         return ResponseWrapper(data=response, msg='success')
