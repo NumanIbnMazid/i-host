@@ -1194,8 +1194,31 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         request_body=ReportDateRangeSerializer
     )
     def food_report_by_date_range(self, request, *args, **kwargs):
+        '''
+        {
+  "food_report": {
+    "12": {
+      "priece": 2000,
+      "quantity": 20,
+      "name": "thai soupe"
+    },
+    "13": {
+      "priece": 2000,
+      "quantity": 20,
+      "name": "thai soupe"
+    },
+    "15": {
+      "priece": 2000,
+      "quantity": 20,
+      "name": "thai soupe"
+    }
+  }
+}
+        '''
+
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
+
 
         food_items_date_range_qs = Invoice.objects.filter(
             created_at__gte=start_date, updated_at__lte=end_date, payment_status='1_PAID')
@@ -1212,22 +1235,25 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                 name = item.get('food_name')
                 price = item.get('price', 0)
                 quantity = item.get('quantity', 0)
+                if not food_dict.get(food_id):
+                    food_dict[food_id]= {}
 
-                if not food_dict.get(name):
-                    food_dict[name] = name
 
-                if not food_dict.get(price):
-                    food_dict[price] = price
-                    """
+
+                if not food_dict.get(food_id,{}).get(name):
+                    food_dict[food_id] = {'name':name}
+
+                if not food_dict.get(food_id,{}).get(price):
+                    food_dict[food_id] = {'price':price}
                 else:
-                    food_dict[price] += price
-                if not food_dict.get(quantity):
-                    food_dict[quantity] = quantity
-                else:
-                    food_dict[quantity] += quantity
- """
+                    food_dict[food_id]['price'] += price
 
-        response = {'order_info': food_dict.values()}
+                if not food_dict.get(food_id,{}).get(quantity):
+                    food_dict[food_id] = {'quantity':quantity}
+                else:
+                    food_dict[food_id]['quantity'] += quantity
+
+        response = {'order_info': food_dict}
         return ResponseWrapper(data=response, msg='success')
 
 
