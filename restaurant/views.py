@@ -1244,8 +1244,6 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                 if not food_dict.get(food_id):
                     food_dict[food_id]= {}
 
-
-
                 if not food_dict.get(food_id,{}).get(name):
                     food_dict[food_id]['name'] = name
 
@@ -1258,6 +1256,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                     food_dict[food_id]['quantity'] = quantity
                 else:
                     food_dict[food_id]['quantity'] += quantity
+        
 
         response = {'order_info': food_dict.values()}
         return ResponseWrapper(data=response, msg='success')
