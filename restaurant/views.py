@@ -517,8 +517,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-<<<<<<< HEAD
-=======
     def create_order_apps(self, request):
         # serializer_class = self.get_serializer_class()
         serializer = self.get_serializer(data=request.data)
@@ -551,7 +549,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                         qs.customer = customer_qs
                         qs.save()
 
->>>>>>> e84a1320ae0c91d79a38cf09743e25cc09e07c64
     def create_take_away_order(self, request):
         serializer = self.get_serializer(data=request.data, partial=True)
         if serializer.is_valid():
