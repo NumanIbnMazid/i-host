@@ -517,6 +517,41 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
+<<<<<<< HEAD
+=======
+    def create_order_apps(self, request):
+        # serializer_class = self.get_serializer_class()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            table_qs = Table.objects.filter(
+                pk=request.data.get('table')).last()
+            if not table_qs.is_occupied:
+                table_qs.is_occupied = True
+                table_qs.save()
+                qs = serializer.save()
+                self.save_customer_info(request, qs)
+                serializer = self.serializer_class(instance=qs)
+            else:
+                return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def save_customer_info(self, request, qs):
+        if request.data.get('table'):
+            staff_account = qs.table.restaurant.hotel_staff.filter(
+                user_id=request.user.pk
+            )
+            if not staff_account:
+                user_qs = UserAccount.objects.filter(
+                    pk=request.user.pk).select_related('customer_info').prefetch_related('hotel_staff').first()
+                if user_qs:
+                    customer_qs = user_qs.customer_info
+                    if customer_qs:
+                        qs.customer = customer_qs
+                        qs.save()
+
+>>>>>>> e84a1320ae0c91d79a38cf09743e25cc09e07c64
     def create_take_away_order(self, request):
         serializer = self.get_serializer(data=request.data, partial=True)
         if serializer.is_valid():
