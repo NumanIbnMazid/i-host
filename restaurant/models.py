@@ -187,6 +187,7 @@ class FoodOrder(SoftDeleteModel):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    customer = models.ForeignKey(to='account_management.CustomerInfo',on_delete=models.SET_NULL,null=True,blank=True)
 
     def __str__(self):
         if self.table:

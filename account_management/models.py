@@ -77,7 +77,7 @@ class CustomerInfo(models.Model):
     name = models.CharField(null=True, blank=True, max_length=250)
     email_address = models.EmailField(max_length=35, null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
-    user = models.OneToOneField(to=UserAccount, on_delete=models.CASCADE)
+    user = models.OneToOneField(to=UserAccount, on_delete=models.CASCADE,related_name='customer_infos')
 
 
 class HotelStaffInformation(SoftDeleteModel):
