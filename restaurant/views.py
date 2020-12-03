@@ -1,5 +1,6 @@
 import decimal
 import json
+from django.contrib.auth.models import User
 
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg2 import openapi
@@ -49,6 +50,8 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           OrderedItemDashboardPostSerializer, OrderedItemGetDetailsSerializer, DiscountByFoodSerializer,
                           FoodDetailsByDiscountSerializer, ReportDateRangeSerializer)
 from rest_framework_tracking.mixins import LoggingMixin
+
+import restaurant
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -445,7 +448,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def get_serializer_class(self):
-        if self.action in ['create_order', "create_take_away_order"]:
+        if self.action in ['create_order', "create_take_away_order", "create_order_apps"]:
             self.serializer_class = FoodOrderUserPostSerializer
         elif self.action in ['add_items']:
             self.serializer_class = OrderedItemUserPostSerializer
@@ -510,6 +513,38 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def create_order_apps(self, request):
+        # serializer_class = self.get_serializer_class()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            table_qs = Table.objects.filter(
+                pk=request.data.get('table')).last()
+            if not table_qs.is_occupied:
+                table_qs.is_occupied = True
+                table_qs.save()
+                qs = serializer.save()
+                self.save_customer_info(request, qs)
+                serializer = self.serializer_class(instance=qs)
+            else:
+                return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def save_customer_info(self, request, qs):
+        if request.data.get('table'):
+            staff_account = qs.table.restaurant.hotel_staff.filter(
+                user_id=request.user.pk
+            )
+            if not staff_account:
+                user_qs = UserAccount.objects.filter(
+                    pk=request.user.pk).select_related('customer_infos').prefetch_related('hotel_staff').first()
+                if user_qs:
+                    customer_qs = user_qs.customer_infos
+                    if customer_qs:
+                        qs.customer = customer_qs
+                        qs.save()
 
     def create_take_away_order(self, request):
         serializer = self.get_serializer(data=request.data, partial=True)
