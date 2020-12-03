@@ -7,7 +7,7 @@ from rest_framework import fields
 from rest_framework.serializers import Serializer
 
 from rest_framework import serializers
-from .models import CustomerInfo, HotelStaffInformation, UserAccount, models
+from .models import CustomerInfo, FcmDevice, HotelStaffInformation, UserAccount, models
 
 from drf_extra_fields.fields import Base64ImageField
 from drf_extra_fields.fields import HybridImageField
@@ -173,7 +173,7 @@ class LogSerializerGet(serializers.ModelSerializer):
         exclude = ['response']
 
 
-# class FcmDeviceSerializer(serializers.ModelField):
-#     class Meta:
-#         model = Fcm
-#         fields = "__all__"
+class FcmDeviceSerializer(serializers.ModelField):
+    class Meta:
+        model = FcmDevice
+        fields = "__all__"
