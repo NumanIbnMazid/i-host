@@ -162,10 +162,10 @@ class PhoneVerification(models.Model):
             return "Phone Verification Success"
 
 
-class FcmDevices(models.Model):
-    user = models.ForeignKey(to=UserAccount, on_delete=models.CASCADE)
-    device_id = models.CharField(max_length=255)
-    device_type = models.CharField(
-        choices=[('web', 'web'), ('ios', 'ios'), ('android', 'android')], default='android',max_length=25)
-    created_at = models.DateField(auto_now_add=True)
-    updated_at = models.DateField(auto_now=True)
+# class Fcm(models.Model):
+#     user = models.ForeignKey(to=UserAccount, on_delete=models.CASCADE)
+#     device_id = models.CharField(max_length=255)
+#     device_type = models.CharField(
+#         choices=[('web', 'web'), ('ios', 'ios'), ('android', 'android')], default='android', max_length=25)
+#     created_at = models.DateField(auto_now_add=True)
+#     updated_at = models.DateField(auto_now=True)

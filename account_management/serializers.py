@@ -171,3 +171,9 @@ class LogSerializerGet(serializers.ModelSerializer):
     class Meta:
         model = APIRequestLog
         exclude = ['response']
+
+
+# class FcmDeviceSerializer(serializers.ModelField):
+#     class Meta:
+#         model = Fcm
+#         fields = "__all__"
