@@ -541,9 +541,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             )
             if not staff_account:
                 user_qs = UserAccount.objects.filter(
-                    pk=request.user.pk).select_related('customer_infos').prefetch_related('hotel_staff').first()
+                    pk=request.user.pk).select_related('customer_info').prefetch_related('hotel_staff').first()
                 if user_qs:
-                    customer_qs = user_qs.customer_infos
+                    customer_qs = user_qs.customer_info
                     if customer_qs:
                         qs.customer = customer_qs
                         qs.save()
