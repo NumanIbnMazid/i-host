@@ -1,7 +1,6 @@
 import decimal
 import json
 from django.contrib.auth.models import User
-
 from account_management import serializers
 from account_management.models import (CustomerInfo, HotelStaffInformation,
                                        UserAccount)

@@ -4,6 +4,7 @@ from knox import views as knox_views
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
+
 router.register('customer_info', CustomerInfoViewset,
                 basename="customer_info")
 user_account_get_post_patch_delete = UserAccountManagerViewSet.as_view(
@@ -42,17 +43,17 @@ restaurant_account_management = [
         "delete": "delete_staff"}), name="delete_waiter"),
 
 
-    #path("restaurant/<int:staff_id>/delete_manager/", RestaurantAccountManagerViewSet.as_view({
-        #"delete": "delete_staff"}), name="delete_manager"),
-    #path("restaurant/<int:staff_id>/delete_owner/", RestaurantAccountManagerViewSet.as_view({
-        #"delete": "delete_staff"}), name="delete_owner"),
+    # path("restaurant/<int:staff_id>/delete_manager/", RestaurantAccountManagerViewSet.as_view({
+    # "delete": "delete_staff"}), name="delete_manager"),
+    # path("restaurant/<int:staff_id>/delete_owner/", RestaurantAccountManagerViewSet.as_view({
+    # "delete": "delete_staff"}), name="delete_owner"),
 
     path("restaurant/<int:id>/manager_info/", RestaurantAccountManagerViewSet.as_view({
         "get": "manager_info"
     }), name="manager_info"),
-    path("restaurant/<int:restaurant_id>/hotel_staff_logger",HotelStaffLogViewSet.as_view({
-        "get":"hotel_staff_logger"
-    }),name="hotel_staff_logger")
+    path("restaurant/<int:restaurant_id>/hotel_staff_logger", HotelStaffLogViewSet.as_view({
+        "get": "hotel_staff_logger"
+    }), name="hotel_staff_logger")
 ]
 
 auth_urlpatterns = [

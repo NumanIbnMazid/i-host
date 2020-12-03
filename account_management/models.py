@@ -78,7 +78,7 @@ class CustomerInfo(models.Model):
     email_address = models.EmailField(max_length=35, null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     user = models.OneToOneField(
-        to=UserAccount, on_delete=models.CASCADE,related_name='customer_info')
+        to=UserAccount, on_delete=models.CASCADE, related_name='customer_info')
 
 
 class HotelStaffInformation(SoftDeleteModel):
@@ -160,3 +160,12 @@ class PhoneVerification(models.Model):
             self.verification_code = " "
             self.save()
             return "Phone Verification Success"
+
+
+class FcmDevices(models.Model):
+    user = models.ForeignKey(to=UserAccount, on_delete=models.CASCADE)
+    device_id = models.CharField(max_length=255)
+    device_type = models.CharField(
+        choices=[('web', 'web'), ('ios', 'ios'), ('android', 'android')], default='android',max_length=25)
+    created_at = models.DateField(auto_now_add=True)
+    updated_at = models.DateField(auto_now=True)

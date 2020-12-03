@@ -2,6 +2,7 @@ import datetime
 import json
 
 import requests
+# from fcm_django.models import FCMDevice
 """
 
 from app.settings import FCM_DJANGO_SETTINGS
