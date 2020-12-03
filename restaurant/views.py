@@ -2,15 +2,9 @@ import decimal
 import json
 from django.contrib.auth.models import User
 
-from django_filters.rest_framework import DjangoFilterBackend
-from drf_yasg2 import openapi
-
-from . import permissions as custom_permissions
-
-from rest_framework import viewsets, filters
-
 from account_management import serializers
-from account_management.models import HotelStaffInformation, UserAccount, CustomerInfo
+from account_management.models import (CustomerInfo, HotelStaffInformation,
+                                       UserAccount)
 from account_management.serializers import (ListOfIdSerializer,
                                             StaffInfoSerializer)
 from django.core.serializers.json import DjangoJSONEncoder
@@ -18,20 +12,27 @@ from django.db.models import Count, Min, Q, query_utils
 from django.db.models.aggregates import Sum
 from django.http import request
 from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg2 import openapi
 from drf_yasg2.utils import get_serializer_class, swagger_auto_schema
-from rest_framework import permissions, status, viewsets
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.permissions import IsAdminUser
 from rest_framework.serializers import Serializer
+from rest_framework_tracking.mixins import LoggingMixin
 from utils.custom_viewset import CustomViewSet
 from utils.response_wrapper import ResponseWrapper
 
-from restaurant.models import (Discount, Food, FoodCategory, FoodExtra, FoodExtraType,
-                               FoodOption, FoodOptionType, FoodOrder, Invoice,
-                               OrderedItem, Restaurant, Table)
+from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
+                               FoodExtraType, FoodOption, FoodOptionType,
+                               FoodOrder, Invoice, OrderedItem, Restaurant,
+                               Table)
 
-from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
-                          FoodExtraPostPatchSerializer, FoodExtraSerializer,
-                          FoodExtraTypeDetailSerializer,
+from . import permissions as custom_permissions
+from .serializers import (DiscountByFoodSerializer, DiscountSerializer,
+                          FoodCategorySerializer,
+                          FoodDetailsByDiscountSerializer,
+                          FoodDetailSerializer, FoodExtraPostPatchSerializer,
+                          FoodExtraSerializer, FoodExtraTypeDetailSerializer,
                           FoodExtraTypeSerializer, FoodOptionBaseSerializer,
                           FoodOptionSerializer, FoodOptionTypeSerializer,
                           FoodOrderByTableSerializer,
@@ -39,17 +40,18 @@ from .serializers import (FoodCategorySerializer, FoodDetailSerializer,
                           FoodOrderConfirmSerializer, FoodOrderSerializer,
                           FoodOrderUserPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
-                          FoodWithPriceSerializer, InvoiceSerializer,
+                          FoodWithPriceSerializer, InvoiceGetSerializer,
+                          InvoiceSerializer,
+                          OrderedItemDashboardPostSerializer,
+                          OrderedItemGetDetailsSerializer,
                           OrderedItemSerializer, OrderedItemUserPostSerializer,
-                          PaymentSerializer, ReportingDateRangeGraphSerializer,
+                          PaymentSerializer, ReportDateRangeSerializer,
+                          ReportingDateRangeGraphSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
                           RestaurantUpdateSerialier, StaffIdListSerializer,
                           StaffTableSerializer, TableSerializer,
                           TableStaffSerializer,
-                          TopRecommendedFoodListSerializer, InvoiceGetSerializer, DiscountSerializer,
-                          OrderedItemDashboardPostSerializer, OrderedItemGetDetailsSerializer, DiscountByFoodSerializer,
-                          FoodDetailsByDiscountSerializer, ReportDateRangeSerializer)
-from rest_framework_tracking.mixins import LoggingMixin
+                          TopRecommendedFoodListSerializer)
 
 import restaurant
 
@@ -1221,7 +1223,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             created_at__gte=start_date, updated_at__lte=end_date, payment_status='1_PAID')
         sum_of_grand_total = sum(
             food_items_date_range_qs.values_list('grand_total', flat=True))
-        response = {'sum_of_grand_total': round(sum_of_grand_total, 2)}
+        response = {'total_sell': round(sum_of_grand_total, 2)}
 
         return ResponseWrapper(data=response, msg='success')
 
@@ -1229,8 +1231,12 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         request_body=ReportDateRangeSerializer
     )
     def food_report_by_date_range(self, request, *args, **kwargs):
+        """
+        n^2
+        """
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
+
 
         food_items_date_range_qs = Invoice.objects.filter(
             created_at__gte=start_date, updated_at__lte=end_date, payment_status='1_PAID')
@@ -1238,36 +1244,114 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         order_items_list = food_items_date_range_qs.values_list(
             'order_info__ordered_items', flat=True)
         food_dict = {}
+        food_report_list = []
+        food_option_report= {}
+        food_extra_report ={}
+
         for items_per_invoice in order_items_list:
             for item in items_per_invoice:
 
                 food_id = item.get("food_option", {}).get("food")
-                if not food_id:
+                if (not food_id) or (not item.get('status')=="3_IN_TABLE"):
                     continue
+
                 name = item.get('food_name')
                 price = item.get('price', 0)
                 quantity = item.get('quantity', 0)
-                if not food_dict.get(name):
-                    food_dict[name] = name
-                if not food_dict.get(price):
-                    food_dict[price] = price
-                else:
-                    food_dict[price] += price
-                if not food_dict.get(quantity):
-                    food_dict[quantity] = quantity
-                else:
-                    food_dict[quantity] += quantity
 
-        response = {'order_info': food_dict.values()}
+
+                if not food_dict.get(food_id):
+                    food_dict[food_id]= {}
+
+                if not food_dict.get(food_id,{}).get(name):
+                    food_dict[food_id]['name'] = name
+
+                if not food_dict.get(food_id,{}).get(price):
+                    food_dict[food_id]['price'] = price
+                else:
+                    food_dict[food_id]['price'] += price
+
+                if not food_dict.get(food_id,{}).get(quantity):
+                    food_dict[food_id]['quantity'] = quantity
+                else:
+                    food_dict[food_id]['quantity'] += quantity
+                #food_option_report[food_id]['food_option_report'] = food_option
+                #food_option_report[food_id]['food_extra'] = food_extra_name
+
+                #calculation of food option 
+
+                food_option_name = item.get("food_option", {}).get("name")
+                food_option_id = item.get("food_option", {}).get("id")
+
+                if food_option_id and food_option_name:
+                    if not food_dict.get(food_id,{}).get('food_option'):
+                        food_dict[food_id]['food_option'] = {}
+                    if not food_dict.get(food_id,{}).get('food_option',{}).get(food_option_id):
+                        food_dict[food_id]['food_option'][food_option_id] = {'name':food_option_name,'quantity':quantity}
+                    else:
+                        food_dict[food_id]['food_option'][food_option_id]['quantity'] += quantity
+
+                # calculation of food extra
+
+                food_extra_list = item.get('food_extra',[])
+
+                for food_extra in food_extra_list:
+                    food_extra_name = food_extra.get("name")
+                    food_extra_id = food_extra.get("id")
+
+                    if food_extra_id and food_extra_name:
+                        if not food_dict.get(food_id,{}).get('food_extra'):
+                            food_dict[food_id]['food_extra'] = {}
+                        if not food_dict.get(food_id,{}).get("food_extra",{}).get(food_extra_id):
+                            food_dict[food_id]["food_extra"][food_extra_id] = {'name':food_extra_name,'quantity':quantity}
+                        else:
+                            food_dict[food_id]["food_extra"][food_extra_id]['quantity'] += quantity
+
+
+        for item in food_dict.values():
+            if item.get('food_extra',{}):
+                item['food_extra'] = item.get('food_extra',{}).values()
+            
+            if item.get('food_option',{}):
+                item['food_option'] = item.get('food_option',{}).values()
+
+            
+
+
+        # for food_option in order_items_list:
+        #     for option in food_option:
+
+        #         food_id = option.get("food_option", {}).get("food")
+        #         if (not food_id) or (not item.get('status')=="3_IN_TABLE"):
+        #             continue
+
+
+
+        #         food_option_name = option.get("food_option", {}).get("name")
+        #         food_option_quantity = option.get('quantity', 0)
+        #         if not food_option_report.get(food_id):
+        #             food_option_report[food_id] ={}
+        #         if not food_option_report.get(food_id,{}).get(food_option_name):
+        #             food_option_report[food_id]['name'] = food_option_name
+        #         if not food_option_report.get(food_id,{}).get(food_option_quantity):
+        #             food_option_report[food_id]['quantity'] = food_option_quantity
+        #         else:
+        #             food_option_report[food_id]['quantity'] += food_option_quantity
+
+        # for food_extra in order_items_list:
+        #     for extra in food_extra:
+        #         food_id = extra.get("food_extra", {})
+        #         if (not food_id) or (not item.get('status') == "3_IN_TABLE"):
+        #             continue
+        #         for extra_info in extra:
+        #             food_extra_info= extra_info.get("food_extra",{})
+        #             if not food_option_report.get(food_id):
+        #                 food_extra_report[food_id]['food_extra'] = food_extra_info
+
+        response = {'food_report':food_dict.values(),}
         return ResponseWrapper(data=response, msg='success')
 
 
-# food.id = food_id
-# food.values.price = 10
-# food.values.qnty = 10
-# food.values.name = pasta
-#
-# food_dict = food
 
 
 class InvoiceViewSet(LoggingMixin, CustomViewSet):
