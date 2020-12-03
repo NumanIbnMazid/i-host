@@ -1,7 +1,8 @@
 # from rest_framework.routers import DefaultRouter
-from ..views import *
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+
+from ..views import *
 
 router = DefaultRouter()
 
@@ -111,6 +112,8 @@ apps_fake = [
 
     path('order/create_order/',
          FoodOrderViewSet.as_view({'post': 'create_order_apps'}, name='create_order_apps')),
+
+     path('reorder/',FoodOrderViewSet.as_view({'post':'food_reorder_by_order_id'},name='food_reorder_by_order_id')),
 
 
 

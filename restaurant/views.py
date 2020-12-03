@@ -1,6 +1,6 @@
+import copy
 import decimal
 import json
-from django.contrib.auth.models import User
 from account_management import serializers
 from account_management.models import (CustomerInfo, HotelStaffInformation,
                                        UserAccount)
@@ -44,15 +44,13 @@ from .serializers import (DiscountByFoodSerializer, DiscountSerializer,
                           OrderedItemDashboardPostSerializer,
                           OrderedItemGetDetailsSerializer,
                           OrderedItemSerializer, OrderedItemUserPostSerializer,
-                          PaymentSerializer, ReportDateRangeSerializer,
+                          PaymentSerializer, ReorderSerializer, ReportDateRangeSerializer,
                           ReportingDateRangeGraphSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
                           RestaurantUpdateSerialier, StaffIdListSerializer,
                           StaffTableSerializer, TableSerializer,
                           TableStaffSerializer,
                           TopRecommendedFoodListSerializer)
-
-import restaurant
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -449,7 +447,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def get_serializer_class(self):
-        if self.action in ['create_order', "create_take_away_order", "create_order_apps"]:
+        if self.action in ['create_order', "create_take_away_order"]:
             self.serializer_class = FoodOrderUserPostSerializer
         elif self.action in ['add_items']:
             self.serializer_class = OrderedItemUserPostSerializer
@@ -465,6 +463,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = PaymentSerializer
         elif self.action in ['retrieve']:
             self.serializer_class = FoodOrderByTableSerializer
+        elif self.action in ['food_reorder_by_order_id']:
+            self.serializer_class = ReorderSerializer
+
         else:
             self.serializer_class = FoodOrderUserPostSerializer
 
@@ -861,6 +862,30 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(data=serializer.data.get('order_info'), msg='Paid')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+    
+
+    def food_reorder_by_order_id(self, request,  *args, **kwargs):
+        # table_id = request.data.get('table_id')
+        serializer = self.get_serializer(data = request.data)
+        order_qs = FoodOrder.objects.filter(pk = request.data.get("order_id")).first()
+        if serializer.is_valid():
+            reorder_qs = FoodOrder.objects.create(table_id =request.data.get("table_id"))
+           
+            
+            if not order_qs:
+                return ResponseWrapper(error_msg=["Order ID is Invalid"], error_code=400)
+            
+            reorder_items = copy.deepcopy(reorder_qs)
+            all_order_items_qs = OrderedItem.objects.filter(food_order = reorder_items.pk)
+            all_order_items_qs.update(status='0_ORDER_INITIALIZED')
+            order_qs.status = '0_ORDER_INITIALIZED'
+            order_qs.save()
+            
+            serializer = FoodOrderByTableSerializer(instance=reorder_qs)
+            return ResponseWrapper(data=serializer.data, msg='Success')
+        
+        else:
+            return ResponseWrapper(error_msg=serializer.errors,error_code=400)
 
 
 class OrderedItemViewSet(LoggingMixin, CustomViewSet):

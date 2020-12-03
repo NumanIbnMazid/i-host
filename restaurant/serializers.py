@@ -220,6 +220,11 @@ class FoodOrderConfirmSerializer(serializers.Serializer):
 class PaymentSerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
 
+class ReorderSerializer(serializers.Serializer):
+    order_id = serializers.IntegerField()
+    table_id = serializers.IntegerField()
+    # ordred_items = serializers.ListSerializer(child=serializers.IntegerField)
+
 
 class OrderedItemUserPostSerializer(serializers.ModelSerializer):
     class Meta:
