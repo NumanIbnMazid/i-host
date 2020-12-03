@@ -1,7 +1,9 @@
 # from rest_framework.routers import DefaultRouter
-from ..views import *
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+
+from ..views import *
+
 router = DefaultRouter()
 router.register('food_option_type', FoodOptionTypeViewSet,
                 basename="food_option_extra_type")
@@ -108,6 +110,8 @@ apps_fake = [
 
     path('order/create_order/',
          FoodOrderViewSet.as_view({'post': 'create_order'}, name='create_order')),
+
+     path('reorder/',FoodOrderViewSet.as_view({'post':'food_reorder_by_order_id'},name='food_reorder_by_order_id')),
 
 
 
