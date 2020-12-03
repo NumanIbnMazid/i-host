@@ -43,15 +43,13 @@ from rest_framework_tracking.mixins import LoggingMixin
 from restaurant import permissions as custom_permissions
 
 
-class FcmDeviceViewset(LoggingMixin, viewsets.ModelViewSet):
+class FcmDeviceViewset(LoggingMixin, CustomViewSet):
     queryset = FcmDevice.objects.all()
     lookup_field = 'device_id'
     serializer_class = FcmDeviceSerializer
-# queryset = CustomerInfo.objects.all()
-# lookup_field = 'user'
-# logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
-# # http_method_names = ['GET', 'POST', 'PATCH', ]
-# serializer_class = CustomerInfoSerializer
+
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+    http_method_names = ('post', 'patch')
 
 
 class LoginView(KnoxLoginView):

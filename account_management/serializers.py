@@ -173,7 +173,7 @@ class LogSerializerGet(serializers.ModelSerializer):
         exclude = ['response']
 
 
-class FcmDeviceSerializer(serializers.ModelField):
+class FcmDeviceSerializer(serializers.ModelSerializer):
     class Meta:
         model = FcmDevice
         fields = "__all__"
