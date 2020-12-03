@@ -7,7 +7,7 @@ router = DefaultRouter()
 
 router.register('customer_info', CustomerInfoViewset,
                 basename="customer_info")
-router.register('fcm_device', FcmDeviceViewset, basename='fcm')
+router.register('apps/fcm_device', FcmDeviceViewset, basename='fcm')
 
 # router.register('apps/fcm_device', FcmDeviceViewset, basename="fcm_device")
 
