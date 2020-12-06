@@ -1003,8 +1003,12 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         if not request.data:
             return ResponseWrapper(error_code=400, error_msg='empty request body')
         food_order = request.data[0].get('food_order')
-        food_order_qs = FoodOrder.objects.filter(pk=food_order)
-        restaurant_id = food_order_qs.first().table.restaurant_id
+        food_order_qs = FoodOrder.objects.filter(pk=food_order).first()
+
+        if food_order_qs.table:
+            restaurant_id = food_order_qs.table.restaurant_id
+        else:
+            restaurant_id = food_order_qs.restaurant.pk
 
         if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
                                                     restaurant_id=restaurant_id):
