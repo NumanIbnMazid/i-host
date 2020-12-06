@@ -447,7 +447,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def get_serializer_class(self):
-        if self.action in ['create_order', "create_take_away_order"]:
+        if self.action in ['create_order','create_take_away_order']:
             self.serializer_class = FoodOrderUserPostSerializer
         elif self.action in ['add_items']:
             self.serializer_class = OrderedItemUserPostSerializer
@@ -1041,8 +1041,9 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
                           type=openapi.TYPE_INTEGER)
     ])
     def food_list(self, request, *args, category_id, **kwargs):
-        category_qs = Food.objects.filter(category=category_id)
+
         restaurant_id = int(request.query_params.get('restaurant'))
+        """
         if not (
             self.request.user.is_staff or HotelStaffInformation.objects.filter(
                 Q(is_owner=True) | Q(is_manager=True),
@@ -1050,6 +1051,9 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             )
         ):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=["can't get food list"])
+            """
+
+        category_qs = Food.objects.filter(category=category_id,restaurant_id=restaurant_id)
 
         serializer = FoodDetailSerializer(instance=category_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
@@ -1059,9 +1063,8 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
                           type=openapi.TYPE_INTEGER)
     ])
     def dashboard_food_search(self, request, *args, food_name, **kwargs):
-        food_name_qs = Food.objects.filter(name__icontains=food_name)
         restaurant_id = int(request.query_params.get('restaurant'))
-
+        """
         if not (
             self.request.user.is_staff or HotelStaffInformation.objects.filter(
                 Q(is_owner=True) | Q(is_manager=True),
@@ -1069,7 +1072,8 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             )
         ):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=["can't get food list,  please consult with manager or owner of the hotel"])
-
+        """
+        food_name_qs = Food.objects.filter(name__icontains=food_name, restaurant_id=restaurant_id)
         serializer = FoodDetailSerializer(instance=food_name_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
