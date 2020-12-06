@@ -1,7 +1,6 @@
 import copy
 import decimal
 import json
-
 from account_management import serializers
 from account_management.models import (CustomerInfo, HotelStaffInformation,
                                        UserAccount)
