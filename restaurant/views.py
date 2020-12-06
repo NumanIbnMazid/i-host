@@ -1,8 +1,10 @@
 import copy
 import decimal
 import json
+from utils.fcm import send_fcm_push_notification_appointment
 from account_management import serializers
-from account_management.models import (CustomerInfo, HotelStaffInformation,
+from account_management import models
+from account_management.models import (CustomerInfo, HotelStaffInformation, StaffFcmDevice,
                                        UserAccount)
 from account_management.serializers import (ListOfIdSerializer,
                                             StaffInfoSerializer)
@@ -47,7 +49,7 @@ from .serializers import (DiscountByFoodSerializer, DiscountSerializer,
                           PaymentSerializer, ReorderSerializer, ReportDateRangeSerializer,
                           ReportingDateRangeGraphSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
-                          RestaurantUpdateSerialier, StaffIdListSerializer,
+                          RestaurantUpdateSerialier, StaffFcmSerializer, StaffIdListSerializer,
                           StaffTableSerializer, TableSerializer,
                           TableStaffSerializer, TakeAwayFoodOrderPostSerializer,
                           TopRecommendedFoodListSerializer)
@@ -413,7 +415,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         # qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
 
         serializer = FoodOrderByTableSerializer(instance=qs, many=True)
-        #serializer = self.get_serializer(instance=qs, many=True)
+        # serializer = self.get_serializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg="success")
 
     def apps_running_order_item_list(self, request, table_id, *args, **kwargs):
@@ -423,7 +425,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         # qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
 
         serializer = FoodOrderByTableSerializer(instance=qs, many=False)
-        #serializer = self.get_serializer(instance=qs, many=True)
+        # serializer = self.get_serializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg="success")
 
     def destroy(self, request, **kwargs):
@@ -514,6 +516,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs.is_occupied = True
                 table_qs.save()
                 qs = serializer.save()
+                qs.restaurant = table_qs.restaurant
+                qs.save()
                 serializer = self.serializer_class(instance=qs)
             else:
                 return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
@@ -531,6 +535,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs.is_occupied = True
                 table_qs.save()
                 qs = serializer.save()
+                qs.restaurant = table_qs.restaurant
+                qs.save()
                 self.save_customer_info(request, qs)
                 serializer = self.serializer_class(instance=qs)
             else:
@@ -639,7 +645,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 all_items_qs.filter(pk__in=request.data.get(
                     'food_items')).update(status='4_CANCELLED')
 
-            #order_qs.status = '3_IN_TABLE'
+            # order_qs.status = '3_IN_TABLE'
             # order_qs.save()
             serializer = FoodOrderByTableSerializer(instance=order_qs)
 
@@ -1000,8 +1006,12 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         if not request.data:
             return ResponseWrapper(error_code=400, error_msg='empty request body')
         food_order = request.data[0].get('food_order')
-        food_order_qs = FoodOrder.objects.filter(pk=food_order)
-        restaurant_id = food_order_qs.first().table.restaurant_id
+        food_order_qs = FoodOrder.objects.filter(pk=food_order).first()
+
+        if food_order_qs.table:
+            restaurant_id = food_order_qs.table.restaurant_id
+        else:
+            restaurant_id = food_order_qs.restaurant.pk
 
         if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
                                                     restaurant_id=restaurant_id):
@@ -1262,7 +1272,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
     def report_by_date_range(self, request, *args, **kwargs):
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
-        #restaurant_id =Invoice.objects.filter(inv)
+        # restaurant_id =Invoice.objects.filter(inv)
         # if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
         #                                           restaurant_id=restaurant_id):
         #   return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg='not a valid manager or owner')
@@ -1321,8 +1331,8 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                     food_dict[food_id]['quantity'] = quantity
                 else:
                     food_dict[food_id]['quantity'] += quantity
-                #food_option_report[food_id]['food_option_report'] = food_option
-                #food_option_report[food_id]['food_extra'] = food_extra_name
+                # food_option_report[food_id]['food_option_report'] = food_option
+                # food_option_report[food_id]['food_extra'] = food_extra_name
 
                 # calculation of food option
 
@@ -1541,3 +1551,25 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(status=200, msg='deleted')
         else:
             return ResponseWrapper(error_msg="failed to delete", error_code=400)
+
+
+class FcmCommunication(viewsets.GenericViewSet):
+    serializer_class = StaffFcmSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['call_waiter']:
+            self.serializer_class = StaffFcmSerializer
+
+        return self.serializer_class
+
+    def call_waiter(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+        table_id = request.data.get('table_id')
+        staff_fcm_device_qs = StaffFcmDevice.objects.filter(
+            hotel_staff__tables=table_id)
+        if send_fcm_push_notification_appointment(device_id_list=staff_fcm_device_qs.values_list('device_id', flat=True)):
+            return ResponseWrapper(msg='Success')
+        else:
+            return ResponseWrapper(error_msg="failed to notify")
