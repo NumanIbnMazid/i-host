@@ -114,6 +114,7 @@ apps_fake = [
          FoodOrderViewSet.as_view({'post': 'create_order_apps'}, name='create_order_apps')),
 
      path('reorder/',FoodOrderViewSet.as_view({'post':'food_reorder_by_order_id'},name='food_reorder_by_order_id')),
+     path('customer_order_history/',FoodOrderViewSet.as_view({'get':'customer_order_history'},name='customer_order_history')),
 
 
 

@@ -473,7 +473,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ["create_take_away_order"]:
+        if self.action in ["create_take_away_order",'customer_order_history']:
             permission_classes = [permissions.IsAuthenticated]
         # elif self.action == "retrieve" or self.action == "update":
         #     permission_classes = [permissions.AllowAny]
@@ -870,8 +870,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         order_qs = FoodOrder.objects.filter(pk = request.data.get("order_id")).first()
         if serializer.is_valid():
             reorder_qs = FoodOrder.objects.create(table_id =request.data.get("table_id"))
-           
             
+            
+
             if not order_qs:
                 return ResponseWrapper(error_msg=["Order ID is Invalid"], error_code=400)
             
@@ -886,6 +887,15 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         
         else:
             return ResponseWrapper(error_msg=serializer.errors,error_code=400)
+
+
+    def customer_order_history(self, request, *args, **kwargs):
+        customer_qs = UserAccount.objects.filter(pk=request.user.pk).first()
+        #order_list = customer_qs.customer_info.values_list(
+            # 'user', flat=True)
+        qs = FoodOrder.objects.values()
+        serializer = FoodOrderByTableSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data)
 
 
 class OrderedItemViewSet(LoggingMixin, CustomViewSet):
