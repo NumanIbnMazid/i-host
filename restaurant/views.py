@@ -514,6 +514,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs.is_occupied = True
                 table_qs.save()
                 qs = serializer.save()
+                qs.restaurant = table_qs.restaurant
+                qs.save()
                 serializer = self.serializer_class(instance=qs)
             else:
                 return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
@@ -531,6 +533,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs.is_occupied = True
                 table_qs.save()
                 qs = serializer.save()
+                qs.restaurant = table_qs.restaurant
+                qs.save()
                 self.save_customer_info(request, qs)
                 serializer = self.serializer_class(instance=qs)
             else:
@@ -554,14 +558,19 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                         qs.save()
 
     def create_take_away_order(self, request):
-        serializer = self.get_serializer(data=request.data, partial=True)
+        serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
-        restaurant_id = request.data.get('restaurant_id')
+        restaurant_id = request.data.get('restaurant')
         self.check_object_permissions(request, obj=restaurant_id)
+        food_order_dict = {}
+        if restaurant_id:
+            food_order_dict['restaurant_id'] = restaurant_id
+        if request.data.get('table'):
+            food_order_dict['table_id'] = request.data.get('table')
 
-        qs = FoodOrder.objects.create(**request.data)
-        serializer = self.serializer_class(instance=qs)
+        qs = FoodOrder.objects.create(**food_order_dict)
+        serializer = FoodOrderUserPostSerializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='created')
 
     def add_items(self, request):
@@ -1005,8 +1014,12 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         if not request.data:
             return ResponseWrapper(error_code=400, error_msg='empty request body')
         food_order = request.data[0].get('food_order')
-        food_order_qs = FoodOrder.objects.filter(pk=food_order)
-        restaurant_id = food_order_qs.first().table.restaurant_id
+        food_order_qs = FoodOrder.objects.filter(pk=food_order).first()
+
+        if food_order_qs.table:
+            restaurant_id = food_order_qs.table.restaurant_id
+        else:
+            restaurant_id = food_order_qs.restaurant.pk
 
         if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
                                                     restaurant_id=restaurant_id):
@@ -1066,7 +1079,8 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=["can't get food list"])
             """
 
-        category_qs = Food.objects.filter(category=category_id,restaurant_id=restaurant_id)
+        category_qs = Food.objects.filter(
+            category=category_id, restaurant_id=restaurant_id)
 
         serializer = FoodDetailSerializer(instance=category_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
@@ -1086,7 +1100,8 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
         ):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=["can't get food list,  please consult with manager or owner of the hotel"])
         """
-        food_name_qs = Food.objects.filter(name__icontains=food_name, restaurant_id=restaurant_id)
+        food_name_qs = Food.objects.filter(
+            name__icontains=food_name, restaurant_id=restaurant_id)
         serializer = FoodDetailSerializer(instance=food_name_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
