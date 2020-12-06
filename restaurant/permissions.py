@@ -164,7 +164,7 @@ class IsRestaurantManagementOrAdmin(permissions.BasePermission):
         # so we'll always allow GET, HEAD or OPTIONS requests.
         # hotel_staff_qs = HotelStaffInformation.objects.filter(
         #     restaurant=obj, user=request.user, is_waiter=True)
-        if UserAccount.objects.filter(Q(user__is_staff=True) | Q(user__is_superuser=True), pk=request.user.pk):
+        if UserAccount.objects.filter(Q(is_staff=True) | Q(is_superuser=True), pk=request.user.pk):
             return True
 
         hotel_staff_qs = HotelStaffInformation.objects.filter(
@@ -201,7 +201,7 @@ class IsRestaurantOwnerOrAdmin(permissions.BasePermission):
         # so we'll always allow GET, HEAD or OPTIONS requests.
         # hotel_staff_qs = HotelStaffInformation.objects.filter(
         #     restaurant=obj, user=request.user, is_waiter=True)
-        if UserAccount.objects.filter(Q(user__is_staff=True) | Q(user__is_superuser=True), pk=request.user.pk):
+        if UserAccount.objects.filter(Q(is_staff=True) | Q(is_superuser=True), pk=request.user.pk):
             return True
 
         hotel_staff_qs = HotelStaffInformation.objects.filter(

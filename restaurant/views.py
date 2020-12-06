@@ -554,14 +554,19 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                         qs.save()
 
     def create_take_away_order(self, request):
-        serializer = self.get_serializer(data=request.data, partial=True)
+        serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
-        restaurant_id = request.data.get('restaurant_id')
+        restaurant_id = request.data.get('restaurant')
         self.check_object_permissions(request, obj=restaurant_id)
+        food_order_dict = {}
+        if restaurant_id:
+            food_order_dict['restaurant_id'] = restaurant_id
+        if request.data.get('table'):
+            food_order_dict['table_id'] = request.data.get('table')
 
-        qs = FoodOrder.objects.create(**request.data)
-        serializer = self.serializer_class(instance=qs)
+        qs = FoodOrder.objects.create(**food_order_dict)
+        serializer = FoodOrderUserPostSerializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='created')
 
     def add_items(self, request):
@@ -1059,7 +1064,8 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=["can't get food list"])
             """
 
-        category_qs = Food.objects.filter(category=category_id,restaurant_id=restaurant_id)
+        category_qs = Food.objects.filter(
+            category=category_id, restaurant_id=restaurant_id)
 
         serializer = FoodDetailSerializer(instance=category_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
@@ -1079,7 +1085,8 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
         ):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=["can't get food list,  please consult with manager or owner of the hotel"])
         """
-        food_name_qs = Food.objects.filter(name__icontains=food_name, restaurant_id=restaurant_id)
+        food_name_qs = Food.objects.filter(
+            name__icontains=food_name, restaurant_id=restaurant_id)
         serializer = FoodDetailSerializer(instance=food_name_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
