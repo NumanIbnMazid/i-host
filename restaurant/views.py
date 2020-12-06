@@ -49,7 +49,7 @@ from .serializers import (DiscountByFoodSerializer, DiscountSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
                           RestaurantUpdateSerialier, StaffIdListSerializer,
                           StaffTableSerializer, TableSerializer,
-                          TableStaffSerializer,
+                          TableStaffSerializer, TakeAwayFoodOrderPostSerializer,
                           TopRecommendedFoodListSerializer)
 
 
@@ -447,8 +447,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def get_serializer_class(self):
-        if self.action in ['create_order', "create_take_away_order"]:
+        if self.action in ['create_order']:
             self.serializer_class = FoodOrderUserPostSerializer
+        if self.action in ['create_take_away_order']:
+            self.serializer_class = TakeAwayFoodOrderPostSerializer
         elif self.action in ['add_items']:
             self.serializer_class = OrderedItemUserPostSerializer
         elif self.action in ['cancel_order']:
@@ -473,8 +475,11 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ["create_take_away_order",'customer_order_history']:
+        if self.action in ['customer_order_history']:
             permission_classes = [permissions.IsAuthenticated]
+        if self.action in ['create_take_away_order']:
+            permission_classes = [
+                custom_permissions.IsRestaurantManagementOrAdmin]
         # elif self.action == "retrieve" or self.action == "update":
         #     permission_classes = [permissions.AllowAny]
         # else:
@@ -550,12 +555,14 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
     def create_take_away_order(self, request):
         serializer = self.get_serializer(data=request.data, partial=True)
-        if serializer.is_valid():
-            qs = serializer.save()
-            serializer = self.serializer_class(instance=qs)
-            return ResponseWrapper(data=serializer.data, msg='created')
-        else:
+        if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+        restaurant_id = request.data.get('restaurant_id')
+        self.check_object_permissions(request, obj=restaurant_id)
+
+        qs = FoodOrder.objects.create(**request.data)
+        serializer = self.serializer_class(instance=qs)
+        return ResponseWrapper(data=serializer.data, msg='created')
 
     def add_items(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -862,37 +869,36 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(data=serializer.data.get('order_info'), msg='Paid')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
-    
 
     def food_reorder_by_order_id(self, request,  *args, **kwargs):
         # table_id = request.data.get('table_id')
-        serializer = self.get_serializer(data = request.data)
-        order_qs = FoodOrder.objects.filter(pk = request.data.get("order_id")).first()
+        serializer = self.get_serializer(data=request.data)
+        order_qs = FoodOrder.objects.filter(
+            pk=request.data.get("order_id")).first()
         if serializer.is_valid():
-            reorder_qs = FoodOrder.objects.create(table_id =request.data.get("table_id"))
-            
-            
+            reorder_qs = FoodOrder.objects.create(
+                table_id=request.data.get("table_id"))
 
             if not order_qs:
                 return ResponseWrapper(error_msg=["Order ID is Invalid"], error_code=400)
-            
+
             reorder_items = copy.deepcopy(reorder_qs)
-            all_order_items_qs = OrderedItem.objects.filter(food_order = reorder_items.pk)
+            all_order_items_qs = OrderedItem.objects.filter(
+                food_order=reorder_items.pk)
             all_order_items_qs.update(status='0_ORDER_INITIALIZED')
             order_qs.status = '0_ORDER_INITIALIZED'
             order_qs.save()
-            
+
             serializer = FoodOrderByTableSerializer(instance=reorder_qs)
             return ResponseWrapper(data=serializer.data, msg='Success')
-        
-        else:
-            return ResponseWrapper(error_msg=serializer.errors,error_code=400)
 
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def customer_order_history(self, request, *args, **kwargs):
         customer_qs = UserAccount.objects.filter(pk=request.user.pk).first()
-        #order_list = customer_qs.customer_info.values_list(
-            # 'user', flat=True)
+        # order_list = customer_qs.customer_info.values_list(
+        # 'user', flat=True)
         qs = FoodOrder.objects.values()
         serializer = FoodOrderByTableSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
@@ -1271,7 +1277,6 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
 
-
         food_items_date_range_qs = Invoice.objects.filter(
             created_at__gte=start_date, updated_at__lte=end_date, payment_status='1_PAID')
 
@@ -1279,78 +1284,75 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             'order_info__ordered_items', flat=True)
         food_dict = {}
         food_report_list = []
-        food_option_report= {}
-        food_extra_report ={}
+        food_option_report = {}
+        food_extra_report = {}
 
         for items_per_invoice in order_items_list:
             for item in items_per_invoice:
 
                 food_id = item.get("food_option", {}).get("food")
-                if (not food_id) or (not item.get('status')=="3_IN_TABLE"):
+                if (not food_id) or (not item.get('status') == "3_IN_TABLE"):
                     continue
 
                 name = item.get('food_name')
                 price = item.get('price', 0)
                 quantity = item.get('quantity', 0)
 
-
                 if not food_dict.get(food_id):
-                    food_dict[food_id]= {}
+                    food_dict[food_id] = {}
 
-                if not food_dict.get(food_id,{}).get(name):
+                if not food_dict.get(food_id, {}).get(name):
                     food_dict[food_id]['name'] = name
 
-                if not food_dict.get(food_id,{}).get(price):
+                if not food_dict.get(food_id, {}).get(price):
                     food_dict[food_id]['price'] = price
                 else:
                     food_dict[food_id]['price'] += price
 
-                if not food_dict.get(food_id,{}).get(quantity):
+                if not food_dict.get(food_id, {}).get(quantity):
                     food_dict[food_id]['quantity'] = quantity
                 else:
                     food_dict[food_id]['quantity'] += quantity
                 #food_option_report[food_id]['food_option_report'] = food_option
                 #food_option_report[food_id]['food_extra'] = food_extra_name
 
-                #calculation of food option 
+                # calculation of food option
 
                 food_option_name = item.get("food_option", {}).get("name")
                 food_option_id = item.get("food_option", {}).get("id")
 
                 if food_option_id and food_option_name:
-                    if not food_dict.get(food_id,{}).get('food_option'):
+                    if not food_dict.get(food_id, {}).get('food_option'):
                         food_dict[food_id]['food_option'] = {}
-                    if not food_dict.get(food_id,{}).get('food_option',{}).get(food_option_id):
-                        food_dict[food_id]['food_option'][food_option_id] = {'name':food_option_name,'quantity':quantity}
+                    if not food_dict.get(food_id, {}).get('food_option', {}).get(food_option_id):
+                        food_dict[food_id]['food_option'][food_option_id] = {
+                            'name': food_option_name, 'quantity': quantity}
                     else:
                         food_dict[food_id]['food_option'][food_option_id]['quantity'] += quantity
 
                 # calculation of food extra
 
-                food_extra_list = item.get('food_extra',[])
+                food_extra_list = item.get('food_extra', [])
 
                 for food_extra in food_extra_list:
                     food_extra_name = food_extra.get("name")
                     food_extra_id = food_extra.get("id")
 
                     if food_extra_id and food_extra_name:
-                        if not food_dict.get(food_id,{}).get('food_extra'):
+                        if not food_dict.get(food_id, {}).get('food_extra'):
                             food_dict[food_id]['food_extra'] = {}
-                        if not food_dict.get(food_id,{}).get("food_extra",{}).get(food_extra_id):
-                            food_dict[food_id]["food_extra"][food_extra_id] = {'name':food_extra_name,'quantity':quantity}
+                        if not food_dict.get(food_id, {}).get("food_extra", {}).get(food_extra_id):
+                            food_dict[food_id]["food_extra"][food_extra_id] = {
+                                'name': food_extra_name, 'quantity': quantity}
                         else:
                             food_dict[food_id]["food_extra"][food_extra_id]['quantity'] += quantity
 
-
         for item in food_dict.values():
-            if item.get('food_extra',{}):
-                item['food_extra'] = item.get('food_extra',{}).values()
-            
-            if item.get('food_option',{}):
-                item['food_option'] = item.get('food_option',{}).values()
+            if item.get('food_extra', {}):
+                item['food_extra'] = item.get('food_extra', {}).values()
 
-            
-
+            if item.get('food_option', {}):
+                item['food_option'] = item.get('food_option', {}).values()
 
         # for food_option in order_items_list:
         #     for option in food_option:
@@ -1358,8 +1360,6 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         #         food_id = option.get("food_option", {}).get("food")
         #         if (not food_id) or (not item.get('status')=="3_IN_TABLE"):
         #             continue
-
-
 
         #         food_option_name = option.get("food_option", {}).get("name")
         #         food_option_quantity = option.get('quantity', 0)
@@ -1382,10 +1382,8 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         #             if not food_option_report.get(food_id):
         #                 food_extra_report[food_id]['food_extra'] = food_extra_info
 
-        response = {'food_report':food_dict.values(),}
+        response = {'food_report': food_dict.values(), }
         return ResponseWrapper(data=response, msg='success')
-
-
 
 
 class InvoiceViewSet(LoggingMixin, CustomViewSet):

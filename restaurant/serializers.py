@@ -216,9 +216,9 @@ class FoodOrderConfirmSerializer(serializers.Serializer):
     food_items = serializers.ListSerializer(child=serializers.IntegerField())
 
 
-
 class PaymentSerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
+
 
 class ReorderSerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
@@ -390,6 +390,11 @@ class FoodOrderUserPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOrder
         fields = ['ordered_items', 'table', 'remarks', 'status', 'id']
+
+
+class TakeAwayFoodOrderPostSerializer(serializers.Serializer):
+    restaurant = serializers.IntegerField()
+    table = serializers.IntegerField(reqired=False)
 
 
 class AddItemsSerializer(serializers.Serializer):
@@ -579,9 +584,12 @@ class ReportingDateRangeGraphSerializer(serializers.Serializer):
                                                     ("5_PAID", "Payment Done"),
                                                     ("6_CANCELLED", "Cancelled"), ], default="5_PAID", required=False)
 
+
 class DiscountByFoodSerializer(serializers.Serializer):
     discount_id = serializers.IntegerField()
-    food_id_lists = serializers.ListSerializer(child=serializers.IntegerField())
+    food_id_lists = serializers.ListSerializer(
+        child=serializers.IntegerField())
+
 
 class DiscountSerializer(serializers.ModelSerializer):
     class Meta:
@@ -589,18 +597,15 @@ class DiscountSerializer(serializers.ModelSerializer):
         # fields ='__all__'
         exclude = ['deleted_at']
 
+
 class FoodDetailsByDiscountSerializer(serializers.ModelSerializer):
-    discount = DiscountSerializer(read_only= True, many= True)
+    discount = DiscountSerializer(read_only=True, many=True)
+
     class Meta:
         model = Food
-        fields =['id', 'image','discount']
-
+        fields = ['id', 'image', 'discount']
 
 
 class ReportDateRangeSerializer(serializers.Serializer):
     start_date = serializers.DateField(required=False)
     end_date = serializers.DateField(required=False)
-
-
-
-
