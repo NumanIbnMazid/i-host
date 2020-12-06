@@ -514,6 +514,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs.is_occupied = True
                 table_qs.save()
                 qs = serializer.save()
+                qs.restaurant = table_qs.restaurant
+                qs.save()
                 serializer = self.serializer_class(instance=qs)
             else:
                 return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
@@ -531,6 +533,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs.is_occupied = True
                 table_qs.save()
                 qs = serializer.save()
+                qs.restaurant = table_qs.restaurant
+                qs.save()
                 self.save_customer_info(request, qs)
                 serializer = self.serializer_class(instance=qs)
             else:
