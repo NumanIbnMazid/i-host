@@ -884,20 +884,24 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         serializer = self.get_serializer(data=request.data)
         order_qs = FoodOrder.objects.filter(
             pk=request.data.get("order_id")).first()
+        
+        
         if serializer.is_valid():
             reorder_qs = FoodOrder.objects.create(
                 table_id=request.data.get("table_id"))
+
+            # food_option_qs = OrderedItem.objects.create(food_option =)
             
+            food_extra_qs = OrderedItem.objects.filter(food_extra = order_qs.pk)
+            print(food_extra_qs)
+            # print(food_option_qs)
             
-            
-            food_option_qs = OrderedItem.objects.filter(
-                food_order=order_qs.pk)
-            print(food_option_qs)
-            
+            # reorder_qs.update(ordered_items: food_option_qs)
             if not order_qs:
                 return ResponseWrapper(error_msg=["Order ID is Invalid"], error_code=400)
 
             reorder_items = copy.deepcopy(reorder_qs)
+
             all_order_items_qs = OrderedItem.objects.filter(
                 food_order=reorder_items.pk)
             all_order_items_qs.update(status='0_ORDER_INITIALIZED')
