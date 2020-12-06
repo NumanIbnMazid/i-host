@@ -394,7 +394,7 @@ class FoodOrderUserPostSerializer(serializers.ModelSerializer):
 
 class TakeAwayFoodOrderPostSerializer(serializers.Serializer):
     restaurant = serializers.IntegerField()
-    table = serializers.IntegerField(reqired=False)
+    table = serializers.IntegerField(required=False)
 
 
 class AddItemsSerializer(serializers.Serializer):
