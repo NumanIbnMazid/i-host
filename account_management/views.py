@@ -47,7 +47,7 @@ class StaffFcmDeviceViewset(LoggingMixin, CustomViewSet):
     queryset = StaffFcmDevice.objects.all()
     lookup_field = 'hotel_staff'
     serializer_class = StaffFcmDeviceSerializer
-    permission_classes = (permissions.IsAuthenticated)
+    permission_classes = [permissions.IsAuthenticated]
 
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     http_method_names = ('post', 'patch')
