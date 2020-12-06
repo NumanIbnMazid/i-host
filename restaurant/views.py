@@ -1051,7 +1051,7 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
         ):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=["can't get food list"])
 
-        serializer = self.get_serializer(instance=category_qs, many=True)
+        serializer = FoodDetailSerializer(instance=category_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
     @swagger_auto_schema(manual_parameters=[
