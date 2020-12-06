@@ -1,19 +1,22 @@
+
 import datetime
 import json
 
 import requests
 # from fcm_django.models import FCMDevice
-"""
 
-from app.settings import FCM_DJANGO_SETTINGS
 
-from core.models import ContactFCM
-from customer.models import CustomerFCM
+FCM_DJANGO_SETTINGS = {
+    "FCM_SERVER_KEY": "AAAA0HAEqOY:APA91bH5tJDGmxbdt7cZgVyImj-QU1tvIFpq3EfkiQZgmj-ktSRMNJkonGnZiVoKAVH9bT80Y-TFs22u4F5O46d97xQn90CE0FEnItifG6cofZt0_IorqX2N7sZwaUgUBvzGwE5aZ9Kt",
+    "ONE_DEVICE_PER_USER": True,
+    "DELETE_INACTIVE_DEVICES": False,
+}
+
 
 FCM_SERVER_KEY = FCM_DJANGO_SETTINGS.get('FCM_SERVER_KEY')
 
 
-def send_fcm_push_notification_appointment(contact_id, type, status, table_no=0, msg=''):
+def send_fcm_push_notification_appointment(contact_id, type,  device_id_list: list, status="CallStaff", table_no=0, msg=''):
     status_value = {
         "Received": {
             'notification': {'title': 'Received',
@@ -51,17 +54,15 @@ def send_fcm_push_notification_appointment(contact_id, type, status, table_no=0,
             'data': {'title': '8', 'body': str(datetime.datetime.now())}
         },
     }
-    try:
-        if type == 'customer':
-            device = CustomerFCM.objects.filter(customer=contact_id).first()
-        else:
-            device = ContactFCM.objects.filter(customer=contact_id).first()
-        if device:
-            fcm_token = device.fcm_token
+    success = False
+
+    for device_id in device_id_list:
+        try:
+
             data = {
                 "notification": status_value[status]['notification'],
                 "data": status_value[status]['data'],
-                "to": fcm_token
+                "to": device_id
             }
             headers = {
                 'Content-type': 'application/json',
@@ -72,11 +73,8 @@ def send_fcm_push_notification_appointment(contact_id, type, status, table_no=0,
             # print("Fcm Response ", response)
             if 300 > response.status_code >= 200:
                 if response.json().get('failure') < 1:
-                    return True
-            return False
-        else:
-            return False
+                    success = True
 
-    except Exception as e:
-        print("FCm Exception ", e)
-"""
+        except Exception as e:
+            print("FCm Exception ", e)
+    return success

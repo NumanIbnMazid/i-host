@@ -609,3 +609,7 @@ class FoodDetailsByDiscountSerializer(serializers.ModelSerializer):
 class ReportDateRangeSerializer(serializers.Serializer):
     start_date = serializers.DateField(required=False)
     end_date = serializers.DateField(required=False)
+
+
+class StaffFcmSerializer(serializers.Serializer):
+    table_id = serializers.IntegerField()

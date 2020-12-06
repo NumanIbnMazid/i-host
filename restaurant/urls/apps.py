@@ -113,8 +113,10 @@ apps_fake = [
     path('order/create_order/',
          FoodOrderViewSet.as_view({'post': 'create_order_apps'}, name='create_order_apps')),
 
-     path('reorder/',FoodOrderViewSet.as_view({'post':'food_reorder_by_order_id'},name='food_reorder_by_order_id')),
-     path('customer_order_history/',FoodOrderViewSet.as_view({'get':'customer_order_history'},name='customer_order_history')),
+    path('reorder/', FoodOrderViewSet.as_view(
+        {'post': 'food_reorder_by_order_id'}, name='food_reorder_by_order_id')),
+    path('customer_order_history/', FoodOrderViewSet.as_view(
+        {'get': 'customer_order_history'}, name='customer_order_history')),
 
 
 
@@ -187,4 +189,5 @@ apps_fake = [
 apps_url = [
     path('table/<int:table_id>/order_item_list/',
          TableViewSet.as_view({'get': 'apps_running_order_item_list'}), name='apps_running_order_item_list'),
+    path('call_waiter/', FcmCommunication.as_view({"post": "call_waiter"}))
 ]+apps_fake
