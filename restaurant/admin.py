@@ -4,6 +4,9 @@ from .models import *
 # Register your models here.
 class InvoiceAdmin(admin.ModelAdmin):
     list_display = ['id', 'created_at', 'updated_at']
+
+class TableAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'restaurant']
 admin.site.register(Restaurant)
 admin.site.register(Subscription)
 admin.site.register(RestaurantContactPerson)
@@ -17,7 +20,7 @@ admin.site.register(FoodExtraType)
 admin.site.register(FoodExtra)
 
 admin.site.register(FoodOption)
-admin.site.register(Table)
+admin.site.register(Table, TableAdmin)
 admin.site.register(FoodOrder)
 admin.site.register(OrderedItem)
 admin.site.register(Invoice, InvoiceAdmin)

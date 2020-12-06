@@ -907,10 +907,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def customer_order_history(self, request, *args, **kwargs):
-        customer_qs = UserAccount.objects.filter(pk=request.user.pk).first()
-        # order_list = customer_qs.customer_info.values_list(
-        # 'user', flat=True)
-        qs = FoodOrder.objects.values()
+        qs = FoodOrder.objects.filter(customer__user =request.user.pk)
         serializer = FoodOrderByTableSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
