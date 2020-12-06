@@ -3,6 +3,7 @@ from datetime import datetime
 from drf_yasg2 import openapi
 
 from rest_framework_tracking.models import APIRequestLog
+from account_management import models
 
 from utils.custom_viewset import CustomViewSet
 from restaurant.serializers import HotelStaffInformationSerializer
@@ -27,10 +28,10 @@ from rest_framework.response import Response
 from restaurant.models import Restaurant
 from utils.response_wrapper import ResponseWrapper
 
-from account_management.models import CustomerInfo, HotelStaffInformation
+from account_management.models import CustomerInfo, StaffFcmDevice, HotelStaffInformation
 from account_management.models import UserAccount
 from account_management.models import UserAccount as User
-from account_management.serializers import (CustomerInfoSerializer, OtpLoginSerializer,
+from account_management.serializers import (CustomerInfoSerializer, StaffFcmDeviceSerializer, OtpLoginSerializer,
                                             RestaurantUserSignUpSerializer, StaffInfoGetSerializer, StaffInfoSerializer,
                                             StaffLoginInfoGetSerializer,
                                             UserAccountPatchSerializer,
@@ -40,6 +41,17 @@ from account_management.serializers import (CustomerInfoSerializer, OtpLoginSeri
 from rest_framework_tracking.mixins import LoggingMixin
 
 from restaurant import permissions as custom_permissions
+
+
+class StaffFcmDeviceViewset(LoggingMixin, CustomViewSet):
+    queryset = StaffFcmDevice.objects.all()
+    lookup_field = 'hotel_staff'
+    serializer_class = StaffFcmDeviceSerializer
+    permission_classes = (permissions.IsAuthenticated)
+
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+    http_method_names = ('post', 'patch')
+
 
 class LoginView(KnoxLoginView):
     permission_classes = (permissions.AllowAny,)
@@ -143,7 +155,7 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
         if self.action in ["create_owner"]:
 
             permission_classes = [permissions.IsAdminUser]
-        if self.action in [ "create_manager"]:
+        if self.action in ["create_manager"]:
             permission_classes = [custom_permissions.IsRestaurantOwnerOrAdmin]
 
         elif self.action in ["manager_info", "waiter_info"]:
@@ -175,7 +187,6 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
         password = serializer.data.get("password")
         restaurant_id = serializer.data.get('restaurant_id')
         user_info_dict = {}
-
 
         if serializer.data.get('phone'):
             user_info_dict['phone'] = serializer.data.get("phone")
@@ -364,7 +375,7 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
         return ResponseWrapper(data=user_serializer.data, status=200)
 
     def update(self, request, *args, **kwargs):
-        password = request.data.pop("password",None)
+        password = request.data.pop("password", None)
         user_qs = User.objects.filter(pk=request.user.pk)
 
         # if user_qs:
@@ -422,11 +433,11 @@ class CustomerInfoViewset(LoggingMixin, viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
 
-
 class HotelStaffLogViewSet(CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     queryset = APIRequestLog.objects.all()
+
     def get_serializer_class(self):
         self.serializer_class = LogSerializerGet
 
@@ -440,7 +451,8 @@ class HotelStaffLogViewSet(CustomViewSet):
 
             # permission_classes = [permissions.IsAdminUser,custom_permissions.IsRestaurantOwner]
 
-            permission_classes = [custom_permissions.IsRestaurantManagementOrAdmin]
+            permission_classes = [
+                custom_permissions.IsRestaurantManagementOrAdmin]
         else:
             permission_classes = [permissions.IsAdminUser]
 
@@ -452,16 +464,14 @@ class HotelStaffLogViewSet(CustomViewSet):
         openapi.Parameter("end_date", openapi.IN_QUERY,
                           type=openapi.FORMAT_DATE)
     ])
-    def hotel_staff_logger(self,request,*args, **kwargs):
+    def hotel_staff_logger(self, request, *args, **kwargs):
         restaurant_id = request.data.get('restaurant')
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
-        log_qs = self.get_queryset().filter(user__hotel_staff__restaurant_id=restaurant_id,requested_at__gte=start_date,requested_at__lte=end_date).distinct().order_by('-id')
+        log_qs = self.get_queryset().filter(user__hotel_staff__restaurant_id=restaurant_id,
+                                            requested_at__gte=start_date, requested_at__lte=end_date).distinct().order_by('-id')
 
-        serializer = LogSerializerGet(instance = log_qs,many=True)
-        return  ResponseWrapper(serializer.data)
+        serializer = LogSerializerGet(instance=log_qs, many=True)
+        return ResponseWrapper(serializer.data)
 
-
-        #return ResponseWrapper(data=waiter_qs.data,status=200)
-
-
+        # return ResponseWrapper(data=waiter_qs.data,status=200)
