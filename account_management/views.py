@@ -28,10 +28,10 @@ from rest_framework.response import Response
 from restaurant.models import Restaurant
 from utils.response_wrapper import ResponseWrapper
 
-from account_management.models import CustomerInfo, FcmDevice, HotelStaffInformation
+from account_management.models import CustomerInfo, StaffFcmDevice, HotelStaffInformation
 from account_management.models import UserAccount
 from account_management.models import UserAccount as User
-from account_management.serializers import (CustomerInfoSerializer, FcmDeviceSerializer, OtpLoginSerializer,
+from account_management.serializers import (CustomerInfoSerializer, StaffFcmDeviceSerializer, OtpLoginSerializer,
                                             RestaurantUserSignUpSerializer, StaffInfoGetSerializer, StaffInfoSerializer,
                                             StaffLoginInfoGetSerializer,
                                             UserAccountPatchSerializer,
@@ -43,10 +43,11 @@ from rest_framework_tracking.mixins import LoggingMixin
 from restaurant import permissions as custom_permissions
 
 
-class FcmDeviceViewset(LoggingMixin, CustomViewSet):
-    queryset = FcmDevice.objects.all()
-    lookup_field = 'device_id'
-    serializer_class = FcmDeviceSerializer
+class StaffFcmDeviceViewset(LoggingMixin, CustomViewSet):
+    queryset = StaffFcmDevice.objects.all()
+    lookup_field = 'hotel_staff'
+    serializer_class = StaffFcmDeviceSerializer
+    permission_classes = (permissions.IsAuthenticated)
 
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     http_method_names = ('post', 'patch')
