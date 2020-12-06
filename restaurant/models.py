@@ -158,7 +158,6 @@ class Table(SoftDeleteModel):
     #            #+'' + self.id.__str__()
 
 
-
 class FoodOrder(SoftDeleteModel):
     ORDER_STATUS = [
         ("0_ORDER_INITIALIZED", "Table Scanned"),
@@ -187,7 +186,10 @@ class FoodOrder(SoftDeleteModel):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    customer = models.ForeignKey(to='account_management.CustomerInfo',on_delete=models.SET_NULL,null=True,blank=True)
+    customer = models.ForeignKey(
+        to='account_management.CustomerInfo', on_delete=models.SET_NULL, null=True, blank=True)
+    restaurant = models.ForeignKey(
+        to=Restaurant, on_delete=models.SET_NULL, null=True, blank=True, related_name='food_orders')
 
     def __str__(self):
         if self.table:
