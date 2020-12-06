@@ -878,7 +878,13 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         if serializer.is_valid():
             reorder_qs = FoodOrder.objects.create(
                 table_id=request.data.get("table_id"))
-
+            
+            
+            
+            food_option_qs = OrderedItem.objects.filter(
+                food_order=order_qs.pk)
+            print(food_option_qs)
+            
             if not order_qs:
                 return ResponseWrapper(error_msg=["Order ID is Invalid"], error_code=400)
 
@@ -888,6 +894,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             all_order_items_qs.update(status='0_ORDER_INITIALIZED')
             order_qs.status = '0_ORDER_INITIALIZED'
             order_qs.save()
+            
 
             serializer = FoodOrderByTableSerializer(instance=reorder_qs)
             return ResponseWrapper(data=serializer.data, msg='Success')
