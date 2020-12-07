@@ -16,7 +16,7 @@ FCM_DJANGO_SETTINGS = {
 FCM_SERVER_KEY = FCM_DJANGO_SETTINGS.get('FCM_SERVER_KEY')
 
 
-def send_fcm_push_notification_appointment(contact_id, type,  device_id_list: list, status="CallStaff", table_no=0, msg=''):
+def send_fcm_push_notification_appointment(device_id_list: list, status="CallStaff", table_no=0, msg=''):
     status_value = {
         "Received": {
             'notification': {'title': 'Received',

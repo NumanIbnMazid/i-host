@@ -50,7 +50,7 @@ class StaffFcmDeviceViewset(LoggingMixin, CustomViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
-    http_method_names = ('post', 'patch')
+    http_method_names = ('post',)
 
     def create(self, request):
         serializer_class = self.get_serializer_class()
