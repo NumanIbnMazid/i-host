@@ -1,11 +1,10 @@
 import copy
 import decimal
 import json
-from utils.fcm import send_fcm_push_notification_appointment
-from account_management import serializers
-from account_management import models
-from account_management.models import (CustomerInfo, HotelStaffInformation, StaffFcmDevice,
-                                       UserAccount)
+
+from account_management import models, serializers
+from account_management.models import (CustomerInfo, HotelStaffInformation,
+                                       StaffFcmDevice, UserAccount)
 from account_management.serializers import (ListOfIdSerializer,
                                             StaffInfoSerializer)
 from django.core.serializers.json import DjangoJSONEncoder
@@ -21,6 +20,7 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.serializers import Serializer
 from rest_framework_tracking.mixins import LoggingMixin
 from utils.custom_viewset import CustomViewSet
+from utils.fcm import send_fcm_push_notification_appointment
 from utils.response_wrapper import ResponseWrapper
 
 from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
@@ -46,12 +46,14 @@ from .serializers import (DiscountByFoodSerializer, DiscountSerializer,
                           OrderedItemDashboardPostSerializer,
                           OrderedItemGetDetailsSerializer,
                           OrderedItemSerializer, OrderedItemUserPostSerializer,
-                          PaymentSerializer, ReorderSerializer, ReportDateRangeSerializer,
+                          PaymentSerializer, ReorderSerializer,
+                          ReportDateRangeSerializer,
                           ReportingDateRangeGraphSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
-                          RestaurantUpdateSerialier, StaffFcmSerializer, StaffIdListSerializer,
-                          StaffTableSerializer, TableSerializer,
-                          TableStaffSerializer, TakeAwayFoodOrderPostSerializer,
+                          RestaurantUpdateSerialier, StaffFcmSerializer,
+                          StaffIdListSerializer, StaffTableSerializer,
+                          TableSerializer, TableStaffSerializer,
+                          TakeAwayFoodOrderPostSerializer,
                           TopRecommendedFoodListSerializer)
 
 
@@ -953,7 +955,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         order_qs = qs.food_order
         if qs:
             qs.delete()
-            order_item_serializer = FoodOrderSerializer(instance=order_qs)
+            order_item_serializer = OrderedItemSerializer(instance=order_qs)
             return ResponseWrapper(status=200, msg='deleted', data=order_item_serializer.data)
         else:
             return ResponseWrapper(error_msg="failed to delete", error_code=400)
