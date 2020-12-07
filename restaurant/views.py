@@ -455,7 +455,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = TakeAwayFoodOrderPostSerializer
         elif self.action in ['add_items']:
             self.serializer_class = OrderedItemUserPostSerializer
-        elif self.action in ['cancel_order']:
+        elif self.action in ['cancel_order','apps_cancel_order']:
             self.serializer_class = FoodOrderCancelSerializer
         elif self.action in ['placed_status']:
             self.serializer_class = PaymentSerializer
