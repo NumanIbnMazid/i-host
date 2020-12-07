@@ -892,13 +892,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             reorder_qs = FoodOrder.objects.create(
                 table_id=request.data.get("table_id"))
 
-            # food_option_qs = OrderedItem.objects.create(food_option =)
             
-            food_extra_qs = OrderedItem.objects.filter(food_extra = order_qs.pk)
-            print(food_extra_qs)
-            # print(food_option_qs)
             
-            # reorder_qs.update(ordered_items: food_option_qs)
             if not order_qs:
                 return ResponseWrapper(error_msg=["Order ID is Invalid"], error_code=400)
 
