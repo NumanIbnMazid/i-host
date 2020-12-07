@@ -627,9 +627,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs.is_occupied = False
                 table_qs.save()
 
-        # serializer = FoodOrderByTableSerializer(instance=order_qs)
+        serializer = FoodOrderByTableSerializer(instance=order_qs)
         #  FoodOrderUserPostSerializer
-        return ResponseWrapper(data={}, msg='Cancel')
+        return ResponseWrapper(data=serializer.data, msg='Cancel')
 
     def cancel_items(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -887,17 +887,22 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         order_qs = FoodOrder.objects.filter(
             pk=request.data.get("order_id"))
         reorder_items = copy.deepcopy(order_qs)
+        print(reorder_items)
         if serializer.is_valid():
             reorder_qs = FoodOrder.objects.create(
              table_id=request.data.get("table_id"))
 
-            for order_items in reorder_items:
+           # for order_items in reorder_items:
+
+
+            '''
                 reorder_items_ps =OrderedItem.objects.create(quantity = order_items.objects.get('quantity'),
                                                              food_option = order_items.food_option,
                                                              food_extra = order_items.food_extra,
                                                              food_order = reorder_qs,
                                                              status = '0_ORDER_INITIALIZED'
                                                              )
+                                                             '''
 
             if not order_qs:
                 return ResponseWrapper(error_msg=["Order ID is Invalid"], error_code=400)
@@ -910,7 +915,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             order_qs.save()
             """
 
-            serializer = FoodOrderByTableSerializer(instance=reorder_items_ps)
+            serializer = FoodOrderByTableSerializer(instance=reorder_qs)
             return ResponseWrapper(data=serializer.data, msg='Success')
 
         else:
