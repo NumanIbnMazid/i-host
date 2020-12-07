@@ -26,6 +26,9 @@ class FoodExtraAdmin(admin.ModelAdmin):
 class FoodAdmin(admin.ModelAdmin):
     list_display = ['id','name','restaurant','category']
 
+class FoodOptionAdmin(admin.ModelAdmin):
+    list_display = ['id','name','price','food']
+
 admin.site.register(Restaurant)
 admin.site.register(Subscription)
 admin.site.register(RestaurantContactPerson)
@@ -38,7 +41,7 @@ admin.site.register(FoodExtraType, FoodExtraTypeAdmin)
 
 admin.site.register(FoodExtra, FoodExtraAdmin)
 
-admin.site.register(FoodOption)
+admin.site.register(FoodOption, FoodOptionAdmin)
 admin.site.register(Table, TableAdmin)
 admin.site.register(FoodOrder,FoodOrderAdmin)
 admin.site.register(OrderedItem, OrderedItemAdmin)

@@ -390,7 +390,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_code=400, error_msg='wrong table id')
 
     def staff_table_list(self, request, staff_id, *args, **kwargs):
-        qs = self.queryset.filter(staff_assigned=staff_id)
+        qs = self.get_queryset().filter(staff_assigned=staff_id)
         # qs = qs.filter(is_top = True)
         serializer = self.get_serializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='successful')
@@ -885,22 +885,32 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         # table_id = request.data.get('table_id')
         serializer = self.get_serializer(data=request.data)
         order_qs = FoodOrder.objects.filter(
-            pk=request.data.get("order_id")).first()
+            pk=request.data.get("order_id"))
+        reorder_items = copy.deepcopy(order_qs)
         if serializer.is_valid():
             reorder_qs = FoodOrder.objects.create(
-                table_id=request.data.get("table_id"))
+             table_id=request.data.get("table_id"))
+
+            for order_items in reorder_items:
+                reorder_items_ps =OrderedItem.objects.create(quantity = order_items.objects.get('quantity'),
+                                                             food_option = order_items.food_option,
+                                                             food_extra = order_items.food_extra,
+                                                             food_order = reorder_qs,
+                                                             status = '0_ORDER_INITIALIZED'
+                                                             )
 
             if not order_qs:
                 return ResponseWrapper(error_msg=["Order ID is Invalid"], error_code=400)
 
-            reorder_items = copy.deepcopy(reorder_qs)
+            """
             all_order_items_qs = OrderedItem.objects.filter(
                 food_order=reorder_items.pk)
             all_order_items_qs.update(status='0_ORDER_INITIALIZED')
             order_qs.status = '0_ORDER_INITIALIZED'
             order_qs.save()
+            """
 
-            serializer = FoodOrderByTableSerializer(instance=reorder_qs)
+            serializer = FoodOrderByTableSerializer(instance=reorder_items_ps)
             return ResponseWrapper(data=serializer.data, msg='Success')
 
         else:

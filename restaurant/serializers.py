@@ -524,8 +524,6 @@ class TableStaffSerializer(serializers.ModelSerializer):
 
             total_items += order_qs.ordered_items.count()
 
-            order_qs = obj.food_orders.filter(
-                ordered_items__status__in=["3_IN_TABLE"]).last()
             if order_qs:
                 total_served_items += order_qs.ordered_items.count()
             serializer = FoodOrderForStaffSerializer(order_qs)
