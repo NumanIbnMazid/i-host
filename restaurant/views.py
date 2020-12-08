@@ -457,7 +457,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = TakeAwayFoodOrderPostSerializer
         elif self.action in ['add_items']:
             self.serializer_class = OrderedItemUserPostSerializer
-        elif self.action in ['cancel_order']:
+        elif self.action in ['cancel_order','apps_cancel_order']:
             self.serializer_class = FoodOrderCancelSerializer
         elif self.action in ['placed_status']:
             self.serializer_class = PaymentSerializer
@@ -888,18 +888,23 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         serializer = self.get_serializer(data=request.data)
         order_qs = FoodOrder.objects.filter(
             pk=request.data.get("order_id"))
-        # reorder_items = copy.deepcopy(order_qs)
+        reorder_items = copy.deepcopy(order_qs)
+        print(reorder_items)
         if serializer.is_valid():
             reorder_qs = FoodOrder.objects.create(
              table_id=request.data.get("table_id"))
 
-            # for order_items in reorder_items:
-            #     reorder_items_ps =OrderedItem.objects.create(quantity = order_items.objects.get('quantity'),
-            #                                                  food_option = order_items.food_option,
-            #                                                  food_extra = order_items.food_extra,
-            #                                                  food_order = reorder_qs,
-            #                                                  status = '0_ORDER_INITIALIZED'
-            #                                                  )
+           # for order_items in reorder_items:
+
+
+            '''
+                reorder_items_ps =OrderedItem.objects.create(quantity = order_items.objects.get('quantity'),
+                                                             food_option = order_items.food_option,
+                                                             food_extra = order_items.food_extra,
+                                                             food_order = reorder_qs,
+                                                             status = '0_ORDER_INITIALIZED'
+                                                             )
+                                                             '''
 
             
             
@@ -955,7 +960,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         order_qs = qs.food_order
         if qs:
             qs.delete()
-            order_item_serializer = OrderedItemSerializer(instance=order_qs)
+            order_item_serializer = FoodOrderSerializer(instance=order_qs)
             return ResponseWrapper(status=200, msg='deleted', data=order_item_serializer.data)
         else:
             return ResponseWrapper(error_msg="failed to delete", error_code=400)

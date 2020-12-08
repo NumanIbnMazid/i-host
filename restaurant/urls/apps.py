@@ -119,16 +119,14 @@ apps_fake = [
         {'get': 'customer_order_history'}, name='customer_order_history')),
 
 
-
-    # path('re_order',
-    # OrderedItemViewSet.as_view({'post': 're_order'}, name='re_order')),
-
     path('order/cart/items/',
          OrderedItemViewSet.as_view({'post': 'create'}, name='items')),
 
 
     path('order/cart/items/<int:pk>/',
          OrderedItemViewSet.as_view({'patch': 'update', 'delete': 'destroy'}, name='items')),
+    path('order/cart/order_items/<int:pk>/',
+         OrderedItemViewSet.as_view({'delete': 'destroy'}, name='order_items')),
 
     path('order/create_order/<int:pk>/',
          FoodOrderViewSet.as_view({'patch': 'update', 'get': 'retrieve'}, name='create_order')),
