@@ -884,46 +884,29 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def food_reorder_by_order_id(self, request,  *args, **kwargs):
-        # table_id = request.data.get('table_id')
+        table_id = request.data.get('table_id')
         serializer = self.get_serializer(data=request.data)
-        order_qs = FoodOrder.objects.filter(
-            pk=request.data.get("order_id"))
-        reorder_items = copy.deepcopy(order_qs)
-        print(reorder_items)
-        if serializer.is_valid():
-            reorder_qs = FoodOrder.objects.create(
-             table_id=request.data.get("table_id"))
 
-           # for order_items in reorder_items:
+        order_qs = OrderedItem.objects.filter(
+            food_order=request.data.get("order_id"), status = '3_IN_TABLE')
+        if not order_qs:
+            return ResponseWrapper(msg= 'Order id is not Valid', error_code=400)
+        table_qs = Table.objects.filter(id= table_id).last()
 
+        if table_qs.is_occupied:
+            return ResponseWrapper(msg= 'Table is already occupied')
 
-            '''
-                reorder_items_ps =OrderedItem.objects.create(quantity = order_items.objects.get('quantity'),
-                                                             food_option = order_items.food_option,
-                                                             food_extra = order_items.food_extra,
-                                                             food_order = reorder_qs,
-                                                             status = '0_ORDER_INITIALIZED'
-                                                             )
-                                                             '''
+        reorder_qs = FoodOrder.objects.create(
+            table_id=request.data.get("table_id"))
+        table_qs.is_occupied = True
+        table_qs.save()
+        for item in order_qs:
+            OrderedItem.objects.create(quantity = item.quantity, food_option = item.food_option,
+                                                       food_order= reorder_qs)
 
-            
-            
-            if not order_qs:
-                return ResponseWrapper(error_msg=["Order ID is Invalid"], error_code=400)
+        serializer = FoodOrderByTableSerializer(instance=reorder_qs)
+        return ResponseWrapper(data=serializer.data, msg='Success')
 
-            """
-            all_order_items_qs = OrderedItem.objects.filter(
-                food_order=reorder_items.pk)
-            all_order_items_qs.update(status='0_ORDER_INITIALIZED')
-            order_qs.status = '0_ORDER_INITIALIZED'
-            order_qs.save()
-            """
-
-            serializer = FoodOrderByTableSerializer(instance=reorder_qs)
-            return ResponseWrapper(data=serializer.data, msg='Success')
-
-        else:
-            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def customer_order_history(self, request, *args, **kwargs):
         qs = FoodOrder.objects.filter(customer__user =request.user.pk)
