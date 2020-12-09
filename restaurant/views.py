@@ -52,7 +52,7 @@ from .serializers import (DiscountByFoodSerializer, DiscountSerializer,
                           RestaurantUpdateSerialier, StaffFcmSerializer, StaffIdListSerializer,
                           StaffTableSerializer, TableSerializer,
                           TableStaffSerializer, TakeAwayFoodOrderPostSerializer,
-                          TopRecommendedFoodListSerializer)
+                          TopRecommendedFoodListSerializer, CollectPaymentSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -1558,6 +1558,9 @@ class FcmCommunication(viewsets.GenericViewSet):
     def get_serializer_class(self):
         if self.action in ['call_waiter']:
             self.serializer_class = StaffFcmSerializer
+        elif self.action in ['collect_payment']:
+            self.serializer_class = CollectPaymentSerializer
+
 
         return self.serializer_class
 
@@ -1583,3 +1586,31 @@ class FcmCommunication(viewsets.GenericViewSet):
             return ResponseWrapper(msg='Success')
         else:
             return ResponseWrapper(error_msg="failed to notify")
+
+    def collect_payment(self, request):
+        serializer = self.get_serializer(data=request.data)
+
+        if not serializer.is_valid():
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+        table_id = request.data.get('table_id')
+        payment_method = request.data.get('payment_method')
+        table_qs = Table.objects.filter(pk=table_id).first()
+        if not table_qs:
+            return ResponseWrapper(error_msg=["no table found with this table id"], error_code=status.HTTP_404_NOT_FOUND)
+
+        staff_fcm_device_qs = StaffFcmDevice.objects.filter(
+            hotel_staff__tables=table_id)
+        if send_fcm_push_notification_appointment(
+            device_id_list=staff_fcm_device_qs.values_list(
+                'device_id', flat=True),
+                table_no=table_qs.table_no if table_qs else None,
+                status="CallStaffForPayment",
+                msg= payment_method,
+
+        ):
+            return ResponseWrapper(msg='Success')
+        else:
+            return ResponseWrapper(error_msg="failed to notify")
+
+

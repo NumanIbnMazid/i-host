@@ -183,5 +183,6 @@ apps_fake = [
 apps_url = [
     path('table/<int:table_id>/order_item_list/',
          TableViewSet.as_view({'get': 'apps_running_order_item_list'}), name='apps_running_order_item_list'),
-    path('call_waiter/', FcmCommunication.as_view({"post": "call_waiter"}))
+    path('call_waiter/', FcmCommunication.as_view({"post": "call_waiter"})),
+    path('collect_payment/', FcmCommunication.as_view({"post": "collect_payment"}))
 ]+apps_fake

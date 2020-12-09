@@ -611,3 +611,7 @@ class ReportDateRangeSerializer(serializers.Serializer):
 
 class StaffFcmSerializer(serializers.Serializer):
     table_id = serializers.IntegerField()
+
+class CollectPaymentSerializer(serializers.Serializer):
+    table_id = serializers.IntegerField()
+    payment_method = serializers.CharField()
