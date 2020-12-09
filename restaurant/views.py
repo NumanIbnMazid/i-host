@@ -455,7 +455,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = TakeAwayFoodOrderPostSerializer
         elif self.action in ['add_items']:
             self.serializer_class = OrderedItemUserPostSerializer
-        elif self.action in ['cancel_order','apps_cancel_order']:
+        elif self.action in ['cancel_order', 'apps_cancel_order']:
             self.serializer_class = FoodOrderCancelSerializer
         elif self.action in ['placed_status']:
             self.serializer_class = PaymentSerializer
@@ -886,28 +886,27 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         serializer = self.get_serializer(data=request.data)
 
         order_qs = OrderedItem.objects.filter(
-            food_order=request.data.get("order_id"), status = '3_IN_TABLE')
+            food_order=request.data.get("order_id"), status='3_IN_TABLE')
         if not order_qs:
-            return ResponseWrapper(msg= 'Order id is not Valid', error_code=400)
-        table_qs = Table.objects.filter(id= table_id).last()
+            return ResponseWrapper(msg='Order id is not Valid', error_code=400)
+        table_qs = Table.objects.filter(id=table_id).last()
 
         if table_qs.is_occupied:
-            return ResponseWrapper(msg= 'Table is already occupied')
+            return ResponseWrapper(msg='Table is already occupied')
 
         reorder_qs = FoodOrder.objects.create(
             table_id=request.data.get("table_id"))
         table_qs.is_occupied = True
         table_qs.save()
         for item in order_qs:
-            OrderedItem.objects.create(quantity = item.quantity, food_option = item.food_option,
-                                                       food_order= reorder_qs)
+            OrderedItem.objects.create(quantity=item.quantity, food_option=item.food_option,
+                                       food_order=reorder_qs)
 
         serializer = FoodOrderByTableSerializer(instance=reorder_qs)
         return ResponseWrapper(data=serializer.data, msg='Success')
 
-
     def customer_order_history(self, request, *args, **kwargs):
-        qs = FoodOrder.objects.filter(customer__user =request.user.pk)
+        qs = FoodOrder.objects.filter(customer__user=request.user.pk)
         serializer = FoodOrderByTableSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
@@ -1564,12 +1563,22 @@ class FcmCommunication(viewsets.GenericViewSet):
 
     def call_waiter(self, request):
         serializer = self.get_serializer(data=request.data)
+
         if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
         table_id = request.data.get('table_id')
+        table_qs = Table.objects.filter(pk=table_id).first()
+        if not table_qs:
+            return ResponseWrapper(error_msg=["no table found with this table id"], error_code=status.HTTP_404_NOT_FOUND)
+
         staff_fcm_device_qs = StaffFcmDevice.objects.filter(
             hotel_staff__tables=table_id)
-        if send_fcm_push_notification_appointment(device_id_list=staff_fcm_device_qs.values_list('device_id', flat=True)):
+        if send_fcm_push_notification_appointment(
+            device_id_list=staff_fcm_device_qs.values_list(
+                'device_id', flat=True),
+                table_no=table_qs.table_no if table_qs else None
+        ):
             return ResponseWrapper(msg='Success')
         else:
             return ResponseWrapper(error_msg="failed to notify")
