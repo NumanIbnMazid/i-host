@@ -1577,7 +1577,8 @@ class FcmCommunication(viewsets.GenericViewSet):
         if send_fcm_push_notification_appointment(
             device_id_list=staff_fcm_device_qs.values_list(
                 'device_id', flat=True),
-                table_no=table_qs.table_no if table_qs else None
+                table_no=table_qs.table_no if table_qs else None,
+                status="CallStaff",
         ):
             return ResponseWrapper(msg='Success')
         else:
