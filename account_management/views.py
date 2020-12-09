@@ -1,5 +1,6 @@
 from calendar import month
 from datetime import datetime
+from utils.pagination import CustomLimitPagination
 from drf_yasg2 import openapi
 
 from rest_framework_tracking.models import APIRequestLog
@@ -459,6 +460,7 @@ class CustomerInfoViewset(LoggingMixin, viewsets.ModelViewSet):
 
 class HotelStaffLogViewSet(CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+    pagination_class = CustomLimitPagination
 
     queryset = APIRequestLog.objects.all()
 
@@ -476,7 +478,7 @@ class HotelStaffLogViewSet(CustomViewSet):
             # permission_classes = [permissions.IsAdminUser,custom_permissions.IsRestaurantOwner]
 
             permission_classes = [permissions.IsAuthenticated,
-                custom_permissions.IsRestaurantManagementOrAdmin]
+                                  custom_permissions.IsRestaurantManagementOrAdmin]
         else:
             permission_classes = [permissions.IsAdminUser]
 
@@ -495,7 +497,10 @@ class HotelStaffLogViewSet(CustomViewSet):
         log_qs = self.get_queryset().filter(user__hotel_staff__restaurant_id=restaurant_id,
                                             requested_at__gte=start_date, requested_at__lte=end_date).distinct().order_by('-id')
 
-        serializer = LogSerializerGet(instance=log_qs, many=True)
-        return ResponseWrapper(serializer.data)
+        page_qs = self.paginate_queryset(log_qs)
+        serializer = LogSerializerGet(instance=page_qs, many=True)
+        paginated_data = self.get_paginated_response(serializer.data)
+
+        return ResponseWrapper(paginated_data.data)
 
         # return ResponseWrapper(data=waiter_qs.data,status=200)
