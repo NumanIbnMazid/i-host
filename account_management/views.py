@@ -477,6 +477,8 @@ class HotelStaffLogViewSet(CustomViewSet):
 
             # permission_classes = [permissions.IsAdminUser,custom_permissions.IsRestaurantOwner]
 
+            permission_classes = [
+                custom_permissions.IsRestaurantManagementOrAdmin]
             permission_classes = [permissions.IsAuthenticated,
                                   custom_permissions.IsRestaurantManagementOrAdmin]
         else:

@@ -163,7 +163,7 @@ class IsRestaurantStaff(permissions.BasePermission):
             return False
 
 
-class IsRestaurantManagementOrAdmin(permissions.BasePermission):
+class IsRestaurantManagementOrAdmin(permissions.IsAuthenticated):
     """
     Object-level permission to only allow owners of an object to edit it.
     Assumes the model instance has an `owner` attribute.

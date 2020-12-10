@@ -157,7 +157,7 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data+empty_table_data, msg="success")
 
     def delete_restaurant(self, request, pk, *args, **kwargs):
-        qs = self.queryset.filter(**kwargs).first()
+        qs = self.queryset.filter(pk=pk).first()
         if qs:
             qs.delete()
             return ResponseWrapper(status=200, msg='deleted')
