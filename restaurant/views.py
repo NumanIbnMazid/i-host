@@ -29,8 +29,8 @@ from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                Table)
 
 from . import permissions as custom_permissions
-from .serializers import (DiscountByFoodSerializer, DiscountSerializer,
-                          FoodCategorySerializer,
+from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
+                          DiscountSerializer, FoodCategorySerializer,
                           FoodDetailsByDiscountSerializer,
                           FoodDetailSerializer, FoodExtraPostPatchSerializer,
                           FoodExtraSerializer, FoodExtraTypeDetailSerializer,
@@ -50,10 +50,11 @@ from .serializers import (DiscountByFoodSerializer, DiscountSerializer,
                           ReportDateRangeSerializer,
                           ReportingDateRangeGraphSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
-                          RestaurantUpdateSerialier, StaffFcmSerializer, StaffIdListSerializer,
-                          StaffTableSerializer, TableSerializer,
-                          TableStaffSerializer, TakeAwayFoodOrderPostSerializer,
-                          TopRecommendedFoodListSerializer, CollectPaymentSerializer)
+                          RestaurantUpdateSerialier, StaffFcmSerializer,
+                          StaffIdListSerializer, StaffTableSerializer,
+                          TableSerializer, TableStaffSerializer,
+                          TakeAwayFoodOrderPostSerializer,
+                          TopRecommendedFoodListSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -1578,8 +1579,8 @@ class FcmCommunication(viewsets.GenericViewSet):
         staff_fcm_device_qs = StaffFcmDevice.objects.filter(
             hotel_staff__tables=table_id)
         if send_fcm_push_notification_appointment(
-            tokens_list=staff_fcm_device_qs.values_list(
-                'token', flat=True),
+            tokens_list=list(staff_fcm_device_qs.values_list(
+                'token', flat=True)),
                 table_no=table_qs.table_no if table_qs else None,
                 status="CallStaff",
         ):
@@ -1602,8 +1603,8 @@ class FcmCommunication(viewsets.GenericViewSet):
         staff_fcm_device_qs = StaffFcmDevice.objects.filter(
             hotel_staff__tables=table_id)
         if send_fcm_push_notification_appointment(
-            tokens_list=staff_fcm_device_qs.values_list(
-                'token', flat=True),
+            tokens_list=list(staff_fcm_device_qs.values_list(
+                'token', flat=True)),
                 table_no=table_qs.table_no if table_qs else None,
                 status="CallStaffForPayment",
                 msg=payment_method,
