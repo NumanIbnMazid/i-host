@@ -42,8 +42,8 @@ fake_dashboard_urls = [
     path('table/<int:table_id>/staff_remove/',
          TableViewSet.as_view({'post': 'remove_staff', }), name='remove_staff'),
     # New Add
-    path('table/<int:table_id>/quantity_list/',
-         TableViewSet.as_view({'get': 'quantity_list', }), name='quantity_list'),
+#     path('table/<int:table_id>/quantity_list/',
+#          TableViewSet.as_view({'get': 'quantity_list', }), name='quantity_list'),
 
 
     path('restaurant/',
@@ -93,8 +93,8 @@ fake_dashboard_urls = [
     path('restaurant/<int:restaurant>/foods_by_category/',
          FoodByRestaurantViewSet.as_view({'get': 'list_by_category'}), name='foods_by_category'),
 
-    path('restaurant/quantity/',
-         FoodByRestaurantViewSet.as_view({'get': 'quantity'}), name='quantity'),
+#     path('restaurant/quantity/',
+#          FoodByRestaurantViewSet.as_view({'get': 'quantity'}), name='quantity'),
 
     path('restaurant/<int:restaurant>/top_foods_by_category/',
          FoodByRestaurantViewSet.as_view({'get': 'top_foods_by_category'}), name='top_foods_by_category'),

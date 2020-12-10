@@ -1,11 +1,10 @@
 import copy
 import decimal
 import json
-from utils.fcm import send_fcm_push_notification_appointment
-from account_management import serializers
-from account_management import models
-from account_management.models import (CustomerInfo, HotelStaffInformation, StaffFcmDevice,
-                                       UserAccount)
+
+from account_management import models, serializers
+from account_management.models import (CustomerInfo, HotelStaffInformation,
+                                       StaffFcmDevice, UserAccount)
 from account_management.serializers import (ListOfIdSerializer,
                                             StaffInfoSerializer)
 from django.core.serializers.json import DjangoJSONEncoder
@@ -21,6 +20,7 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.serializers import Serializer
 from rest_framework_tracking.mixins import LoggingMixin
 from utils.custom_viewset import CustomViewSet
+from utils.fcm import send_fcm_push_notification_appointment
 from utils.response_wrapper import ResponseWrapper
 
 from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
@@ -46,7 +46,8 @@ from .serializers import (DiscountByFoodSerializer, DiscountSerializer,
                           OrderedItemDashboardPostSerializer,
                           OrderedItemGetDetailsSerializer,
                           OrderedItemSerializer, OrderedItemUserPostSerializer,
-                          PaymentSerializer, ReorderSerializer, ReportDateRangeSerializer,
+                          PaymentSerializer, ReorderSerializer,
+                          ReportDateRangeSerializer,
                           ReportingDateRangeGraphSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
                           RestaurantUpdateSerialier, StaffFcmSerializer, StaffIdListSerializer,
@@ -1561,7 +1562,6 @@ class FcmCommunication(viewsets.GenericViewSet):
         elif self.action in ['collect_payment']:
             self.serializer_class = CollectPaymentSerializer
 
-
         return self.serializer_class
 
     def call_waiter(self, request):
@@ -1579,7 +1579,7 @@ class FcmCommunication(viewsets.GenericViewSet):
             hotel_staff__tables=table_id)
         if send_fcm_push_notification_appointment(
             device_id_list=staff_fcm_device_qs.values_list(
-                'device_id', flat=True),
+                'token', flat=True),
                 table_no=table_qs.table_no if table_qs else None,
                 status="CallStaff",
         ):
@@ -1603,14 +1603,12 @@ class FcmCommunication(viewsets.GenericViewSet):
             hotel_staff__tables=table_id)
         if send_fcm_push_notification_appointment(
             device_id_list=staff_fcm_device_qs.values_list(
-                'device_id', flat=True),
+                'token', flat=True),
                 table_no=table_qs.table_no if table_qs else None,
                 status="CallStaffForPayment",
-                msg= payment_method,
+                msg=payment_method,
 
         ):
             return ResponseWrapper(msg='Success')
         else:
             return ResponseWrapper(error_msg="failed to notify")
-
-
