@@ -239,8 +239,8 @@ class Invoice(SoftDeleteModel):
     grand_total = models.FloatField(
         null=True, blank=True)
     order_info = models.JSONField(null=True, blank=True)
-    updated_at = models.DateField(auto_now=True)
-    created_at = models.DateField(auto_now_add=True)
+    updated_at = models.DateTimeFieldField(auto_now=True)
+    created_at = models.DateTimeFieldField(auto_now_add=True)
     payment_status = models.CharField(
         choices=STATUS, max_length=25, default="0_UNPAID")
 
