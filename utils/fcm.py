@@ -16,7 +16,7 @@ FCM_DJANGO_SETTINGS = {
 FCM_SERVER_KEY = FCM_DJANGO_SETTINGS.get('FCM_SERVER_KEY')
 
 
-def send_fcm_push_notification_appointment(device_id_list: list, status="CallStaff", table_no=0, msg=''):
+def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff", table_no=0, msg=''):
     status_value = {
         "Received": {
             'notification': {'title': 'Received',
@@ -56,25 +56,24 @@ def send_fcm_push_notification_appointment(device_id_list: list, status="CallSta
     }
     success = False
 
-    for device_id in device_id_list:
-        try:
+    try:
 
-            data = {
-                "notification": status_value[status]['notification'],
-                "data": status_value[status]['data'],
-                "to": device_id
-            }
-            headers = {
-                'Content-type': 'application/json',
-                'Authorization': 'key=' + str(FCM_SERVER_KEY)
-            }
-            response = requests.post(
-                'https://fcm.googleapis.com/fcm/send', data=json.dumps(data), headers=headers)
-            # print("Fcm Response ", response)
-            if 300 > response.status_code >= 200:
-                if response.json().get('failure') < 1:
-                    success = True
+        data = {
+            "notification": status_value[status]['notification'],
+            "data": status_value[status]['data'],
+            "registration_ids": tokens_list
+        }
+        headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'key=' + str(FCM_SERVER_KEY)
+        }
+        response = requests.post(
+            'https://fcm.googleapis.com/fcm/send', data=json.dumps(data), headers=headers)
+        # print("Fcm Response ", response)
+        if 300 > response.status_code >= 200:
+            if response.json().get('failure') < 1:
+                success = True
 
-        except Exception as e:
-            print("FCm Exception ", e)
+    except Exception as e:
+        print("FCm Exception ", e)
     return success
