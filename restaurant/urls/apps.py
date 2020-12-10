@@ -54,8 +54,8 @@ apps_fake = [
     path('restaurant/<int:pk>/',
          RestaurantViewSet.as_view({'patch': 'update', 'get': 'retrieve'}), name='restaurant_update'),
 
-    path('restaurant/<int:pk>/delete_restaurant/',
-         RestaurantViewSet.as_view({'delete': 'delete_restaurant'}), name='delete_restaurant'),
+    # path('restaurant/<int:pk>/delete_restaurant/',
+    #      RestaurantViewSet.as_view({'delete': 'delete_restaurant'}), name='delete_restaurant'),
 
     path('restaurant/<int:pk>/today_sell/',
          RestaurantViewSet.as_view({'get': 'today_sell'}), name='today_sell'),
