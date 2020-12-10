@@ -1561,7 +1561,6 @@ class FcmCommunication(viewsets.GenericViewSet):
         elif self.action in ['collect_payment']:
             self.serializer_class = CollectPaymentSerializer
 
-
         return self.serializer_class
 
     def call_waiter(self, request):
@@ -1579,7 +1578,7 @@ class FcmCommunication(viewsets.GenericViewSet):
             hotel_staff__tables=table_id)
         if send_fcm_push_notification_appointment(
             device_id_list=staff_fcm_device_qs.values_list(
-                'device_id', flat=True),
+                'token', flat=True),
                 table_no=table_qs.table_no if table_qs else None,
                 status="CallStaff",
         ):
@@ -1603,14 +1602,12 @@ class FcmCommunication(viewsets.GenericViewSet):
             hotel_staff__tables=table_id)
         if send_fcm_push_notification_appointment(
             device_id_list=staff_fcm_device_qs.values_list(
-                'device_id', flat=True),
+                'token', flat=True),
                 table_no=table_qs.table_no if table_qs else None,
                 status="CallStaffForPayment",
-                msg= payment_method,
+                msg=payment_method,
 
         ):
             return ResponseWrapper(msg='Success')
         else:
             return ResponseWrapper(error_msg="failed to notify")
-
-
