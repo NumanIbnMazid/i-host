@@ -1,3 +1,4 @@
+from drf_extra_fields.fields import Base64ImageField
 import copy
 from account_management.models import HotelStaffInformation
 from account_management.serializers import StaffInfoGetSerializer
@@ -620,6 +621,14 @@ class CollectPaymentSerializer(serializers.Serializer):
 
 
 class PopUpSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+
     class Meta:
         model = PopUp
         fields = '__all__'
+
+    def create(self, validated_data):
+        image = validated_data.pop('image', None)
+        if image:
+            return PopUp.objects.create(image=image, **validated_data)
+        return PopUp.objects.create(**validated_data)
