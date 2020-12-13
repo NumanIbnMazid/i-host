@@ -168,8 +168,9 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
     def today_sell(self, request, pk, *args, **kwargs):
         today_date = timezone.now().date()
         qs = Invoice.objects.filter(
-            created_at=today_date, payment_status='1_PAID', restaurant_id =pk)
-        order_qs = FoodOrder.objects.filter(created_at = today_date, status ='5_PAID', restaurant_id =pk).count()
+            created_at=today_date, payment_status='1_PAID', restaurant_id=pk)
+        order_qs = FoodOrder.objects.filter(
+            created_at=today_date, status='5_PAID', restaurant_id=pk).count()
 
         grand_total_list = qs.values_list('grand_total', flat=True)
         total = sum(grand_total_list)
@@ -1634,6 +1635,6 @@ class PopUpViewset(LoggingMixin, CustomViewSet):
 
     def pop_up_list_by_restaurant(self, request, restaurant_id):
         popup_qs = PopUp.objects.filter(
-            restaurant=restaurant).order_by('serial_no')
+            restaurant=restaurant_id).order_by('serial_no')
         serializer = PopUpSerializer(instance=popup_qs, many=True)
         return ResponseWrapper(data=serializer.data)
