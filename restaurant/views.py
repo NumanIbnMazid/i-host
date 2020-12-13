@@ -168,9 +168,9 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
     def today_sell(self, request, pk, *args, **kwargs):
         today_date = timezone.now().date()
         qs = Invoice.objects.filter(
-            created_at=today_date, payment_status='1_PAID', restaurant_id=pk)
+            created_at__contains=today_date, payment_status='1_PAID', restaurant_id=pk)
         order_qs = FoodOrder.objects.filter(
-            created_at=today_date, status='5_PAID', restaurant_id=pk).count()
+            created_at__contains=today_date, status='5_PAID', restaurant_id=pk).count()
 
         grand_total_list = qs.values_list('grand_total', flat=True)
         total = sum(grand_total_list)
@@ -1524,12 +1524,12 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         if not discount_qs:
             return ResponseWrapper(error_msg=['Discount is invalid'], error_code=400)
 
-        updated = food_qs.update(discount=discount_qs)
+        updated = food_qs.update(discount_id=discount_qs)
         if not updated:
             return ResponseWrapper(error_msg=['Food Discount is not update'], error_code=400)
 
         serializer = FoodDetailsByDiscountSerializer(
-            instance=food_qs, many=True)
+            instance=updated)
 
         return ResponseWrapper(data=serializer.data, msg='success')
 
