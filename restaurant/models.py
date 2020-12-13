@@ -1,8 +1,7 @@
-from django.contrib.postgres.fields import ArrayField
 import uuid
 from os import name, truncate
 
-from django.contrib.postgres.fields import JSONField
+from django.contrib.postgres.fields import ArrayField, JSONField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import manager
@@ -141,8 +140,8 @@ class FoodOption(SoftDeleteModel):
     option_type = models.ForeignKey(
         FoodOptionType, on_delete=models.CASCADE, related_name='food_options')
 
-    # def __str__(self):
-    #     return self.name
+    def __str__(self):
+        return self.option_type.name
 
 
 class Table(SoftDeleteModel):

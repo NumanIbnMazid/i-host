@@ -122,6 +122,8 @@ class RestaurantSerializer(serializers.ModelSerializer):
         model = Restaurant
         # fields = '__all__'
         exclude = ['deleted_at']
+    
+
 
 
 class TableSerializer(serializers.ModelSerializer):
@@ -490,9 +492,16 @@ class FoodDetailSerializer(serializers.ModelSerializer):
 
 
 class RestaurantUpdateSerialier(serializers.ModelSerializer):
+    logo = Base64ImageField()
     class Meta:
         model = Restaurant
         exclude = ['status', 'subscription', 'subscription_ends', 'deleted_at']
+    
+        def update(self, validated_data):
+            logo = validated_data.pop('logo', None)
+            if logo:
+                return Restaurant.objects.create(logo=logo, **validated_data)
+            return Restaurant.objects.create(**validated_data)
 
 
 class RestaurantContactPersonSerializer(serializers.ModelSerializer):
