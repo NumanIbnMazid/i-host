@@ -147,6 +147,8 @@ class StaffTableSerializer(serializers.ModelSerializer):
                   'my_table',
                   'id',
                   ]
+        #ordering = ['table_no']
+
 
     def get_my_table(self, obj):
         user = self.context.get('user')

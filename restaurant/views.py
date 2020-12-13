@@ -343,7 +343,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
     serializer_class = TableSerializer
 
     # permission_classes = [permissions.IsAuthenticated]
-    queryset = Table.objects.all()
+    queryset = Table.objects.all().order_by('table_no')
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     # http_method_names = ['get', 'post', 'patch']
