@@ -1516,12 +1516,12 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         if not discount_qs:
             return ResponseWrapper(error_msg=['Discount is invalid'], error_code=400)
 
-        updated = food_qs.update(discount=discount_qs)
+        updated = food_qs.update(discount_id=discount_qs)
         if not updated:
             return ResponseWrapper(error_msg=['Food Discount is not update'], error_code=400)
 
         serializer = FoodDetailsByDiscountSerializer(
-            instance=food_qs, many=True)
+            instance=updated)
 
         return ResponseWrapper(data=serializer.data, msg='success')
 

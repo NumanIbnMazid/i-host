@@ -602,7 +602,7 @@ class FoodDetailsByDiscountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Food
-        fields = ['id', 'image', 'discount']
+        fields = ['id','image', 'discount']
 
 
 class ReportDateRangeSerializer(serializers.Serializer):
