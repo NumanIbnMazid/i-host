@@ -338,7 +338,7 @@ class FoodOptionViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
 
-class TableViewSet(LoggingMixin, CustomViewSet):
+class TableViewSet(CustomViewSet):
     serializer_class = TableSerializer
 
     # permission_classes = [permissions.IsAuthenticated]
