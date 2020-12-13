@@ -619,7 +619,7 @@ class CollectPaymentSerializer(serializers.Serializer):
     payment_method = serializers.CharField()
 
 
-class PopUpSerializer(serializers.ModelField):
+class PopUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = PopUp
         fields = '__all__'
