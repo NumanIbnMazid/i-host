@@ -434,6 +434,7 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
 
     # }
     def get_price(self, obj):
+        return 0.0
         option_qs = obj.food_options.order_by('price').first()
         if option_qs:
             return round(option_qs.price, 2)
@@ -611,6 +612,7 @@ class ReportDateRangeSerializer(serializers.Serializer):
 
 class StaffFcmSerializer(serializers.Serializer):
     table_id = serializers.IntegerField()
+
 
 class CollectPaymentSerializer(serializers.Serializer):
     table_id = serializers.IntegerField()
