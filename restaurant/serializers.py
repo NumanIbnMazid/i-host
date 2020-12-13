@@ -423,7 +423,7 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
             "is_top",
             "is_recommended",
             'price',
-            'ingredients',
+            # 'ingredients',
             'category',
             'id',
             'discount',
