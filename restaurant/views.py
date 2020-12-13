@@ -321,6 +321,14 @@ class FoodOptionViewSet(LoggingMixin, CustomViewSet):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
+            option_type_id = request.data.get('option_type')
+            food_id = request.data.get('food')
+            default_option_type_qs = FoodOptionType.objects.filter(name = 'single_type').first()
+            if default_option_type_qs:
+                if default_option_type_qs.pk == option_type_id:
+                    food_option_qs = FoodOption.objects.filter(food_id=food_id,option_type_id = option_type_id)
+                    if food_option_qs:
+                        return ResponseWrapper(msg="not created already exist")
             qs = serializer.save()
             serializer = FoodOptionSerializer(instance=qs)
             return ResponseWrapper(data=serializer.data, msg='created')
