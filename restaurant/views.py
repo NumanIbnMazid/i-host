@@ -25,8 +25,8 @@ from utils.response_wrapper import ResponseWrapper
 
 from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodExtraType, FoodOption, FoodOptionType,
-                               FoodOrder, Invoice, OrderedItem, PopUp, Restaurant,
-                               Table)
+                               FoodOrder, Invoice, OrderedItem, PopUp,
+                               Restaurant, Table)
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
@@ -46,8 +46,8 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           OrderedItemDashboardPostSerializer,
                           OrderedItemGetDetailsSerializer,
                           OrderedItemSerializer, OrderedItemUserPostSerializer,
-                          PaymentSerializer, PopUpSerializer, ReorderSerializer,
-                          ReportDateRangeSerializer,
+                          PaymentSerializer, PopUpSerializer,
+                          ReorderSerializer, ReportDateRangeSerializer,
                           ReportingDateRangeGraphSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
                           RestaurantUpdateSerialier, StaffFcmSerializer,
@@ -552,18 +552,18 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def save_customer_info(self, request, qs):
-        if request.data.get('table'):
-            staff_account = qs.table.restaurant.hotel_staff.filter(
-                user_id=request.user.pk
-            )
-            if not staff_account:
-                user_qs = UserAccount.objects.filter(
-                    pk=request.user.pk).select_related('customer_info').prefetch_related('hotel_staff').first()
-                if user_qs:
-                    customer_qs = user_qs.customer_info
-                    if customer_qs:
-                        qs.customer = customer_qs
-                        qs.save()
+        # if request.data.get('table'):
+        #     staff_account = qs.table.restaurant.hotel_staff.filter(
+        #         user_id=request.user.pk
+        #     )
+        #     if not staff_account:
+        user_qs = UserAccount.objects.filter(
+            pk=request.user.pk).select_related('customer_info').prefetch_related('hotel_staff').first()
+        if user_qs:
+            customer_qs = user_qs.customer_info
+            if customer_qs:
+                qs.customer = customer_qs
+                qs.save()
 
     def create_take_away_order(self, request):
         serializer = self.get_serializer(data=request.data)
