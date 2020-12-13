@@ -1623,6 +1623,7 @@ class PopUpViewset(LoggingMixin, CustomViewSet):
 
     queryset = PopUp.objects.all()
     lookup_field = 'pk'
+    serializer_class = PopUpSerializer
     logging_methods = ['DELETE', 'POST', 'PATCH']
     http_method_names = ['post', 'patch', 'get', 'delete']
 
