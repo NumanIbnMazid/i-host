@@ -29,8 +29,8 @@ from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                Table)
 
 from . import permissions as custom_permissions
-from .serializers import (DiscountByFoodSerializer, DiscountSerializer,
-                          FoodCategorySerializer,
+from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
+                          DiscountSerializer, FoodCategorySerializer,
                           FoodDetailsByDiscountSerializer,
                           FoodDetailSerializer, FoodExtraPostPatchSerializer,
                           FoodExtraSerializer, FoodExtraTypeDetailSerializer,
@@ -50,10 +50,11 @@ from .serializers import (DiscountByFoodSerializer, DiscountSerializer,
                           ReportDateRangeSerializer,
                           ReportingDateRangeGraphSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
-                          RestaurantUpdateSerialier, StaffFcmSerializer, StaffIdListSerializer,
-                          StaffTableSerializer, TableSerializer,
-                          TableStaffSerializer, TakeAwayFoodOrderPostSerializer,
-                          TopRecommendedFoodListSerializer, CollectPaymentSerializer)
+                          RestaurantUpdateSerialier, StaffFcmSerializer,
+                          StaffIdListSerializer, StaffTableSerializer,
+                          TableSerializer, TableStaffSerializer,
+                          TakeAwayFoodOrderPostSerializer,
+                          TopRecommendedFoodListSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -167,10 +168,13 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
     def today_sell(self, request, pk, *args, **kwargs):
         today_date = timezone.now().date()
         qs = Invoice.objects.filter(
-            created_at=today_date, payment_status='1_PAID')
+            created_at=today_date, payment_status='1_PAID', restaurant_id =pk)
+        order_qs = FoodOrder.objects.filter(created_at = today_date, status ='5_PAID', restaurant_id =pk).count()
+
         grand_total_list = qs.values_list('grand_total', flat=True)
         total = sum(grand_total_list)
-        return ResponseWrapper(data={'total_sell': round(total, 2)}, msg="success")
+
+        return ResponseWrapper(data={'total_sell': round(total, 2), 'total_order': order_qs}, msg="success")
 
 
 # class FoodCategoryViewSet(viewsets.GenericViewSet):
@@ -1453,7 +1457,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['discount_delete', 'update_discount', 'create_discount']:
+        if self.action in ['discount_delete', 'delete_discount', 'create_discount']:
             permission_classes = [permissions.IsAuthenticated]
         # elif self.action == "retrieve" or self.action == "update":
         #     permission_classes = [permissions.AllowAny]
@@ -1578,8 +1582,8 @@ class FcmCommunication(viewsets.GenericViewSet):
         staff_fcm_device_qs = StaffFcmDevice.objects.filter(
             hotel_staff__tables=table_id)
         if send_fcm_push_notification_appointment(
-            tokens_list=staff_fcm_device_qs.values_list(
-                'token', flat=True),
+            tokens_list=list(staff_fcm_device_qs.values_list(
+                'token', flat=True)),
                 table_no=table_qs.table_no if table_qs else None,
                 status="CallStaff",
         ):
@@ -1602,8 +1606,8 @@ class FcmCommunication(viewsets.GenericViewSet):
         staff_fcm_device_qs = StaffFcmDevice.objects.filter(
             hotel_staff__tables=table_id)
         if send_fcm_push_notification_appointment(
-            tokens_list=staff_fcm_device_qs.values_list(
-                'token', flat=True),
+            tokens_list=list(staff_fcm_device_qs.values_list(
+                'token', flat=True)),
                 table_no=table_qs.table_no if table_qs else None,
                 status="CallStaffForPayment",
                 msg=payment_method,
