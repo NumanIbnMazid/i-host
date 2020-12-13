@@ -168,8 +168,9 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
     def today_sell(self, request, pk, *args, **kwargs):
         today_date = timezone.now().date()
         qs = Invoice.objects.filter(
-            created_at=today_date, payment_status='1_PAID', restaurant_id =pk)
-        order_qs = FoodOrder.objects.filter(created_at = today_date, status ='5_PAID', restaurant_id =pk).count()
+            created_at=today_date, payment_status='1_PAID', restaurant_id=pk)
+        order_qs = FoodOrder.objects.filter(
+            created_at=today_date, status='5_PAID', restaurant_id=pk).count()
 
         grand_total_list = qs.values_list('grand_total', flat=True)
         total = sum(grand_total_list)
@@ -1178,7 +1179,8 @@ class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
     def list_by_category(self, request, restaurant, *args, **kwargs):
         qs = FoodCategory.objects.filter(
             foods__restaurant=restaurant,
-        ).prefetch_related('foods', 'foods__food_options')
+        )
+        # .prefetch_related('foods', 'foods__food_options')
 
         # food_price = FoodOption.objects.all().values_list('food__category__name',
         #                                                   'food__name').annotate(Min('price')).order_by('price')[0:].prefetch_related('foods')
