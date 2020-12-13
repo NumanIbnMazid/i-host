@@ -414,6 +414,7 @@ class FoodSerializer(serializers.ModelSerializer):
 
 class FoodWithPriceSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField(read_only=True)
+    image = Base64ImageField()
 
     class Meta:
         model = Food
@@ -441,6 +442,12 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
             return round(option_qs.price, 2)
         else:
             return None
+    def create(self, validated_data):
+        image = validated_data.pop('image', None)
+        if image:
+            return Food.objects.create(image=image, **validated_data)
+        return Food.objects.create(**validated_data)
+    
 
 
 class FoodsByCategorySerializer(serializers.ModelSerializer):
