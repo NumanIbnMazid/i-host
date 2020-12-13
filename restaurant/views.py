@@ -2,6 +2,9 @@ import copy
 import decimal
 import json
 
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+
 from account_management import models, serializers
 from account_management.models import (CustomerInfo, HotelStaffInformation,
                                        StaffFcmDevice, UserAccount)
@@ -1176,6 +1179,7 @@ class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
+    @method_decorator(cache_page(60*15))
     def list_by_category(self, request, restaurant, *args, **kwargs):
         qs = FoodCategory.objects.filter(
             foods__restaurant=restaurant,
