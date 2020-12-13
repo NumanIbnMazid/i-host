@@ -216,4 +216,8 @@ dashboard_urls = [
     path('food_report_by_date_range/',
          ReportingViewset.as_view({'post': 'food_report_by_date_range'}), name='food_report_by_date_range'),
 
+    path('dashboard_total_report/<int:restaurant_id>',
+         ReportingViewset.as_view({'get': 'dashboard_total_report'}), name='dashboard_total_report'),
+
+
 ] + fake_dashboard_urls

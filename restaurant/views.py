@@ -1408,6 +1408,35 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         response = {'food_report': food_dict.values(), }
         return ResponseWrapper(data=response, msg='success')
 
+    def dashboard_total_report(self, request, restaurant_id, *args, **kwargs):
+        today = timezone.datetime.now()
+        this_month= timezone.datetime.now().month
+        last_month = today.month - 1 if today.month > 1 else 12
+
+
+        this_month_invoice_qs = Invoice.objects.filter(
+            created_at__contains=this_month, payment_status='1_PAID', restaurant_id=restaurant_id)
+        this_month_order_qs = FoodOrder.objects.filter(
+            created_at__contains=this_month, status='5_PAID', restaurant_id=restaurant_id).count()
+
+        last_month_invoice_qs = Invoice.objects.filter(
+            created_at__contains=last_month, payment_status='1_PAID', restaurant_id=restaurant_id)
+        last_moth_order_qs = FoodOrder.objects.filter(
+            created_at__contains=last_month, status='5_PAID', restaurant_id=restaurant_id).count()
+
+        this_month_grand_total_list = this_month_invoice_qs.values_list('grand_total', flat=True)
+        this_month_total = sum(this_month_grand_total_list)
+
+        last_month_grand_total_list = last_month_invoice_qs.values_list('grand_total', flat=True)
+        last_month_total = sum(last_month_grand_total_list)
+
+        return ResponseWrapper(data={'current_month_total_sell': round(this_month_total, 2),
+                                     'current_month_total_order': this_month_order_qs,
+                                     'last_month_total_sell': round(last_month_total, 2),
+                                     'last_moth_order_qs': last_moth_order_qs
+                                     }, msg="success")
+
+
 
 class InvoiceViewSet(LoggingMixin, CustomViewSet):
     serializer_class = InvoiceSerializer
