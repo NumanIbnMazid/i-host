@@ -434,7 +434,9 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
 
     # }
     def get_price(self, obj):
-        option_qs = obj.food_options.order_by('price').first()
+        # option_qs = obj.food_options.order_by('price').first()
+        option_qs = obj.food_options.first()
+
         if option_qs:
             return round(option_qs.price, 2)
         else:
