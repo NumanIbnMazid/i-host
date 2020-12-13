@@ -25,6 +25,7 @@ router.register('food_option', FoodOptionViewSet,
 
 router.register('food', FoodViewSet,
                 basename="food")
+router.register('pop_up', PopUpViewset, basename='pop_up')
 
 # router.register('discount', DiscountViewSet,
 #               basename="discount")
@@ -42,8 +43,8 @@ fake_dashboard_urls = [
     path('table/<int:table_id>/staff_remove/',
          TableViewSet.as_view({'post': 'remove_staff', }), name='remove_staff'),
     # New Add
-#     path('table/<int:table_id>/quantity_list/',
-#          TableViewSet.as_view({'get': 'quantity_list', }), name='quantity_list'),
+    #     path('table/<int:table_id>/quantity_list/',
+    #          TableViewSet.as_view({'get': 'quantity_list', }), name='quantity_list'),
 
 
     path('restaurant/',
@@ -93,8 +94,8 @@ fake_dashboard_urls = [
     path('restaurant/<int:restaurant>/foods_by_category/',
          FoodByRestaurantViewSet.as_view({'get': 'list_by_category'}), name='foods_by_category'),
 
-#     path('restaurant/quantity/',
-#          FoodByRestaurantViewSet.as_view({'get': 'quantity'}), name='quantity'),
+    #     path('restaurant/quantity/',
+    #          FoodByRestaurantViewSet.as_view({'get': 'quantity'}), name='quantity'),
 
     path('restaurant/<int:restaurant>/top_foods_by_category/',
          FoodByRestaurantViewSet.as_view({'get': 'top_foods_by_category'}), name='top_foods_by_category'),
@@ -176,6 +177,9 @@ fake_dashboard_urls = [
          DiscountViewSet.as_view({'get': 'discount_list'}), name='discount_list'),
     path('restaurant/discount/<int:pk>/',
          DiscountViewSet.as_view({'get': 'discount'}), name='discount'),
+    path('restaurant/<int:restaurant_id>/pop_up/',
+         PopUpViewset.as_view({'get': 'pop_up_list_by_restaurant'}), name='pop_up_list_by_restaurant'),
+
 ]
 
 dashboard_urls = [

@@ -45,8 +45,8 @@ apps_fake = [
     path('table/<int:table_id>/staff_remove/',
          TableViewSet.as_view({'post': 'remove_staff', }), name='remove_staff'),
     # New Add
-#     path('table/<int:table_id>/quantity_list/',
-#          TableViewSet.as_view({'get': 'quantity_list', }), name='quantity_list'),
+    #     path('table/<int:table_id>/quantity_list/',
+    #          TableViewSet.as_view({'get': 'quantity_list', }), name='quantity_list'),
 
     path('restaurant/',
          RestaurantViewSet.as_view({'post': 'create', 'get': 'list'}), name='restaurant_create_and_list'),
@@ -95,8 +95,8 @@ apps_fake = [
     path('restaurant/<int:restaurant>/foods_by_category/',
          FoodByRestaurantViewSet.as_view({'get': 'list_by_category'}), name='foods_by_category'),
 
-#     path('restaurant/quantity/',
-#          FoodByRestaurantViewSet.as_view({'get': 'quantity'}), name='quantity'),
+    #     path('restaurant/quantity/',
+    #          FoodByRestaurantViewSet.as_view({'get': 'quantity'}), name='quantity'),
 
     path('restaurant/<int:restaurant>/top_foods_by_category/',
          FoodByRestaurantViewSet.as_view({'get': 'top_foods_by_category'}), name='top_foods_by_category'),
@@ -178,11 +178,17 @@ apps_fake = [
     path('restaurant/discount/<int:pk>/',
          DiscountViewSet.as_view({'get': 'discount'}), name='discount'),
 
+    path('restaurant/<int:restaurant_id>/pop_up/',
+         PopUpViewset.as_view({'get': 'pop_up_list_by_restaurant'}), name='pop_up_list_by_restaurant'),
+
+
+
 ]
 
 apps_url = [
     path('table/<int:table_id>/order_item_list/',
          TableViewSet.as_view({'get': 'apps_running_order_item_list'}), name='apps_running_order_item_list'),
     path('call_waiter/', FcmCommunication.as_view({"post": "call_waiter"})),
-    path('collect_payment/', FcmCommunication.as_view({"post": "collect_payment"}))
+    path('collect_payment/',
+         FcmCommunication.as_view({"post": "collect_payment"}))
 ]+apps_fake

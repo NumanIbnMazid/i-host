@@ -28,7 +28,7 @@ from utils.response_wrapper import ResponseWrapper
 
 from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodExtraType, FoodOption, FoodOptionType,
-                               FoodOrder, Invoice, OrderedItem, Restaurant,
+                               FoodOrder, Invoice, OrderedItem, PopUp, Restaurant,
                                Table)
 
 from . import permissions as custom_permissions
@@ -49,7 +49,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           OrderedItemDashboardPostSerializer,
                           OrderedItemGetDetailsSerializer,
                           OrderedItemSerializer, OrderedItemUserPostSerializer,
-                          PaymentSerializer, ReorderSerializer,
+                          PaymentSerializer, PopUpSerializer, ReorderSerializer,
                           ReportDateRangeSerializer,
                           ReportingDateRangeGraphSerializer,
                           RestaurantContactPerson, RestaurantSerializer,
@@ -1622,3 +1622,24 @@ class FcmCommunication(viewsets.GenericViewSet):
             return ResponseWrapper(msg='Success')
         else:
             return ResponseWrapper(error_msg="failed to notify")
+
+
+class PopUpViewset(LoggingMixin, CustomViewSet):
+
+    queryset = PopUp.object.all()
+    lookup_field = 'pk'
+    logging_methods = ['DELETE', 'POST', 'PATCH']
+    http_method_names = ['post', 'patch', 'get', 'delete']
+
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['create', 'update', 'destroy']:
+            permission_classes = [
+                custom_permissions.IsRestaurantManagementOrAdmin]
+        return [permission() for permission in permission_classes]
+
+    def pop_up_list_by_restaurant(self, request, restaurant_id):
+        popup_qs = PopUp.objects.filter(
+            restaurant=restaurant).order_by('serial_no')
+        serializer = PopUpSerializer(instance=popup_qs, many=True)
+        return ResponseWrapper(data=serializer.data)

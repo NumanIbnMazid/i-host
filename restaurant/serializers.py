@@ -149,7 +149,6 @@ class StaffTableSerializer(serializers.ModelSerializer):
                   ]
         #ordering = ['table_no']
 
-
     def get_my_table(self, obj):
         user = self.context.get('user')
         assigned_pk_list = obj.staff_assigned.values_list('pk', flat=True)
@@ -618,3 +617,9 @@ class StaffFcmSerializer(serializers.Serializer):
 class CollectPaymentSerializer(serializers.Serializer):
     table_id = serializers.IntegerField()
     payment_method = serializers.CharField()
+
+
+class PopUpSerializer(serializers.ModelField):
+    class Meta:
+        model = PopUp
+        fields = '__all__'
