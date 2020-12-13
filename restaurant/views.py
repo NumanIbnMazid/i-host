@@ -1620,7 +1620,7 @@ class FcmCommunication(viewsets.GenericViewSet):
 
 class PopUpViewset(LoggingMixin, CustomViewSet):
 
-    queryset = PopUp.object.all()
+    queryset = PopUp.objects.all()
     lookup_field = 'pk'
     logging_methods = ['DELETE', 'POST', 'PATCH']
     http_method_names = ['post', 'patch', 'get', 'delete']
