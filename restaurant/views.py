@@ -2,6 +2,9 @@ import copy
 import decimal
 import json
 
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+
 from account_management import models, serializers
 from account_management.models import (CustomerInfo, HotelStaffInformation,
                                        StaffFcmDevice, UserAccount)
@@ -168,8 +171,9 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
     def today_sell(self, request, pk, *args, **kwargs):
         today_date = timezone.now().date()
         qs = Invoice.objects.filter(
-            created_at=today_date, payment_status='1_PAID', restaurant_id =pk)
-        order_qs = FoodOrder.objects.filter(created_at = today_date, status ='5_PAID', restaurant_id =pk).count()
+            created_at=today_date, payment_status='1_PAID', restaurant_id=pk)
+        order_qs = FoodOrder.objects.filter(
+            created_at=today_date, status='5_PAID', restaurant_id=pk).count()
 
         grand_total_list = qs.values_list('grand_total', flat=True)
         total = sum(grand_total_list)
@@ -342,7 +346,7 @@ class TableViewSet(CustomViewSet):
     serializer_class = TableSerializer
 
     # permission_classes = [permissions.IsAuthenticated]
-    queryset = Table.objects.all()
+    queryset = Table.objects.all().order_by('table_no')
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     # http_method_names = ['get', 'post', 'patch']
@@ -1175,10 +1179,12 @@ class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
+    @method_decorator(cache_page(60*15))
     def list_by_category(self, request, restaurant, *args, **kwargs):
         qs = FoodCategory.objects.filter(
             foods__restaurant=restaurant,
-        ).prefetch_related('foods', 'foods__food_options')
+        ).prefetch_related('foods')
+        # .prefetch_related('foods', 'foods__food_options')
 
         # food_price = FoodOption.objects.all().values_list('food__category__name',
         #                                                   'food__name').annotate(Min('price')).order_by('price')[0:].prefetch_related('foods')
