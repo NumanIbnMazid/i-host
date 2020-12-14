@@ -1424,6 +1424,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         last_month = today.month - 1 if today.month > 1 else 12
         week =7
         weekly_day_wise_income_list = list()
+        weekly_day_wise_order_list = list()
 
         for day in range(week):
 
@@ -1431,9 +1432,12 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             invoice_qs = Invoice.objects.filter(
                 created_at__contains=start_of_week.date(), payment_status='1_PAID', restaurant_id=restaurant_id)
             total_list = invoice_qs.values_list('grand_total', flat=True)
+            this_day_total_order = FoodOrder.objects.filter(
+                created_at__contains=start_of_week.date(), status='5_PAID', restaurant_id=restaurant_id).count()
+
             this_day_total = sum(total_list)
-            print(this_day_total)
             weekly_day_wise_income_list.append(this_day_total)
+            weekly_day_wise_order_list.append(this_day_total_order)
 
         this_month_invoice_qs = Invoice.objects.filter(
             created_at__contains=this_month, payment_status='1_PAID', restaurant_id=restaurant_id)
@@ -1456,6 +1460,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                      'last_month_total_sell': round(last_month_total, 2),
                                      'last_month_total_order': last_month_total_order,
                                      "day_wise_income":weekly_day_wise_income_list,
+                                     "day_wise_order":weekly_day_wise_order_list,
                                      }, msg="success")
 
 
