@@ -120,6 +120,10 @@ apps_fake = [
     path('order/cart/items/',
          OrderedItemViewSet.as_view({'post': 'create'}, name='items')),
 
+    path('waiter_order/cart/items/',
+         OrderedItemViewSet.as_view({'post': 'create'}, name='items')),
+
+
 
     path('order/cart/items/<int:pk>/',
          OrderedItemViewSet.as_view({'patch': 'update', 'delete': 'destroy'}, name='items')),

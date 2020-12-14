@@ -323,10 +323,12 @@ class FoodOptionViewSet(LoggingMixin, CustomViewSet):
         if serializer.is_valid():
             option_type_id = request.data.get('option_type')
             food_id = request.data.get('food')
-            default_option_type_qs = FoodOptionType.objects.filter(name = 'single_type').first()
+            default_option_type_qs = FoodOptionType.objects.filter(
+                name='single_type').first()
             if default_option_type_qs:
                 if default_option_type_qs.pk == option_type_id:
-                    food_option_qs = FoodOption.objects.filter(food_id=food_id,option_type_id = option_type_id)
+                    food_option_qs = FoodOption.objects.filter(
+                        food_id=food_id, option_type_id=option_type_id)
                     if food_option_qs:
                         return ResponseWrapper(msg="not created already exist")
             qs = serializer.save()
@@ -539,9 +541,14 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter("is_waiter", openapi.IN_QUERY,
+                          type=openapi.TYPE_BOOLEAN)
+    ])
     def create_order_apps(self, request):
         # serializer_class = self.get_serializer_class()
         serializer = self.get_serializer(data=request.data)
+
         if serializer.is_valid():
             table_qs = Table.objects.filter(
                 pk=request.data.get('table')).last()
@@ -551,7 +558,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 qs = serializer.save()
                 qs.restaurant = table_qs.restaurant
                 qs.save()
-                self.save_customer_info(request, qs)
+                if request.query_params.get('is_waiter', 'false') == 'false':
+                    self.save_customer_info(request, qs)
                 serializer = self.serializer_class(instance=qs)
             else:
                 return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
@@ -568,10 +576,13 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         user_qs = UserAccount.objects.filter(
             pk=request.user.pk).select_related('customer_info').prefetch_related('hotel_staff').first()
         if user_qs:
-            customer_qs = user_qs.customer_info
-            if customer_qs:
-                qs.customer = customer_qs
-                qs.save()
+            try:
+                customer_qs = user_qs.customer_info
+                if customer_qs:
+                    qs.customer = customer_qs
+                    qs.save()
+            except:
+                pass
 
     def create_take_away_order(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -972,18 +983,22 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
+    
     def create(self, request):
         serializer = self.get_serializer(data=request.data, many=True)
 
         if serializer.is_valid():
             is_invalid_order = True
+            is_staff_order = False
             if request.data:
                 food_order = request.data[0].get('food_order')
                 food_order_qs = FoodOrder.objects.filter(pk=food_order)
                 restaurant_id = food_order_qs.first().table.restaurant_id
 
-                if HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk, restaurant_id=restaurant_id):
+                if HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True) | Q(is_waiter=True), user=request.user.pk, restaurant_id=restaurant_id):
                     food_order_qs = food_order_qs.first()
+                    is_staff_order = True
+
                 else:
                     food_order_qs = food_order_qs.exclude(
                         status__in=['5_PAID', '6_CANCELLED']).first()
@@ -996,7 +1011,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
 
             restaurant_id = food_order_qs.table.restaurant_id
 
-            if HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk, restaurant_id=restaurant_id):
+            if is_staff_order:
                 order_pk_list = list()
                 for item in qs:
                     order_pk_list.append(item.pk)
