@@ -1,6 +1,9 @@
+from django.views.decorators.cache import cache_page
 import copy
 import decimal
 import json
+
+from django.utils.decorators import method_decorator
 
 from account_management import models, serializers
 from account_management.models import (CustomerInfo, HotelStaffInformation,
@@ -985,7 +988,6 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    
     def create(self, request):
         serializer = self.get_serializer(data=request.data, many=True)
 
@@ -1201,6 +1203,7 @@ class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
+    @method_decorator(cache_page(60*15))
     def list_by_category(self, request, restaurant, *args, **kwargs):
         qs = FoodCategory.objects.filter(
             foods__restaurant=restaurant,
@@ -1435,9 +1438,9 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
     def dashboard_total_report(self, request, restaurant_id, *args, **kwargs):
         today = timezone.datetime.now()
-        this_month= timezone.datetime.now().month
+        this_month = timezone.datetime.now().month
         last_month = today.month - 1 if today.month > 1 else 12
-        week =7
+        week = 7
         weekly_day_wise_income_list = list()
         weekly_day_wise_order_list = list()
 
@@ -1464,20 +1467,21 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         last_month_total_order = FoodOrder.objects.filter(
             created_at__contains=last_month, status='5_PAID', restaurant_id=restaurant_id).count()
 
-        this_month_grand_total_list = this_month_invoice_qs.values_list('grand_total', flat=True)
+        this_month_grand_total_list = this_month_invoice_qs.values_list(
+            'grand_total', flat=True)
         this_month_total = sum(this_month_grand_total_list)
 
-        last_month_grand_total_list = last_month_invoice_qs.values_list('grand_total', flat=True)
+        last_month_grand_total_list = last_month_invoice_qs.values_list(
+            'grand_total', flat=True)
         last_month_total = sum(last_month_grand_total_list)
 
         return ResponseWrapper(data={'current_month_total_sell': round(this_month_total, 2),
                                      'current_month_total_order': this_month_order_qs,
                                      'last_month_total_sell': round(last_month_total, 2),
                                      'last_month_total_order': last_month_total_order,
-                                     "day_wise_income":weekly_day_wise_income_list,
-                                     "day_wise_order":weekly_day_wise_order_list,
+                                     "day_wise_income": weekly_day_wise_income_list,
+                                     "day_wise_order": weekly_day_wise_order_list,
                                      }, msg="success")
-
 
 
 class InvoiceViewSet(LoggingMixin, CustomViewSet):
