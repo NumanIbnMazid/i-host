@@ -1433,8 +1433,8 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         #             if not food_option_report.get(food_id):
         #                 food_extra_report[food_id]['food_extra'] = food_extra_info
 
-        response = {'food_report': food_dict.values(), }
-        return ResponseWrapper(data=response, msg='success')
+        #response = {'food_report': food_dict.values(), }
+        return ResponseWrapper(data=food_dict.values(), msg='success')
 
     def dashboard_total_report(self, request, restaurant_id, *args, **kwargs):
         today = timezone.datetime.now()
