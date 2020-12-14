@@ -12,6 +12,8 @@ from django.db.models import Count, Min, Q, query_utils
 from django.db.models.aggregates import Sum
 from django.http import request
 from django.utils import timezone
+from datetime import datetime, date, timedelta
+
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg2 import openapi
 from drf_yasg2.utils import get_serializer_class, swagger_auto_schema
@@ -1420,7 +1422,18 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         today = timezone.datetime.now()
         this_month= timezone.datetime.now().month
         last_month = today.month - 1 if today.month > 1 else 12
+        week =7
+        weekly_day_wise_income_list = list()
 
+        for day in range(week):
+
+            start_of_week = today + timedelta(days=day + (today.weekday() - 1))
+            invoice_qs = Invoice.objects.filter(
+                created_at__contains=start_of_week.date(), payment_status='1_PAID', restaurant_id=restaurant_id)
+            total_list = invoice_qs.values_list('grand_total', flat=True)
+            this_day_total = sum(total_list)
+            print(this_day_total)
+            weekly_day_wise_income_list.append(this_day_total)
 
         this_month_invoice_qs = Invoice.objects.filter(
             created_at__contains=this_month, payment_status='1_PAID', restaurant_id=restaurant_id)
@@ -1429,7 +1442,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
         last_month_invoice_qs = Invoice.objects.filter(
             created_at__contains=last_month, payment_status='1_PAID', restaurant_id=restaurant_id)
-        last_moth_order_qs = FoodOrder.objects.filter(
+        last_month_total_order = FoodOrder.objects.filter(
             created_at__contains=last_month, status='5_PAID', restaurant_id=restaurant_id).count()
 
         this_month_grand_total_list = this_month_invoice_qs.values_list('grand_total', flat=True)
@@ -1441,7 +1454,8 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         return ResponseWrapper(data={'current_month_total_sell': round(this_month_total, 2),
                                      'current_month_total_order': this_month_order_qs,
                                      'last_month_total_sell': round(last_month_total, 2),
-                                     'last_moth_order_qs': last_moth_order_qs
+                                     'last_month_total_order': last_month_total_order,
+                                     "day_wise_income":weekly_day_wise_income_list,
                                      }, msg="success")
 
 
