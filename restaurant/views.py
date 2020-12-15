@@ -1320,9 +1320,9 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         request_body=ReportDateRangeSerializer
     )
     def food_report_by_date_range(self, request, *args, **kwargs):
-        """
-        n^2
-        """
+        # """
+        # n^2
+        # """
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
         restaurant_id = request.data.get('restaurant_id')
