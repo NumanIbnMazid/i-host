@@ -91,7 +91,7 @@ class Food(SoftDeleteModel):
     image = models.ImageField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     restaurant = models.ForeignKey(
-        Restaurant, on_delete=models.CASCADE, related_name='food')
+        Restaurant, on_delete=models.CASCADE, related_name='foods')
     category = models.ForeignKey(
         FoodCategory, null=True, blank=True, on_delete=models.PROTECT, related_name='foods')
     # promotion_category = models.ManyToManyField(
