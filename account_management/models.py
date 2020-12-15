@@ -48,7 +48,7 @@ class UserManager(BaseUserManager):
         return self._create_user(username, email, password, **extra_fields)
 
 
-class   UserAccount(AbstractUser):
+class UserAccount(AbstractUser):
     USERS_IN_STATUS_CHOICES = [
         ("ACT", "Active"),
         ("UNV", "Unverified"),
@@ -77,7 +77,8 @@ class CustomerInfo(models.Model):
     name = models.CharField(null=True, blank=True, max_length=250)
     email_address = models.EmailField(max_length=35, null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
-    user = models.OneToOneField(to=UserAccount, on_delete=models.CASCADE)
+    user = models.OneToOneField(
+        to=UserAccount, on_delete=models.CASCADE, related_name='customer_info')
 
 
 class HotelStaffInformation(SoftDeleteModel):
@@ -159,3 +160,25 @@ class PhoneVerification(models.Model):
             self.verification_code = " "
             self.save()
             return "Phone Verification Success"
+
+
+class StaffFcmDevice(models.Model):
+    hotel_staff = models.ForeignKey(
+        to=HotelStaffInformation, on_delete=models.CASCADE, related_name='staff_fcm_devices')
+    device_id = models.CharField(max_length=255)
+    token = models.CharField(max_length=255)
+    device_type = models.CharField(
+        choices=[('web', 'web'), ('ios', 'ios'), ('android', 'android')], default='android', max_length=25)
+    created_at = models.DateField(auto_now_add=True)
+    updated_at = models.DateField(auto_now=True)
+
+
+class CustomerFcmDevice(models.Model):
+    customer = models.ForeignKey(
+        to=CustomerInfo, on_delete=models.CASCADE, related_name='customer_fcm_devices')
+    device_id = models.CharField(max_length=255)
+    token = models.CharField(max_length=255)
+    device_type = models.CharField(
+        choices=[('web', 'web'), ('ios', 'ios'), ('android', 'android')], default='android', max_length=25)
+    created_at = models.DateField(auto_now_add=True)
+    updated_at = models.DateField(auto_now=True)

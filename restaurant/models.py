@@ -1,7 +1,7 @@
 import uuid
 from os import name, truncate
 
-# from django.contrib.postgres.fields import JSONField
+from django.contrib.postgres.fields import ArrayField, JSONField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import manager
@@ -91,7 +91,7 @@ class Food(SoftDeleteModel):
     image = models.ImageField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     restaurant = models.ForeignKey(
-        Restaurant, on_delete=models.CASCADE, related_name='food')
+        Restaurant, on_delete=models.CASCADE, related_name='foods')
     category = models.ForeignKey(
         FoodCategory, null=True, blank=True, on_delete=models.PROTECT, related_name='foods')
     # promotion_category = models.ManyToManyField(
@@ -140,8 +140,8 @@ class FoodOption(SoftDeleteModel):
     option_type = models.ForeignKey(
         FoodOptionType, on_delete=models.CASCADE, related_name='food_options')
 
-    # def __str__(self):
-    #     return self.name
+    def __str__(self):
+        return self.option_type.name
 
 
 class Table(SoftDeleteModel):
@@ -156,7 +156,6 @@ class Table(SoftDeleteModel):
     # def __str__(self):
     #     return self.name
     #            #+'' + self.id.__str__()
-
 
 
 class FoodOrder(SoftDeleteModel):
@@ -187,6 +186,10 @@ class FoodOrder(SoftDeleteModel):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    customer = models.ForeignKey(
+        to='account_management.CustomerInfo', on_delete=models.SET_NULL, null=True, blank=True, related_name='food_orders')
+    restaurant = models.ForeignKey(
+        to=Restaurant, on_delete=models.SET_NULL, null=True, blank=True, related_name='food_orders')
 
     def __str__(self):
         if self.table:
@@ -236,8 +239,8 @@ class Invoice(SoftDeleteModel):
     grand_total = models.FloatField(
         null=True, blank=True)
     order_info = models.JSONField(null=True, blank=True)
-    updated_at = models.DateField(auto_now=True)
-    created_at = models.DateField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     payment_status = models.CharField(
         choices=STATUS, max_length=25, default="0_UNPAID")
 
@@ -275,3 +278,13 @@ class Discount(SoftDeleteModel):
 
     # def __str__(self):
     #     return self.name
+
+
+class PopUp(models.Model):
+    restaurant = models.ForeignKey(to=Restaurant,on_delete=models.CASCADE)
+    image = models.ImageField()
+    title = models.CharField(max_length=25)
+    description = models.TextField(null=True,blank=True)
+    serial_no = models.IntegerField(default=0)
+    clickable = models.BooleanField(default=False)
+    foods = ArrayField(models.IntegerField(null=True,blank=True),null=True,blank=True)

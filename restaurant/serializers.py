@@ -1,3 +1,4 @@
+from drf_extra_fields.fields import Base64ImageField
 import copy
 from account_management.models import HotelStaffInformation
 from account_management.serializers import StaffInfoGetSerializer
@@ -147,6 +148,7 @@ class StaffTableSerializer(serializers.ModelSerializer):
                   'my_table',
                   'id',
                   ]
+        #ordering = ['table_no']
 
     def get_my_table(self, obj):
         user = self.context.get('user')
@@ -216,9 +218,14 @@ class FoodOrderConfirmSerializer(serializers.Serializer):
     food_items = serializers.ListSerializer(child=serializers.IntegerField())
 
 
-
 class PaymentSerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
+
+
+class ReorderSerializer(serializers.Serializer):
+    order_id = serializers.IntegerField()
+    table_id = serializers.IntegerField()
+    # ordred_items = serializers.ListSerializer(child=serializers.IntegerField)
 
 
 class OrderedItemUserPostSerializer(serializers.ModelSerializer):
@@ -387,6 +394,11 @@ class FoodOrderUserPostSerializer(serializers.ModelSerializer):
         fields = ['ordered_items', 'table', 'remarks', 'status', 'id']
 
 
+class TakeAwayFoodOrderPostSerializer(serializers.Serializer):
+    restaurant = serializers.IntegerField()
+    table = serializers.IntegerField(required=False)
+
+
 class AddItemsSerializer(serializers.Serializer):
     ordered_items = OrderedItemUserPostSerializer(
         many=True, required=True)
@@ -402,6 +414,7 @@ class FoodSerializer(serializers.ModelSerializer):
 
 class FoodWithPriceSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField(read_only=True)
+    image = Base64ImageField()
 
     class Meta:
         model = Food
@@ -430,13 +443,48 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
         else:
             return None
 
+    def create(self, validated_data):
+        image = validated_data.pop('image', None)
+        if image:
+            return Food.objects.create(image=image, **validated_data)
+        return Food.objects.create(**validated_data)
 
-class FoodsByCategorySerializer(serializers.ModelSerializer):
-    foods = FoodWithPriceSerializer(many=True)
 
-    class Meta:
-        model = FoodCategory
-        fields = ['id', 'name', 'image', 'foods']
+class FoodGroupByCategoryListSerializer(serializers.ListSerializer):
+
+    def to_representation(self, data):
+        iterable = data.all() if isinstance(data, models.Manager) else data
+        return [
+            {
+                'foods': super(FoodGroupByCategoryListSerializer, self).to_representation(
+                    Food.objects.filter(
+                        category=obj, pk__in=list(
+                            data.values_list('id', flat=True)
+                        )
+                    )
+                ),
+                'name': obj.name,
+                'id': obj.pk,
+                'image': obj.image.url if obj.image else None
+
+
+                # 'image': obj.image   .update(dict(FoodCategorySerializer(obj).data))
+
+            }
+            for obj in FoodCategory.objects.filter(pk__in=list(data.values_list('category_id', flat=True)))
+        ]
+
+# class FoodsByCategorySerializer(serializers.ModelSerializer):
+#     foods = FoodWithPriceSerializer(many=True)
+
+#     class Meta:
+#         model = FoodCategory
+#         fields = ['id', 'name', 'image', 'foods']
+
+
+class FoodsByCategorySerializer(FoodWithPriceSerializer):
+    class Meta(FoodWithPriceSerializer.Meta):
+        list_serializer_class = FoodGroupByCategoryListSerializer
 
 
 class FoodDetailSerializer(serializers.ModelSerializer):
@@ -471,9 +519,17 @@ class FoodDetailSerializer(serializers.ModelSerializer):
 
 
 class RestaurantUpdateSerialier(serializers.ModelSerializer):
+    logo = Base64ImageField()
+
     class Meta:
         model = Restaurant
         exclude = ['status', 'subscription', 'subscription_ends', 'deleted_at']
+
+        def update(self, validated_data):
+            logo = validated_data.pop('logo', None)
+            if logo:
+                return Restaurant.objects.create(logo=logo, **validated_data)
+            return Restaurant.objects.create(**validated_data)
 
 
 class RestaurantContactPersonSerializer(serializers.ModelSerializer):
@@ -514,8 +570,6 @@ class TableStaffSerializer(serializers.ModelSerializer):
 
             total_items += order_qs.ordered_items.count()
 
-            order_qs = obj.food_orders.filter(
-                ordered_items__status__in=["3_IN_TABLE"]).last()
             if order_qs:
                 total_served_items += order_qs.ordered_items.count()
             serializer = FoodOrderForStaffSerializer(order_qs)
@@ -574,9 +628,12 @@ class ReportingDateRangeGraphSerializer(serializers.Serializer):
                                                     ("5_PAID", "Payment Done"),
                                                     ("6_CANCELLED", "Cancelled"), ], default="5_PAID", required=False)
 
+
 class DiscountByFoodSerializer(serializers.Serializer):
     discount_id = serializers.IntegerField()
-    food_id_lists = serializers.ListSerializer(child=serializers.IntegerField())
+    food_id_lists = serializers.ListSerializer(
+        child=serializers.IntegerField())
+
 
 class DiscountSerializer(serializers.ModelSerializer):
     class Meta:
@@ -584,18 +641,39 @@ class DiscountSerializer(serializers.ModelSerializer):
         # fields ='__all__'
         exclude = ['deleted_at']
 
+
 class FoodDetailsByDiscountSerializer(serializers.ModelSerializer):
-    discount = DiscountSerializer(read_only= True, many= True)
+    discount = DiscountSerializer(read_only=True, many=True)
+
     class Meta:
         model = Food
-        fields =['id', 'image','discount']
-
+        fields = ['id', 'image', 'discount']
 
 
 class ReportDateRangeSerializer(serializers.Serializer):
     start_date = serializers.DateField(required=False)
     end_date = serializers.DateField(required=False)
-    food_items = serializers.ChoiceField(choices=[('name', 'name'),
-                                                  ('id', 'id'),
-                                                  ('quantity', 'quantity'),
-                                                  ('price', 'price')], required=False)
+    restaurant_id = serializers.IntegerField(required=True)
+
+
+class StaffFcmSerializer(serializers.Serializer):
+    table_id = serializers.IntegerField()
+
+
+class CollectPaymentSerializer(serializers.Serializer):
+    table_id = serializers.IntegerField()
+    payment_method = serializers.CharField()
+
+
+class PopUpSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+
+    class Meta:
+        model = PopUp
+        fields = '__all__'
+
+    def create(self, validated_data):
+        image = validated_data.pop('image', None)
+        if image:
+            return PopUp.objects.create(image=image, **validated_data)
+        return PopUp.objects.create(**validated_data)

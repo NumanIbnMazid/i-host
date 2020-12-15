@@ -8,11 +8,11 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 import os
-from pathlib import Path
-from rest_framework.settings import api_settings
-import environ
 from datetime import timedelta
+from pathlib import Path
 
+import environ
+from rest_framework.settings import api_settings
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -268,6 +268,18 @@ REST_KNOX = {
     # 'EXPIRY_DATETIME_FORMAT': api_settings.DATETIME_FORMAT,
 }
 
+FCM_DJANGO_SETTINGS = {
+    "FCM_SERVER_KEY": "AAAA0HAEqOY:APA91bH5tJDGmxbdt7cZgVyImj-QU1tvIFpq3EfkiQZgmj-ktSRMNJkonGnZiVoKAVH9bT80Y-TFs22u4F5O46d97xQn90CE0FEnItifG6cofZt0_IorqX2N7sZwaUgUBvzGwE5aZ9Kt",
+    "ONE_DEVICE_PER_USER": False,
+    "DELETE_INACTIVE_DEVICES": True,
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/var/tmp/django_cache',
+    }
+}
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer"
