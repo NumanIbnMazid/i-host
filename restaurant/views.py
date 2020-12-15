@@ -1203,7 +1203,7 @@ class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
-    @method_decorator(cache_page(60*15))
+    # @method_decorator(cache_page(60*15))
     def list_by_category(self, request, restaurant, *args, **kwargs):
         qs = FoodCategory.objects.filter(
             foods__restaurant_id=restaurant,
