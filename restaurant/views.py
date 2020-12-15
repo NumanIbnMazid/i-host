@@ -1186,19 +1186,23 @@ class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def top_foods_by_category(self, request, restaurant, *args, **kwargs):
-        qs = FoodCategory.objects.filter(
-            foods__restaurant_id=restaurant,
-            foods__is_top=True
-        ).prefetch_related('foods').distinct()
+        # qs = FoodCategory.objects.filter(
+        #     foods__restaurant_id=restaurant,
+        #     foods__is_top=True
+        # ).prefetch_related('foods').distinct()
+        qs = Food.objects.filter(
+            restaurant_id=restaurant, is_top=True).select_related('category')
         # qs = qs.filter(is_top = True)
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def recommended_foods_by_category(self, request, restaurant, *args, **kwargs):
-        qs = FoodCategory.objects.filter(
-            foods__restaurant_id=restaurant,
-            foods__is_recommended=True
-        ).prefetch_related('foods').distinct()
+        # qs = FoodCategory.objects.filter(
+        #     foods__restaurant_id=restaurant,
+        #     foods__is_recommended=True
+        # ).prefetch_related('foods').distinct()
+        qs = Food.objects.filter(
+            restaurant_id=restaurant, is_recommended=True).select_related('category')
         # qs = qs.filter(is_top = True)
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
@@ -1208,15 +1212,8 @@ class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
         # qs = FoodCategory.objects.filter(
         #     foods__restaurant_id=restaurant,
         # ).prefetch_related('foods', 'foods__food_options').distinct()
-        qs = Food.objects.filter(restaurant_id=restaurant)
-
-        # food_price = FoodOption.objects.all().values_list('food__category__name',
-        #                                                   'food__name').annotate(Min('price')).order_by('price')[0:].prefetch_related('foods')
-        # new_price = Food.objects.filter().annotate(Min('food_options__price')).order_by(
-        #     'food_options__price')[0:].prefetch_related('food_options')
-
-        # print(food_price)
-        # print(new_price)
+        qs = Food.objects.filter(
+            restaurant_id=restaurant).select_related('category')
 
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
@@ -1330,8 +1327,8 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         end_date = request.data.get('end_date')
         restaurant_id = request.data.get('restaurant_id')
 
-        food_items_date_range_qs = Invoice.objects.filter(restaurant_id = restaurant_id,
-            created_at__gte=start_date, updated_at__lte=end_date, payment_status='1_PAID')
+        food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant_id,
+                                                          created_at__gte=start_date, updated_at__lte=end_date, payment_status='1_PAID')
 
         order_items_list = food_items_date_range_qs.values_list(
             'order_info__ordered_items', flat=True)
