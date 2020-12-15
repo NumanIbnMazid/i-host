@@ -1,14 +1,17 @@
 import json
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
-
+from .models import Table, FoodOrder
 from channels.generic.websocket import AsyncWebsocketConsumer
+from .serializers import FoodOrderByTableSerializer
+from channels.db import database_sync_to_async
 
 
-class RestaurantOrderListConsumer(AsyncWebsocketConsumer):
+class DashboardConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         print('-----------------hello----------------')
-        self.restaurant_id = self.scope['url_route']['kwargs']['restaurant_id']
+        self.restaurant_id = int(self.scope.get(
+            'url_route', {}).get('kwargs', {}).get('restaurant_id'))
         self.group_name = 'restaurant_%s' % self.restaurant_id
 
         # Join room group
@@ -41,8 +44,8 @@ class RestaurantOrderListConsumer(AsyncWebsocketConsumer):
         # self.send(text_data=json.dumps({
         #     'message': message
         # }))
-        text_data_json = json.loads(text_data)
-        message = text_data_json['message']
+        # text_data_json = json.loads(text_data)
+        # message = text_data_json['message']
 
         # Send message to room group
         # async_to_sync(self.channel_layer.group_send)(
@@ -52,18 +55,55 @@ class RestaurantOrderListConsumer(AsyncWebsocketConsumer):
         #         'message': message
         #     }
         # )
+        if text_data:
+            data = await self.order_item_list(restaurant_id=int(text_data))
+        else:
+            data = await self.order_item_list()
+
         await self.channel_layer.group_send(
             self.group_name,
             {
-                'type': 'chat_message',
-                'message': message
+                'type': 'response_to_listener',
+                'data': data
             }
         )
 
-    async def chat_message(self, event):
-        message = event['message']
+    @database_sync_to_async
+    def order_item_list(self, restaurant_id=1):
+
+        qs = FoodOrder.objects.filter(table__restaurant=restaurant_id).exclude(
+            status__in=['5_PAID', '6_CANCELLED']).order_by('table_id')
+        ordered_table_set = set(qs.values_list('table_id', flat=True))
+        table_qs = Table.objects.filter(
+            restaurant=restaurant_id).exclude(pk__in=ordered_table_set).order_by('id')
+        empty_table_data = []
+        for empty_table in table_qs:
+            empty_table_data.append(
+                {
+                    'table': empty_table.pk,
+                    'table_no': empty_table.table_no,
+                    'table_name': empty_table.name,
+                    'status': '',
+                    'price': {},
+                    'ordered_items': []
+                }
+            )
+        serializer = FoodOrderByTableSerializer(instance=qs, many=True)
+        return serializer.data+empty_table_data
+
+    # async def chat_message(self, event):
+    #     message = event['message']
+
+    #     # Send message to WebSocket
+    #     await self.send(text_data=json.dumps({
+    #         'message': message
+    #     }))
+
+    async def response_to_listener(self, event):
+        data = event['data']
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
-            'message': message
+            'data': data
+            # 'test': 'test success',
         }))
