@@ -1186,10 +1186,7 @@ class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def top_foods_by_category(self, request, restaurant, *args, **kwargs):
-        # qs = FoodCategory.objects.filter(
-        #     foods__restaurant_id=restaurant,
-        #     foods__is_top=True
-        # ).prefetch_related('foods').distinct()
+
         qs = Food.objects.filter(
             restaurant_id=restaurant, is_top=True).select_related('category')
         # qs = qs.filter(is_top = True)
@@ -1197,10 +1194,7 @@ class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def recommended_foods_by_category(self, request, restaurant, *args, **kwargs):
-        # qs = FoodCategory.objects.filter(
-        #     foods__restaurant_id=restaurant,
-        #     foods__is_recommended=True
-        # ).prefetch_related('foods').distinct()
+
         qs = Food.objects.filter(
             restaurant_id=restaurant, is_recommended=True).select_related('category')
         # qs = qs.filter(is_top = True)
@@ -1209,9 +1203,7 @@ class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
 
     # @method_decorator(cache_page(60*15))
     def list_by_category(self, request, restaurant, *args, **kwargs):
-        # qs = FoodCategory.objects.filter(
-        #     foods__restaurant_id=restaurant,
-        # ).prefetch_related('foods', 'foods__food_options').distinct()
+
         qs = Food.objects.filter(
             restaurant_id=restaurant).select_related('category')
 
