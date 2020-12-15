@@ -3,7 +3,7 @@ from .models import *
 
 # Register your models here.
 class InvoiceAdmin(admin.ModelAdmin):
-    list_display = ['id', 'created_at', 'updated_at']
+    list_display = ['id', 'created_at', 'updated_at', 'restaurant']
 
 class TableAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'restaurant','is_occupied']

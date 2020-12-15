@@ -1327,8 +1327,9 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         """
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
+        restaurant_id = request.data.get('restaurant_id')
 
-        food_items_date_range_qs = Invoice.objects.filter(
+        food_items_date_range_qs = Invoice.objects.filter(restaurant_id = restaurant_id,
             created_at__gte=start_date, updated_at__lte=end_date, payment_status='1_PAID')
 
         order_items_list = food_items_date_range_qs.values_list(
