@@ -122,8 +122,6 @@ class RestaurantSerializer(serializers.ModelSerializer):
         model = Restaurant
         # fields = '__all__'
         exclude = ['deleted_at']
-    
-
 
 
 class TableSerializer(serializers.ModelSerializer):
@@ -444,20 +442,49 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
             return round(option_qs.price, 2)
         else:
             return None
+
     def create(self, validated_data):
         image = validated_data.pop('image', None)
         if image:
             return Food.objects.create(image=image, **validated_data)
         return Food.objects.create(**validated_data)
-    
 
 
-class FoodsByCategorySerializer(serializers.ModelSerializer):
-    foods = FoodWithPriceSerializer(many=True)
+class FoodGroupByCategoryListSerializer(serializers.ListSerializer):
 
-    class Meta:
-        model = FoodCategory
-        fields = ['id', 'name', 'image', 'foods']
+    def to_representation(self, data):
+        iterable = data.all() if isinstance(data, models.Manager) else data
+        return [
+            {
+                'foods': super(FoodGroupByCategoryListSerializer, self).to_representation(
+                    Food.objects.filter(
+                        category=obj, pk__in=list(
+                            data.values_list('id', flat=True)
+                        )
+                    )
+                ),
+                'name': obj.name,
+                'id': obj.pk,
+                'image': obj.image.url if obj.image else None
+
+
+                # 'image': obj.image   .update(dict(FoodCategorySerializer(obj).data))
+
+            }
+            for obj in FoodCategory.objects.filter(pk__in=list(data.values_list('category_id', flat=True)))
+        ]
+
+# class FoodsByCategorySerializer(serializers.ModelSerializer):
+#     foods = FoodWithPriceSerializer(many=True)
+
+#     class Meta:
+#         model = FoodCategory
+#         fields = ['id', 'name', 'image', 'foods']
+
+
+class FoodsByCategorySerializer(FoodWithPriceSerializer):
+    class Meta(FoodWithPriceSerializer.Meta):
+        list_serializer_class = FoodGroupByCategoryListSerializer
 
 
 class FoodDetailSerializer(serializers.ModelSerializer):
@@ -493,10 +520,11 @@ class FoodDetailSerializer(serializers.ModelSerializer):
 
 class RestaurantUpdateSerialier(serializers.ModelSerializer):
     logo = Base64ImageField()
+
     class Meta:
         model = Restaurant
         exclude = ['status', 'subscription', 'subscription_ends', 'deleted_at']
-    
+
         def update(self, validated_data):
             logo = validated_data.pop('logo', None)
             if logo:
@@ -619,7 +647,7 @@ class FoodDetailsByDiscountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Food
-        fields = ['id','image', 'discount']
+        fields = ['id', 'image', 'discount']
 
 
 class ReportDateRangeSerializer(serializers.Serializer):

@@ -1205,9 +1205,10 @@ class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
 
     # @method_decorator(cache_page(60*15))
     def list_by_category(self, request, restaurant, *args, **kwargs):
-        qs = FoodCategory.objects.filter(
-            foods__restaurant_id=restaurant,
-        ).prefetch_related('foods', 'foods__food_options').distinct()
+        # qs = FoodCategory.objects.filter(
+        #     foods__restaurant_id=restaurant,
+        # ).prefetch_related('foods', 'foods__food_options').distinct()
+        qs = Food.objects.filter(restaurant_id=restaurant)
 
         # food_price = FoodOption.objects.all().values_list('food__category__name',
         #                                                   'food__name').annotate(Min('price')).order_by('price')[0:].prefetch_related('foods')
