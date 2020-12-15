@@ -1445,7 +1445,10 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
         for day in range(week):
 
-            start_of_week = today + timedelta(days=day + (today.weekday() - 1))
+            #start_of_week = today + timedelta(days=day + (today.weekday() - 1))
+            day_qs = (today.weekday() +1) % 7
+            start_of_week = today - timezone.timedelta(day_qs-day)
+
             invoice_qs = Invoice.objects.filter(
                 created_at__contains=start_of_week.date(), payment_status='1_PAID', restaurant_id=restaurant_id)
             total_list = invoice_qs.values_list('grand_total', flat=True)
