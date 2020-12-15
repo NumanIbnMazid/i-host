@@ -1180,7 +1180,7 @@ class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
 
     def list(self, request, restaurant, *args, **kwargs):
         qs = self.queryset.filter(
-            restaurant=restaurant).prefetch_related('food_options', 'food_extras')
+            restaurant=restaurant).prefetch_related('food_options', 'food_extras').distinct()
         # qs = qs.filter(is_top = True)
         serializer = FoodDetailSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
@@ -1189,7 +1189,7 @@ class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
         qs = FoodCategory.objects.filter(
             foods__restaurant=restaurant,
             foods__is_top=True
-        ).prefetch_related('foods')
+        ).prefetch_related('foods').distinct()
         # qs = qs.filter(is_top = True)
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
@@ -1198,7 +1198,7 @@ class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
         qs = FoodCategory.objects.filter(
             foods__restaurant=restaurant,
             foods__is_recommended=True
-        ).prefetch_related('foods')
+        ).prefetch_related('foods').distinct()
         # qs = qs.filter(is_top = True)
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
@@ -1207,7 +1207,7 @@ class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
     def list_by_category(self, request, restaurant, *args, **kwargs):
         qs = FoodCategory.objects.filter(
             foods__restaurant=restaurant,
-        ).prefetch_related('foods', 'foods__food_options')
+        ).prefetch_related('foods', 'foods__food_options').distinct()
 
         # food_price = FoodOption.objects.all().values_list('food__category__name',
         #                                                   'food__name').annotate(Min('price')).order_by('price')[0:].prefetch_related('foods')
