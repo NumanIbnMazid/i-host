@@ -50,7 +50,6 @@ LIBRARY_APPS = [
     'drf_extra_fields',
     'softdelete',
     'rest_framework_tracking',
-    "channels",
     # 'autofixture',
     # "mockups",
 ]
@@ -131,7 +130,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'ihost.wsgi.application'
-ASGI_APPLICATION = 'ihost.asgi.application'
 
 
 # Database
@@ -279,15 +277,4 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': '/var/tmp/django_cache',
     }
-}
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
-    # 'default': {
-    #     'BACKEND': 'channels_redis.core.RedisChannelLayer',
-    #     'CONFIG': {
-    #         "hosts": [('127.0.0.1', 6379)],
-    #     },
-    # },
 }
