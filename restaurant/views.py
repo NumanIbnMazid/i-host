@@ -2,6 +2,7 @@ from django.views.decorators.cache import cache_page
 import copy
 import decimal
 import json
+from .signals import order_done_signal
 
 from django.utils.decorators import method_decorator
 
@@ -1029,6 +1030,10 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             #     order_order_qs.update(status='0_ORDER_INITIALIZED')
 
             serializer = OrderedItemSerializer(instance=qs, many=True)
+            order_done_signal.send(
+                sender=self.__class__.create,
+                restaurant_id=restaurant_id,
+            )
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -1061,22 +1066,21 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         #serializer = self.get_serializer(data=request.data, many = True)
         new_quantity = request.data.get('quantity')
         re_order_item_qs = OrderedItem.objects.filter(
-            id = request.data.get("order_item_id")).first()
+            id=request.data.get("order_item_id")).first()
 
-        if not re_order_item_qs.status in ['1_ORDER_PLACED','0_ORDER_INITIALIZED']:
+        if not re_order_item_qs.status in ['1_ORDER_PLACED', '0_ORDER_INITIALIZED']:
             # for item in re_order_item_qs:
             re_order_item_qs = OrderedItem.objects.create(quantity=new_quantity, food_option=re_order_item_qs.food_option,
-                                                          food_order=re_order_item_qs.food_order, status = '1_ORDER_PLACED')
+                                                          food_order=re_order_item_qs.food_order, status='1_ORDER_PLACED')
         else:
             update_quantity = re_order_item_qs.quantity + new_quantity
             re_order_item_qs.quantity = update_quantity
             re_order_item_qs.save()
 
-
         # food_order_qs = OrderedItem.objects.filter(food_order_id = re_order_item_qs.food_order_id)
-        serializer = FoodOrderByTableSerializer(instance=re_order_item_qs.food_order)
+        serializer = FoodOrderByTableSerializer(
+            instance=re_order_item_qs.food_order)
         return ResponseWrapper(data=serializer.data, msg='Success')
-
 
 
 class FoodViewSet(LoggingMixin, CustomViewSet):
@@ -1469,7 +1473,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         for day in range(week):
 
             #start_of_week = today + timedelta(days=day + (today.weekday() - 1))
-            day_qs = (today.weekday() +1) % 7
+            day_qs = (today.weekday() + 1) % 7
             start_of_week = today - timezone.timedelta(day_qs-day)
 
             invoice_qs = Invoice.objects.filter(
