@@ -5,6 +5,9 @@ from .models import *
 class InvoiceAdmin(admin.ModelAdmin):
     list_display = ['id', 'created_at', 'updated_at', 'restaurant']
 
+class DiscountAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name','restaurant']
+
 class TableAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'restaurant','is_occupied']
 
@@ -46,5 +49,5 @@ admin.site.register(Table, TableAdmin)
 admin.site.register(FoodOrder,FoodOrderAdmin)
 admin.site.register(OrderedItem, OrderedItemAdmin)
 admin.site.register(Invoice, InvoiceAdmin)
-admin.site.register(Discount)
+admin.site.register(Discount, DiscountAdmin)
 admin.site.register(PopUp)

@@ -59,7 +59,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           StaffIdListSerializer, StaffTableSerializer,
                           TableSerializer, TableStaffSerializer,
                           TakeAwayFoodOrderPostSerializer,
-                          TopRecommendedFoodListSerializer)
+                          TopRecommendedFoodListSerializer, ReOrderedItemSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -960,6 +960,8 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         elif self.action in ['cart_create_from_dashboard']:
             self.serializer_class = OrderedItemDashboardPostSerializer
 
+        elif self.action in ['re_order_items']:
+            self.serializer_class = ReOrderedItemSerializer
         else:
             self.serializer_class = OrderedItemSerializer
 
@@ -1054,6 +1056,27 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         serializer = OrderedItemGetDetailsSerializer(
             instance=list_of_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='created')
+
+    def re_order_items(self, request):
+        #serializer = self.get_serializer(data=request.data, many = True)
+        new_quantity = request.data.get('quantity')
+        re_order_item_qs = OrderedItem.objects.filter(
+            id = request.data.get("order_item_id")).first()
+
+        if not re_order_item_qs.status in ['1_ORDER_PLACED','0_ORDER_INITIALIZED']:
+            # for item in re_order_item_qs:
+            re_order_item_qs = OrderedItem.objects.create(quantity=new_quantity, food_option=re_order_item_qs.food_option,
+                                                          food_order=re_order_item_qs.food_order, status = '1_ORDER_PLACED')
+        else:
+            update_quantity = re_order_item_qs.quantity + new_quantity
+            re_order_item_qs.quantity = update_quantity
+            re_order_item_qs.save()
+
+
+        # food_order_qs = OrderedItem.objects.filter(food_order_id = re_order_item_qs.food_order_id)
+        serializer = FoodOrderByTableSerializer(instance=re_order_item_qs.food_order)
+        return ResponseWrapper(data=serializer.data, msg='Success')
+
 
 
 class FoodViewSet(LoggingMixin, CustomViewSet):
