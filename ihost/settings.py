@@ -38,6 +38,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 # Application definition
 
 LIBRARY_APPS = [
+    "channels",
     'django.contrib.postgres',
     # 'debug_toolbar',
     'rest_framework',
