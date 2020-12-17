@@ -25,7 +25,7 @@ from restaurant.routing import websocket_urlpatterns
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
-    #"https": get_asgi_application(),
+    "https": get_asgi_application(),
     "websocket": AuthMiddlewareStack(
         URLRouter(
             websocket_urlpatterns
