@@ -677,3 +677,8 @@ class PopUpSerializer(serializers.ModelSerializer):
         if image:
             return PopUp.objects.create(image=image, **validated_data)
         return PopUp.objects.create(**validated_data)
+
+class ReOrderedItemSerializer(serializers.Serializer):
+    order_item_id = serializers.IntegerField()
+    quantity = serializers.IntegerField(default = 1)
+

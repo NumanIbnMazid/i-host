@@ -119,6 +119,9 @@ apps_fake = [
 
     path('order/cart/items/',
          OrderedItemViewSet.as_view({'post': 'create'}, name='items')),
+    path('re_order_items',
+         OrderedItemViewSet.as_view({'post': 're_order_items'}, name='re_order_items')),
+
 
     path('waiter_order/cart/items/',
          OrderedItemViewSet.as_view({'post': 'create'}, name='items')),
