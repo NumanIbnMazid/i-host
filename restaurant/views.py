@@ -231,7 +231,13 @@ class FoodCategoryViewSet(LoggingMixin, CustomViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodCategory.objects.all()
     lookup_field = 'pk'
-    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+    #logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+
+    def category_details(self, request, pk, *args, **kwargs):
+        qs = FoodCategory.objects.filter(id=pk)
+        serializer = self.serializer_class(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
 
 
 class FoodOptionTypeViewSet(LoggingMixin, CustomViewSet):
@@ -390,31 +396,32 @@ class TableViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = TableSerializer
         return self.serializer_class
 
-    def get_pagination_class(self):
-        if self.action in ['table_list']:
-            # url = self.request.path
-            # if url.__contains__('/dashboard/'):
-            return CustomLimitPagination
+    # def get_pagination_class(self):
+    #     if self.action in ['table_list']:
+    #         # url = self.request.path
+    #         # if url.__contains__('/dashboard/'):
+    #         return CustomLimitPagination
 
-    pagination_class = property(get_pagination_class)
+
+    #pagination_class = property(get_pagination_class)
 
     def table_list(self, request, restaurant, *args, **kwargs):
-        url = request.path
-        is_dashboard = url.__contains__('/dashboard/')
+        # url = request.path
+        # is_dashboard = url.__contains__('/dashboard/')
 
         qs = self.queryset.filter(restaurant=restaurant)
-        if is_dashboard:
-            page_qs = self.paginate_queryset(qs)
-            serializer = self.get_serializer(
-                instance=page_qs, many=True, context={'user': request.user})
+        # if is_dashboard:
+        #     page_qs = self.paginate_queryset(qs)
+        #     serializer = self.get_serializer(
+        #         instance=page_qs, many=True, context={'user': request.user})
+        #
+        #     paginated_data = self.get_paginated_response(serializer.data)
+        #
+        #     return ResponseWrapper(paginated_data.data)
 
-            paginated_data = self.get_paginated_response(serializer.data)
-
-            return ResponseWrapper(paginated_data.data)
-        else:
-            # qs = qs.filter(is_top = True)
-            serializer = self.get_serializer(
-                instance=qs, many=True, context={'user': request.user})
+        # qs = qs.filter(is_top = True)
+        serializer = self.get_serializer(
+            instance=qs, many=True, context={'user': request.user})
 
         return ResponseWrapper(data=serializer.data, msg='success')
 
@@ -1173,7 +1180,12 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
     queryset = Food.objects.all()
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
-    http_method_names = ['post', 'patch', 'get', 'delete']
+    #http_method_names = ['post', 'patch', 'get', 'delete']
+
+    def food_details(self, request, *args, id, **kwargs):
+        qs = Food.objects.filter(pk=id).last()
+        serializer = FoodDetailSerializer(instance=qs)
+        return ResponseWrapper(data=serializer.data, msg='success')
 
     def category_list(self, request, *args, restaurant, **kwargs):
         qs = FoodCategory.objects.filter(
