@@ -22,7 +22,7 @@ from datetime import datetime, date, timedelta
 
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg2 import openapi
-from drf_yasg2.utils import get_serializer_class, swagger_auto_schema
+from drf_yasg2.utils import swagger_auto_schema
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.permissions import IsAdminUser
 from rest_framework.serializers import Serializer
@@ -390,12 +390,33 @@ class TableViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = TableSerializer
         return self.serializer_class
 
+    def get_pagination_class(self):
+        if self.action in ['table_list']:
+            # url = self.request.path
+            # if url.__contains__('/dashboard/'):
+            return CustomLimitPagination
+
+
+    pagination_class = property(get_pagination_class)
+
     def table_list(self, request, restaurant, *args, **kwargs):
+        url = request.path
+        is_dashboard = url.__contains__('/dashboard/')
 
         qs = self.queryset.filter(restaurant=restaurant)
-        # qs = qs.filter(is_top = True)
-        serializer = self.get_serializer(
-            instance=qs, many=True, context={'user': request.user})
+        if is_dashboard:
+            page_qs = self.paginate_queryset(qs)
+            serializer = self.get_serializer(
+                instance=page_qs, many=True, context={'user': request.user})
+
+            paginated_data = self.get_paginated_response(serializer.data)
+
+            return ResponseWrapper(paginated_data.data)
+        else:
+            # qs = qs.filter(is_top = True)
+            serializer = self.get_serializer(
+                instance=qs, many=True, context={'user': request.user})
+
         return ResponseWrapper(data=serializer.data, msg='success')
 
     # @swagger_auto_schema(request_body=ListOfIdSerializer)
@@ -511,6 +532,12 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         # else:
         #     permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
+
+    def get_pagination_class(self):
+        if self.action in ['customer_order_history']:
+            return CustomLimitPagination
+
+    pagination_class = property(get_pagination_class)
 
     # def book_table(self, request):
     #     # serializer_class = self.get_serializer_class()
@@ -947,9 +974,13 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='Success')
 
     def customer_order_history(self, request, *args, **kwargs):
-        qs = FoodOrder.objects.filter(customer__user=request.user.pk)
-        serializer = FoodOrderByTableSerializer(instance=qs, many=True)
-        return ResponseWrapper(data=serializer.data)
+        order_qs = FoodOrder.objects.filter(customer__user=request.user.pk)
+        page_qs = self.paginate_queryset(order_qs)
+
+        serializer = FoodOrderByTableSerializer(instance=page_qs, many=True)
+        paginated_data = self.get_paginated_response(serializer.data)
+
+        return ResponseWrapper(paginated_data.data)
 
 
 class OrderedItemViewSet(LoggingMixin, CustomViewSet):
@@ -1527,8 +1558,6 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
     serializer_class = InvoiceSerializer
     # pagination_class = CustomLimitPagination
 
-
-
     def get_serializer_class(self):
         if self.action in ['invoice_history']:
             self.serializer_class = InvoiceSerializer
@@ -1536,13 +1565,14 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         return self.serializer_class
 
     def get_pagination_class(self):
-        if self.action in ['invoice_history', 'paid_cancel_invoice_history']:
-            self.pagination_class = CustomLimitPagination
-            return self.pagination_class
+        if self.action in ['invoice_history', 'paid_cancel_invoice_history','invoice']:
+
+            return CustomLimitPagination
 
     queryset = Invoice.objects.all()
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+    pagination_class = property(get_pagination_class)
 
     def invoice_history(self, request, restaurant, *args, **kwargs):
         invoice_qs = Invoice.objects.filter(
@@ -1554,16 +1584,14 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
         return ResponseWrapper(paginated_data.data)
 
-
     def paid_cancel_invoice_history(self, request, restaurant, *args, **kwargs):
         invoice_qs = Invoice.objects.filter(restaurant_id=restaurant, order__status__in=[
-                                    '5_PAID', '6_CANCELLED']).order_by('-updated_at')
+            '5_PAID', '6_CANCELLED']).order_by('-updated_at')
         page_qs = self.paginate_queryset(invoice_qs)
         serializer = InvoiceSerializer(instance=page_qs, many=True)
         paginated_data = self.get_paginated_response(serializer.data)
 
         return ResponseWrapper(paginated_data.data)
-
 
     def order_invoice(self, request, order_id, *args, **kwargs):
         qs = Invoice.objects.filter(order_id=order_id).last()
@@ -1571,10 +1599,14 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data)
 
     def invoice(self, request, invoice_id, *args, **kwargs):
-        qs = Invoice.objects.filter(
+        invoice_qs = Invoice.objects.filter(
             pk__icontains=invoice_id).order_by('-updated_at')
-        serializer = InvoiceSerializer(instance=qs, many=True)
-        return ResponseWrapper(data=serializer.data)
+        page_qs = self.paginate_queryset(invoice_qs)
+
+        serializer = InvoiceSerializer(instance=page_qs, many=True)
+        paginated_data = self.get_paginated_response(serializer.data)
+
+        return ResponseWrapper(paginated_data.data)
 
 
 class DiscountViewSet(LoggingMixin, CustomViewSet):
@@ -1599,20 +1631,36 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         #     permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
 
+    def get_pagination_class(self):
+        if self.action in ['discount_list','all_discount_list']:
+
+            return CustomLimitPagination
+
     queryset = Discount.objects.all()
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH']
     http_method_names = ['post', 'patch', 'get', 'delete']
+    pagination_class = property(get_pagination_class)
 
     def discount_list(self, request, restaurant, *args, **kwargs):
-        qs = Discount.objects.filter(restaurant=restaurant)
-        serializer = DiscountSerializer(instance=qs, many=True)
-        return ResponseWrapper(data=serializer.data)
+        discount_qs = Discount.objects.filter(restaurant=restaurant)
+        page_qs = self.paginate_queryset(discount_qs)
+
+        serializer = InvoiceSerializer(instance=page_qs, many=True)
+        paginated_data = self.get_paginated_response(serializer.data)
+
+        return ResponseWrapper(paginated_data.data)
+
 
     def all_discount_list(self, request, *args, **kwargs):
-        qs = Discount.objects.all()
-        serializer = DiscountSerializer(instance=qs, many=True)
-        return ResponseWrapper(data=serializer.data)
+        discount_qs = Discount.objects.all()
+        page_qs = self.paginate_queryset(discount_qs)
+
+        serializer = InvoiceSerializer(instance=page_qs, many=True)
+        paginated_data = self.get_paginated_response(serializer.data)
+
+        return ResponseWrapper(paginated_data.data)
+
 
     def discount(self, request, pk, *args, **kwargs):
         qs = Discount.objects.filter(id=pk)
