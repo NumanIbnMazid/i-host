@@ -2,6 +2,8 @@ from django.views.decorators.cache import cache_page
 import copy
 import decimal
 import json
+
+from utils.pagination import CustomLimitPagination
 from .signals import order_done_signal
 
 from django.utils.decorators import method_decorator
@@ -1523,6 +1525,8 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
 class InvoiceViewSet(LoggingMixin, CustomViewSet):
     serializer_class = InvoiceSerializer
+    # pagination_class = CustomLimitPagination
+
 
     def get_serializer_class(self):
         if self.action in ['invoice_history']:
@@ -1530,21 +1534,29 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
         return self.serializer_class
 
+    def get_pagination_class(self):
+        if self.action in ['invoice_history', 'paid_cancel_invoice_history']:
+            self.pagination_class = CustomLimitPagination
+            return self.pagination_class
+
     queryset = Invoice.objects.all()
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def invoice_history(self, request, restaurant, *args, **kwargs):
-        qs = Invoice.objects.filter(
-            restaurant=restaurant).order_by('-updated_at')
-        serializer = InvoiceSerializer(instance=qs, many=True)
-        return ResponseWrapper(data=serializer.data)
+        invoice_qs = Invoice.objects.filter(
+            restaurant_id=restaurant).order_by('-updated_at')
+        page_qs = self.paginate_queryset(invoice_qs)
+        serializer = InvoiceSerializer(instance=page_qs, many=True)
+        return ResponseWrapper(serializer.data)
 
     def paid_cancel_invoice_history(self, request, restaurant, *args, **kwargs):
-        qs = Invoice.objects.filter(restaurant=restaurant, order__status__in=[
+        invoice_qs = Invoice.objects.filter(restaurant_id=restaurant, order__status__in=[
                                     '5_PAID', '6_CANCELLED']).order_by('-updated_at')
-        serializer = InvoiceSerializer(instance=qs, many=True)
-        return ResponseWrapper(data=serializer.data)
+        page_qs = self.paginate_queryset(invoice_qs)
+        serializer = InvoiceSerializer(instance=page_qs, many=True)
+        return ResponseWrapper(serializer.data)
+
 
     def order_invoice(self, request, order_id, *args, **kwargs):
         qs = Invoice.objects.filter(order_id=order_id).last()
