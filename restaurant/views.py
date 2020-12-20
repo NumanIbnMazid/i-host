@@ -1548,18 +1548,24 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         invoice_qs = Invoice.objects.filter(
             restaurant_id=restaurant).order_by('-updated_at')
         page_qs = self.paginate_queryset(invoice_qs)
+
         serializer = InvoiceSerializer(instance=page_qs, many=True)
-        return ResponseWrapper(serializer.data)
+        paginated_data = self.get_paginated_response(serializer.data)
+
+        return ResponseWrapper(paginated_data.data)
+
 
     def paid_cancel_invoice_history(self, request, restaurant, *args, **kwargs):
         invoice_qs = Invoice.objects.filter(restaurant_id=restaurant, order__status__in=[
                                     '5_PAID', '6_CANCELLED']).order_by('-updated_at')
         page_qs = self.paginate_queryset(invoice_qs)
         serializer = InvoiceSerializer(instance=page_qs, many=True)
-        return ResponseWrapper(serializer.data)
+        paginated_data = self.get_paginated_response(serializer.data)
+
+        return ResponseWrapper(paginated_data.data)
 
 
-    def order_invoice(self, request, order_id, *args, **kwargs):
+def order_invoice(self, request, order_id, *args, **kwargs):
         qs = Invoice.objects.filter(order_id=order_id).last()
         serializer = InvoiceSerializer(instance=qs, many=False)
         return ResponseWrapper(data=serializer.data)
