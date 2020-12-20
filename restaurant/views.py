@@ -838,6 +838,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         serializer = FoodOrderByTableSerializer(instance=order_qs)
         grand_total = serializer.data.get(
             'price', {}).get('grand_total_price')
+        payable_amount = serializer.data.get(
+            'price', {}).get('payable_amount')
 
         if order_qs.invoices.first():
             invoice_qs = order_qs.invoices.first()
@@ -845,6 +847,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 json.dumps(serializer.data, cls=DjangoJSONEncoder))
             invoice_qs.grand_total = grand_total
             invoice_qs.payment_status = payment_status
+            invoice_qs.payable_amount = payable_amount
             invoice_qs.save()
         else:
             invoice_qs = Invoice.objects.create(
