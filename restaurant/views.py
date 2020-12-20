@@ -396,7 +396,6 @@ class TableViewSet(LoggingMixin, CustomViewSet):
             # if url.__contains__('/dashboard/'):
             return CustomLimitPagination
 
-
     pagination_class = property(get_pagination_class)
 
     def table_list(self, request, restaurant, *args, **kwargs):
@@ -508,7 +507,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = FoodOrderConfirmSerializer
         elif self.action in ['in_table_status']:
             self.serializer_class = FoodOrderConfirmSerializer
-        elif self.action in ['payment', 'create_invoice']:
+        elif self.action in ['payment', 'create_invoice', 'apps_order_info_price_details']:
             self.serializer_class = PaymentSerializer
         elif self.action in ['retrieve']:
             self.serializer_class = FoodOrderByTableSerializer
@@ -827,6 +826,34 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             serializer = FoodOrderByTableSerializer(instance=order_qs)
 
             return ResponseWrapper(data=serializer.data, msg='Served')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def apps_order_info_price_details(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            """
+            making sure that food order is in "3_IN_TABLE", "4_CREATE_INVOICE", "5_PAID" state
+            because in other state there is no need to generate invoice because food state is required in other state
+            and merging will disrupt the flow.
+            """
+            order_qs = FoodOrder.objects.filter(
+                pk=request.data.get("order_id")).last()
+            if not order_qs:
+                return ResponseWrapper(error_msg=['invalid order'], error_code=400)
+
+            # remaining_item_counter = OrderedItem.objects.filter(
+            #     food_order=order_qs.pk).exclude(status__in=["3_IN_TABLE", '4_CANCELLED']).count()
+
+            # if remaining_item_counter > 0:
+            #     return ResponseWrapper(error_msg=['Order is running. Please make sure all the order is either in table or is cancelled'], error_code=400)
+
+            # else:
+            #     order_qs.status = '4_CREATE_INVOICE'
+            #     order_qs.save()
+            serializer = FoodOrderByTableSerializer(instance=order_qs)
+
+            return ResponseWrapper(data=serializer.data, msg='order payment info')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
@@ -1565,7 +1592,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         return self.serializer_class
 
     def get_pagination_class(self):
-        if self.action in ['invoice_history', 'paid_cancel_invoice_history','invoice']:
+        if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice']:
 
             return CustomLimitPagination
 
@@ -1632,7 +1659,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         return [permission() for permission in permission_classes]
 
     def get_pagination_class(self):
-        if self.action in ['discount_list','all_discount_list']:
+        if self.action in ['discount_list', 'all_discount_list']:
 
             return CustomLimitPagination
 
@@ -1651,7 +1678,6 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
 
         return ResponseWrapper(paginated_data.data)
 
-
     def all_discount_list(self, request, *args, **kwargs):
         discount_qs = Discount.objects.all()
         page_qs = self.paginate_queryset(discount_qs)
@@ -1660,7 +1686,6 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         paginated_data = self.get_paginated_response(serializer.data)
 
         return ResponseWrapper(paginated_data.data)
-
 
     def discount(self, request, pk, *args, **kwargs):
         qs = Discount.objects.filter(id=pk)
