@@ -1155,8 +1155,8 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
     #http_method_names = ['post', 'patch', 'get', 'delete']
 
     def food_details(self, request, *args, id, **kwargs):
-        qs = Food.objects.filter(pk=id)
-        serializer = FoodDetailSerializer(instance=qs, many=True)
+        qs = Food.objects.filter(pk=id).last()
+        serializer = FoodDetailSerializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def category_list(self, request, *args, restaurant, **kwargs):
