@@ -838,6 +838,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         serializer = FoodOrderByTableSerializer(instance=order_qs)
         grand_total = serializer.data.get(
             'price', {}).get('grand_total_price')
+        payable_amount = serializer.data.get(
+            'price', {}).get('payable_amount')
 
         if order_qs.invoices.first():
             invoice_qs = order_qs.invoices.first()
@@ -845,13 +847,19 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 json.dumps(serializer.data, cls=DjangoJSONEncoder))
             invoice_qs.grand_total = grand_total
             invoice_qs.payment_status = payment_status
+            invoice_qs.payable_amount = payable_amount
             invoice_qs.save()
         else:
             invoice_qs = Invoice.objects.create(
                 restaurant_id=serializer.data.get(
                     'restaurant_info', {}).get('id'),
                 order=order_qs,
-                order_info=json.loads(json.dumps(serializer.data, cls=DjangoJSONEncoder)), grand_total=grand_total, payment_status=payment_status)
+                order_info=json.loads(json.dumps(
+                    serializer.data, cls=DjangoJSONEncoder)),
+                grand_total=grand_total,
+                payable_amount=payable_amount,
+                payment_status=payment_status
+            )
         return invoice_qs
 
     def adjust_cart_for_unique_items(self, order_qs):
