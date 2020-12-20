@@ -600,7 +600,8 @@ class InvoiceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Invoice
-        fields = ['order_info']
+        fields = ['order_info', 'id', 'order', 'grand_total',
+                  'payable_amount', 'updated_at', 'created_at', 'payment_status']
 
     def get_order_info(self, obj):
         # data_dict = obj.__dict__
@@ -678,7 +679,7 @@ class PopUpSerializer(serializers.ModelSerializer):
             return PopUp.objects.create(image=image, **validated_data)
         return PopUp.objects.create(**validated_data)
 
+
 class ReOrderedItemSerializer(serializers.Serializer):
     order_item_id = serializers.IntegerField()
-    quantity = serializers.IntegerField(default = 1)
-
+    quantity = serializers.IntegerField(default=1)

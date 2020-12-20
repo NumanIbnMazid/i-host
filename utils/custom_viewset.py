@@ -2,8 +2,18 @@ from rest_framework import permissions, status, viewsets
 
 from utils.response_wrapper import ResponseWrapper
 
+class MultiplePaginationMixin:
+    def get_pagination_class(self):
+        return self.pagination_class
 
-class CustomViewSet(viewsets.ModelViewSet):
+    @property
+    def paginator(self):
+        pagination_class = self.get_pagination_class()
+        if pagination_class is None:
+            return None
+        return pagination_class()
+
+class CustomViewSet(MultiplePaginationMixin,viewsets.ModelViewSet):
     # serializer_class = FoodCategorySerializer
     # permission_classes = [permissions.IsAdminUser]
     # queryset = FoodCategory.objects.all()

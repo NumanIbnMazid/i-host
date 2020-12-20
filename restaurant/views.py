@@ -2,6 +2,8 @@ from django.views.decorators.cache import cache_page
 import copy
 import decimal
 import json
+
+from utils.pagination import CustomLimitPagination
 from .signals import order_done_signal
 
 from django.utils.decorators import method_decorator
@@ -178,8 +180,8 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         order_qs = FoodOrder.objects.filter(
             created_at__contains=today_date, status='5_PAID', restaurant_id=pk).count()
 
-        grand_total_list = qs.values_list('grand_total', flat=True)
-        total = sum(grand_total_list)
+        payable_amount_list = qs.values_list('payable_amount', flat=True)
+        total = sum(payable_amount_list)
 
         return ResponseWrapper(data={'total_sell': round(total, 2), 'total_order': order_qs}, msg="success")
 
@@ -1345,9 +1347,9 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
         food_items_date_range_qs = Invoice.objects.filter(
             created_at__gte=start_date, updated_at__lte=end_date, payment_status='1_PAID')
-        sum_of_grand_total = sum(
-            food_items_date_range_qs.values_list('grand_total', flat=True))
-        response = {'total_sell': round(sum_of_grand_total, 2)}
+        sum_of_payable_amount = sum(
+            food_items_date_range_qs.values_list('payable_amount', flat=True))
+        response = {'total_sell': round(sum_of_payable_amount, 2)}
 
         return ResponseWrapper(data=response, msg='success')
 
@@ -1486,7 +1488,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
             invoice_qs = Invoice.objects.filter(
                 created_at__contains=start_of_week.date(), payment_status='1_PAID', restaurant_id=restaurant_id)
-            total_list = invoice_qs.values_list('grand_total', flat=True)
+            total_list = invoice_qs.values_list('payable_amount', flat=True)
             this_day_total_order = FoodOrder.objects.filter(
                 created_at__contains=start_of_week.date(), status='5_PAID', restaurant_id=restaurant_id).count()
 
@@ -1504,13 +1506,13 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         last_month_total_order = FoodOrder.objects.filter(
             created_at__contains=last_month, status='5_PAID', restaurant_id=restaurant_id).count()
 
-        this_month_grand_total_list = this_month_invoice_qs.values_list(
-            'grand_total', flat=True)
-        this_month_total = sum(this_month_grand_total_list)
+        this_month_payable_amount_list = this_month_invoice_qs.values_list(
+            'payable_amount', flat=True)
+        this_month_total = sum(this_month_payable_amount_list)
 
-        last_month_grand_total_list = last_month_invoice_qs.values_list(
-            'grand_total', flat=True)
-        last_month_total = sum(last_month_grand_total_list)
+        last_month_payable_amount_list = last_month_invoice_qs.values_list(
+            'payable_amount', flat=True)
+        last_month_total = sum(last_month_payable_amount_list)
 
         return ResponseWrapper(data={'current_month_total_sell': round(this_month_total, 2),
                                      'current_month_total_order': this_month_order_qs,
@@ -1523,6 +1525,9 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
 class InvoiceViewSet(LoggingMixin, CustomViewSet):
     serializer_class = InvoiceSerializer
+    # pagination_class = CustomLimitPagination
+
+
 
     def get_serializer_class(self):
         if self.action in ['invoice_history']:
@@ -1530,20 +1535,35 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
         return self.serializer_class
 
+    def get_pagination_class(self):
+        if self.action in ['invoice_history', 'paid_cancel_invoice_history']:
+            self.pagination_class = CustomLimitPagination
+            return self.pagination_class
+
     queryset = Invoice.objects.all()
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def invoice_history(self, request, restaurant, *args, **kwargs):
-        qs = Invoice.objects.filter(restaurant=restaurant)
-        serializer = InvoiceSerializer(instance=qs, many=True)
-        return ResponseWrapper(data=serializer.data)
+        invoice_qs = Invoice.objects.filter(
+            restaurant_id=restaurant).order_by('-updated_at')
+        page_qs = self.paginate_queryset(invoice_qs)
+
+        serializer = InvoiceSerializer(instance=page_qs, many=True)
+        paginated_data = self.get_paginated_response(serializer.data)
+
+        return ResponseWrapper(paginated_data.data)
+
 
     def paid_cancel_invoice_history(self, request, restaurant, *args, **kwargs):
-        qs = Invoice.objects.filter(restaurant=restaurant, order__status__in=[
-                                    '5_PAID', '6_CANCELLED'])
-        serializer = InvoiceSerializer(instance=qs, many=True)
-        return ResponseWrapper(data=serializer.data)
+        invoice_qs = Invoice.objects.filter(restaurant_id=restaurant, order__status__in=[
+                                    '5_PAID', '6_CANCELLED']).order_by('-updated_at')
+        page_qs = self.paginate_queryset(invoice_qs)
+        serializer = InvoiceSerializer(instance=page_qs, many=True)
+        paginated_data = self.get_paginated_response(serializer.data)
+
+        return ResponseWrapper(paginated_data.data)
+
 
     def order_invoice(self, request, order_id, *args, **kwargs):
         qs = Invoice.objects.filter(order_id=order_id).last()
@@ -1551,7 +1571,8 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data)
 
     def invoice(self, request, invoice_id, *args, **kwargs):
-        qs = Invoice.objects.filter(pk__icontains=invoice_id)
+        qs = Invoice.objects.filter(
+            pk__icontains=invoice_id).order_by('-updated_at')
         serializer = InvoiceSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
 

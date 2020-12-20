@@ -504,5 +504,6 @@ class HotelStaffLogViewSet(CustomViewSet):
         paginated_data = self.get_paginated_response(serializer.data)
 
         return ResponseWrapper(paginated_data.data)
+        #return ResponseWrapper(serializer.data)
 
         # return ResponseWrapper(data=waiter_qs.data,status=200)
