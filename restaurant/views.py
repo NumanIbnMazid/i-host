@@ -1535,13 +1535,14 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def invoice_history(self, request, restaurant, *args, **kwargs):
-        qs = Invoice.objects.filter(restaurant=restaurant)
+        qs = Invoice.objects.filter(
+            restaurant=restaurant).order_by('-updated_at')
         serializer = InvoiceSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
     def paid_cancel_invoice_history(self, request, restaurant, *args, **kwargs):
         qs = Invoice.objects.filter(restaurant=restaurant, order__status__in=[
-                                    '5_PAID', '6_CANCELLED'])
+                                    '5_PAID', '6_CANCELLED']).order_by('-updated_at')
         serializer = InvoiceSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
@@ -1551,7 +1552,8 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data)
 
     def invoice(self, request, invoice_id, *args, **kwargs):
-        qs = Invoice.objects.filter(pk__icontains=invoice_id)
+        qs = Invoice.objects.filter(
+            pk__icontains=invoice_id).order_by('-updated_at')
         serializer = InvoiceSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
