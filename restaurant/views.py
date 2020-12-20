@@ -1528,6 +1528,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
     # pagination_class = CustomLimitPagination
 
 
+
     def get_serializer_class(self):
         if self.action in ['invoice_history']:
             self.serializer_class = InvoiceSerializer
