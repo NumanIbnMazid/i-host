@@ -14,8 +14,8 @@ router.register('food_option_type', FoodOptionTypeViewSet,
 router.register('food_extra_type', FoodExtraTypeViewSet,
                 basename="food_option_extra_type")
 
-router.register('food_category', FoodCategoryViewSet,
-                basename="food_category")
+# router.register('food_category', FoodCategoryViewSet,
+#                 basename="food_category")
 
 router.register('food_extra', FoodExtraViewSet,
                 basename="food_extra")
@@ -27,8 +27,8 @@ router.register('food_option', FoodOptionViewSet,
 # router.register('table', TableViewSet,
 #                basename="table")
 
-router.register('food', FoodViewSet,
-                basename="food")
+# router.register('food', FoodViewSet,
+#                 basename="food")
 
 # router.register('discount', DiscountViewSet,
 #               basename="discount")
@@ -36,6 +36,11 @@ apps_fake = [
     path('', include(router.urls)),
     #     path('foods/<int:restaurant>/',
     #          FoodByRestaurantViewSet.as_view({'get': 'list'}), name='foods'),
+    path('food/',
+         FoodViewSet.as_view({'post': 'create'}, name='create')),
+
+    path('food/<int:id>/',
+         FoodViewSet.as_view({'get': 'food_details', 'patch': 'update', 'delete': 'destroy'}, name='food')),
     path('table/<int:table_id>/add_staff/',
          TableViewSet.as_view({'post': 'add_staff'}), name='add_staff'),
     path('table/',
@@ -63,9 +68,9 @@ apps_fake = [
 
 
     path("food_category/",
-         FoodCategoryViewSet.as_view({"post": "create", "get": "list"})),
+         FoodCategoryViewSet.as_view({"post": "create"})),
     path("food_category/<int:pk>/",
-         FoodCategoryViewSet.as_view({"patch": "update", "delete": "destroy"})),
+         FoodCategoryViewSet.as_view({"patch": "update", "delete": "destroy", "get": "category_details"})),
 
     path('restaurant/<int:restaurant>/tables/',
          TableViewSet.as_view({'get': 'table_list'}), name='tables'),

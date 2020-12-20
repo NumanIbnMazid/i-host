@@ -23,8 +23,8 @@ router.register('food_option', FoodOptionViewSet,
 # router.register('table', TableViewSet,
 #                basename="table")
 
-router.register('food', FoodViewSet,
-                basename="food")
+# router.register('food', FoodViewSet,
+#                 basename="food")
 router.register('pop_up', PopUpViewset, basename='pop_up')
 
 # router.register('discount', DiscountViewSet,
@@ -151,6 +151,12 @@ fake_dashboard_urls = [
 
     path('ordered_item/<int:pk>/',
          FoodOrderedViewSet.as_view({'get': 'retrieve'}, name='ordered_item')),
+
+    path('food/',
+         FoodViewSet.as_view({'post': 'create'}, name='create')),
+
+    path('food/<int:id>/',
+         FoodViewSet.as_view({'get': 'food_details','patch': 'update','delete': 'destroy'}, name='food')),
 
     path('food_extra_by_food/<int:pk>/',
          FoodViewSet.as_view({'get': 'food_extra_by_food'}, name='food_extra_by_food')),
