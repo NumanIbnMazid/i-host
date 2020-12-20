@@ -178,8 +178,8 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         order_qs = FoodOrder.objects.filter(
             created_at__contains=today_date, status='5_PAID', restaurant_id=pk).count()
 
-        grand_total_list = qs.values_list('grand_total', flat=True)
-        total = sum(grand_total_list)
+        payable_amount_list = qs.values_list('payable_amount', flat=True)
+        total = sum(payable_amount_list)
 
         return ResponseWrapper(data={'total_sell': round(total, 2), 'total_order': order_qs}, msg="success")
 
@@ -1337,9 +1337,9 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
         food_items_date_range_qs = Invoice.objects.filter(
             created_at__gte=start_date, updated_at__lte=end_date, payment_status='1_PAID')
-        sum_of_grand_total = sum(
-            food_items_date_range_qs.values_list('grand_total', flat=True))
-        response = {'total_sell': round(sum_of_grand_total, 2)}
+        sum_of_payable_amount = sum(
+            food_items_date_range_qs.values_list('payable_amount', flat=True))
+        response = {'total_sell': round(sum_of_payable_amount, 2)}
 
         return ResponseWrapper(data=response, msg='success')
 
@@ -1478,7 +1478,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
             invoice_qs = Invoice.objects.filter(
                 created_at__contains=start_of_week.date(), payment_status='1_PAID', restaurant_id=restaurant_id)
-            total_list = invoice_qs.values_list('grand_total', flat=True)
+            total_list = invoice_qs.values_list('payable_amount', flat=True)
             this_day_total_order = FoodOrder.objects.filter(
                 created_at__contains=start_of_week.date(), status='5_PAID', restaurant_id=restaurant_id).count()
 
@@ -1496,13 +1496,13 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         last_month_total_order = FoodOrder.objects.filter(
             created_at__contains=last_month, status='5_PAID', restaurant_id=restaurant_id).count()
 
-        this_month_grand_total_list = this_month_invoice_qs.values_list(
-            'grand_total', flat=True)
-        this_month_total = sum(this_month_grand_total_list)
+        this_month_payable_amount_list = this_month_invoice_qs.values_list(
+            'payable_amount', flat=True)
+        this_month_total = sum(this_month_payable_amount_list)
 
-        last_month_grand_total_list = last_month_invoice_qs.values_list(
-            'grand_total', flat=True)
-        last_month_total = sum(last_month_grand_total_list)
+        last_month_payable_amount_list = last_month_invoice_qs.values_list(
+            'payable_amount', flat=True)
+        last_month_total = sum(last_month_payable_amount_list)
 
         return ResponseWrapper(data={'current_month_total_sell': round(this_month_total, 2),
                                      'current_month_total_order': this_month_order_qs,
