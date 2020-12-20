@@ -238,6 +238,7 @@ class Invoice(SoftDeleteModel):
                               blank=True, on_delete=models.SET_NULL, related_name='invoices')
     grand_total = models.FloatField(
         null=True, blank=True)
+    payable_amount = models.FloatField(default=0.0)
     order_info = models.JSONField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -281,10 +282,11 @@ class Discount(SoftDeleteModel):
 
 
 class PopUp(models.Model):
-    restaurant = models.ForeignKey(to=Restaurant,on_delete=models.CASCADE)
+    restaurant = models.ForeignKey(to=Restaurant, on_delete=models.CASCADE)
     image = models.ImageField()
     title = models.CharField(max_length=25)
-    description = models.TextField(null=True,blank=True)
+    description = models.TextField(null=True, blank=True)
     serial_no = models.IntegerField(default=0)
     clickable = models.BooleanField(default=False)
-    foods = ArrayField(models.IntegerField(null=True,blank=True),null=True,blank=True)
+    foods = ArrayField(models.IntegerField(
+        null=True, blank=True), null=True, blank=True)
