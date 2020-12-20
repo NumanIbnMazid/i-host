@@ -854,7 +854,12 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 restaurant_id=serializer.data.get(
                     'restaurant_info', {}).get('id'),
                 order=order_qs,
-                order_info=json.loads(json.dumps(serializer.data, cls=DjangoJSONEncoder)), grand_total=grand_total, payment_status=payment_status)
+                order_info=json.loads(json.dumps(
+                    serializer.data, cls=DjangoJSONEncoder)),
+                grand_total=grand_total,
+                payable_amount=payable_amount,
+                payment_status=payment_status
+            )
         return invoice_qs
 
     def adjust_cart_for_unique_items(self, order_qs):
