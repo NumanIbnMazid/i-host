@@ -10,8 +10,8 @@ router.register('food_option_type', FoodOptionTypeViewSet,
 router.register('food_extra_type', FoodExtraTypeViewSet,
                 basename="food_option_extra_type")
 
-router.register('food_category', FoodCategoryViewSet,
-                basename="food_category")
+# router.register('food_category', FoodCategoryViewSet,
+#                 basename="food_category")
 
 router.register('food_extra', FoodExtraViewSet,
                 basename="food_extra")
@@ -62,9 +62,9 @@ fake_dashboard_urls = [
 
 
     path("food_category/",
-         FoodCategoryViewSet.as_view({"post": "create", "get": "list"})),
+         FoodCategoryViewSet.as_view({"post": "create"})),
     path("food_category/<int:pk>/",
-         FoodCategoryViewSet.as_view({"patch": "update", "delete": "destroy"})),
+         FoodCategoryViewSet.as_view({"patch": "update", "delete": "destroy","get": "category_details"})),
 
     path('restaurant/<int:restaurant>/tables/',
          TableViewSet.as_view({'get': 'table_list'}), name='tables'),
