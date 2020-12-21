@@ -9,7 +9,7 @@ from channels.db import database_sync_to_async
 
 class DashboardConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        print('-----------------hello----------------')
+        print('-----------------connect----------------')
         self.restaurant_id = int(self.scope.get(
             'url_route', {}).get('kwargs', {}).get('restaurant_id'))
         self.group_name = 'restaurant_%s' % self.restaurant_id
@@ -38,6 +38,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         )
 
     async def receive(self, text_data):
+        """
         # text_data_json = json.loads(text_data)
         # message = text_data_json['message']
 
@@ -55,11 +56,11 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         #         'message': message
         #     }
         # )
+        """
         if text_data:
             data = await self.order_item_list(restaurant_id=int(text_data))
         else:
-            data = await self.order_item_list()
-
+            data = {'error': ['restaurant id invalid']}
         await self.channel_layer.group_send(
             self.group_name,
             {
@@ -101,6 +102,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
 
     async def response_to_listener(self, event):
         data = event['data']
+        print('---------------response to listener--------------')
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({

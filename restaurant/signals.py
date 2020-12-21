@@ -73,8 +73,8 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, qs=None, d
         #     'data': response_data,
 
         # })
-        async_to_sync(layer.send)(
-            group_name, {'type': 'send_message_to_frontend', 'data': response_data})
+        async_to_sync(layer.group_send)(
+            group_name, {'type': 'response_to_listener', 'data': response_data})
 
         # layer.group_send(
         #     str(res_id),
