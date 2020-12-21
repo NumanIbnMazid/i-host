@@ -314,5 +314,5 @@ class Slider(models.Model):
     description = models.TextField(null=True, blank=True)
     serial_no = models.IntegerField(default=0)
     clickable = models.BooleanField(default=False)
-    foods = ArrayField(models.IntegerField(
-        null=True, blank=True), null=True, blank=True)
+    food = models.ForeignKey(
+        Food, on_delete=models.SET_NULL, related_name='sliders', null=True)
