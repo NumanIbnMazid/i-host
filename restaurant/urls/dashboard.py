@@ -37,7 +37,7 @@ fake_dashboard_urls = [
 
     path('food_extra/',
          FoodExtraViewSet.as_view({'post': 'create'}, name='create')),
-    path('food_extra/<int:id>/',
+    path('food_extra/<int:pk>/',
          FoodExtraViewSet.as_view({'patch': 'update', 'delete':'destroy', 'get':'food_extra_details'}, name='food_extra')),
 
     path('table/<int:table_id>/add_staff/',
@@ -67,17 +67,17 @@ fake_dashboard_urls = [
 
     path('food_option_type/',
          FoodOptionTypeViewSet.as_view({'post': 'create'}, name='create')),
-    path('food_option_type/<int:id>/',
+    path('food_option_type/<int:pk>/',
          FoodOptionTypeViewSet.as_view({'patch': 'update', 'delete':'destroy','get':'food_option_type_detail'}, name='food_option')),
 
     path('food_option/',
          FoodOptionViewSet.as_view({'post': 'create'}, name='create')),
-    path('food_option/<int:id>/',
+    path('food_option/<int:pk>/',
          FoodOptionViewSet.as_view({'patch': 'update', 'delete':'destroy','get':'food_option_detail'}, name='food_option')),
 
     path('food_extra_type/',
          FoodExtraTypeViewSet.as_view({'post': 'create'}, name='create')),
-    path('food_extra_type/<int:id>/',
+    path('food_extra_type/<int:pk>/',
          FoodExtraTypeViewSet.as_view({'patch': 'update', 'delete':'destroy','get':'food_extra_type_detail'}, name='food_extra_type')),
 
 
