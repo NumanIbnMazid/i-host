@@ -247,6 +247,10 @@ dashboard_urls = [
 
     path('dashboard_total_report/<int:restaurant_id>',
          ReportingViewset.as_view({'get': 'dashboard_total_report'}), name='dashboard_total_report'),
+    path('subscription',
+         SubscriptionViewset.as_view({'get': 'list','post':'create'}), name ='subscription_list'),
+    path('subscription/<int:pk>',
+         SubscriptionViewset.as_view({'get': 'retrieve','patch':'update','delete':'destroy'}),name='subscription'),
 
 
 ] + fake_dashboard_urls
