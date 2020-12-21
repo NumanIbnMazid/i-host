@@ -304,6 +304,8 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   'table_no',
                   'waiter',
                   'restaurant_info',
+                  'created_at',
+                  'updated_at',
                   #   'grand_total_price',
                   #   "total_price",
                   #   "discount_amount",
