@@ -3,12 +3,12 @@ from ..views import *
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
-router.register('food_option_type', FoodOptionTypeViewSet,
-                basename="food_option_extra_type")
+# router.register('food_option_type', FoodOptionTypeViewSet,
+#                 basename="food_option_extra_type")
 
 
-router.register('food_extra_type', FoodExtraTypeViewSet,
-                basename="food_option_extra_type")
+# router.register('food_extra_type', FoodExtraTypeViewSet,
+#                 basename="food_option_extra_type")
 
 # router.register('food_category', FoodCategoryViewSet,
 #                 basename="food_category")
@@ -16,8 +16,8 @@ router.register('food_extra_type', FoodExtraTypeViewSet,
 # router.register('food_extra', FoodExtraViewSet,
 #                 basename="food_extra")
 
-router.register('food_option', FoodOptionViewSet,
-                basename='food_option')
+# router.register('food_option', FoodOptionViewSet,
+#                 basename='food_option')
 
 
 # router.register('table', TableViewSet,
@@ -64,6 +64,21 @@ fake_dashboard_urls = [
 
     path('restaurant/<int:pk>/today_sell/',
          RestaurantViewSet.as_view({'get': 'today_sell'}), name='today_sell'),
+
+    path('food_option_type/',
+         FoodOptionTypeViewSet.as_view({'post': 'create'}, name='create')),
+    path('food_option_type/<int:id>/',
+         FoodOptionTypeViewSet.as_view({'patch': 'update', 'delete':'destroy','get':'food_option_type_detail'}, name='food_option')),
+
+    path('food_option/',
+         FoodOptionViewSet.as_view({'post': 'create'}, name='create')),
+    path('food_option/<int:id>/',
+         FoodOptionViewSet.as_view({'patch': 'update', 'delete':'destroy','get':'food_option_detail'}, name='food_option')),
+
+    path('food_extra_type/',
+         FoodExtraTypeViewSet.as_view({'post': 'create'}, name='create')),
+    path('food_extra_type/<int:id>/',
+         FoodExtraTypeViewSet.as_view({'patch': 'update', 'delete':'destroy','get':'food_extra_type_detail'}, name='food_extra_type')),
 
 
 

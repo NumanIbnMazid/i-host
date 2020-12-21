@@ -255,6 +255,10 @@ class FoodOptionTypeViewSet(LoggingMixin, CustomViewSet):
         # serializer.is_valid()
         return ResponseWrapper(data=serializer.data, msg='success')
 
+    def food_option_type_detail(self, request, id, *args, **kwargs):
+        qs = FoodOptionType.objects.get(id=id)
+        serializer = self.serializer_class(instance=qs)
+        return ResponseWrapper(data=serializer.data, msg='success')
 
 class FoodOrderedViewSet(LoggingMixin, CustomViewSet):
     serializer_class = FoodOrderSerializer
@@ -276,6 +280,22 @@ class FoodExtraTypeViewSet(LoggingMixin, CustomViewSet):
     queryset = FoodExtraType.objects.all()
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+
+    def food_extra_type_detail(self, request, id, *args, **kwargs):
+        qs = FoodExtraType.objects.get(id=id)
+        serializer = self.serializer_class(instance=qs)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
+    def update(self, request,id, *args, **kwargs):
+        serializer_class = FoodExtraType.objects.get(pk=id)
+        serializer = serializer_class(data=request.data, partial=True)
+        if serializer.is_valid():
+            qs = serializer.update(instance=self.get_object(
+            ), validated_data=serializer.validated_data)
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
 
 class FoodExtraViewSet(LoggingMixin, CustomViewSet):
@@ -315,7 +335,9 @@ class FoodExtraViewSet(LoggingMixin, CustomViewSet):
         if serializer.is_valid():
             qs = serializer.update(instance=self.get_object(
             ), validated_data=serializer.validated_data)
-            serializer = FoodExtraTypeDetailSerializer(instance=qs)
+            order_qs = qs.food_order
+
+            serializer = FoodOrderSerializer(instance=order_qs)
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -366,6 +388,12 @@ class FoodOptionViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def food_option_detail(self, request, pk, *args, **kwargs):
+        food_option_qs = FoodOption.objects.get(id = pk)
+        serializer = FoodOptionSerializer(instance=food_option_qs)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
 
 
 class TableViewSet(LoggingMixin, CustomViewSet):
