@@ -34,7 +34,7 @@ from utils.response_wrapper import ResponseWrapper
 from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodExtraType, FoodOption, FoodOptionType,
                                FoodOrder, Invoice, OrderedItem, PopUp,
-                               Restaurant, Table)
+                               Restaurant, Table, Slider)
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
@@ -62,7 +62,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           StaffIdListSerializer, StaffTableSerializer,
                           TableSerializer, TableStaffSerializer,
                           TakeAwayFoodOrderPostSerializer,
-                          TopRecommendedFoodListSerializer, ReOrderedItemSerializer)
+                          TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -1856,4 +1856,25 @@ class PopUpViewset(LoggingMixin, CustomViewSet):
         popup_qs = PopUp.objects.filter(
             restaurant=restaurant_id).order_by('serial_no')
         serializer = PopUpSerializer(instance=popup_qs, many=True)
+        return ResponseWrapper(data=serializer.data)
+
+class SliderViewset(LoggingMixin, CustomViewSet):
+
+    queryset = Slider.objects.all()
+    lookup_field = 'pk'
+    serializer_class = SliderSerializer
+    logging_methods = ['DELETE', 'POST', 'PATCH']
+    http_method_names = ['post', 'patch', 'get', 'delete']
+
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['create', 'update', 'destroy']:
+            permission_classes = [
+                custom_permissions.IsRestaurantManagementOrAdmin]
+        return [permission() for permission in permission_classes]
+
+    def slider_list_by_restaurant(self, request, restaurant_id):
+        slider_qs = Slider.objects.filter(
+            restaurant=restaurant_id).order_by('serial_no')
+        serializer = SliderSerializer(instance=slider_qs, many=True)
         return ResponseWrapper(data=serializer.data)

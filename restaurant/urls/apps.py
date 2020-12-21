@@ -197,6 +197,8 @@ apps_fake = [
 
     path('restaurant/<int:restaurant_id>/pop_up/',
          PopUpViewset.as_view({'get': 'pop_up_list_by_restaurant'}), name='pop_up_list_by_restaurant'),
+    path('restaurant/<int:restaurant_id>/slider/',
+         SliderViewset.as_view({'get': 'slider_list_by_restaurant'}), name='slider_list_by_restaurant'),
 
     path('food_search/<str:food_name>',
          FoodViewSet.as_view({'get': 'dashboard_food_search'}, name='dashboard_food_search')),
