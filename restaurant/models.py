@@ -193,7 +193,7 @@ class FoodOrder(SoftDeleteModel):
 
     def __str__(self):
         if self.table:
-            return str(self.table.name)
+            return str(self.id)
         else:
             return 'table null'
 
