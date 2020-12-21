@@ -211,6 +211,6 @@ apps_url = [
     path('call_waiter/', FcmCommunication.as_view({"post": "call_waiter"})),
     path('collect_payment/',
          FcmCommunication.as_view({"post": "collect_payment"})),
-    path('order/order_info_price_details/',
-         FoodOrderViewSet.as_view({'post': 'apps_order_info_price_details'}, name='apps_order_info_price_details')),
+    path('order/order_info_price_details/<int:pk>/',
+         FoodOrderViewSet.as_view({'get': 'apps_order_info_price_details'}, name='apps_order_info_price_details')),
 ]+apps_fake
