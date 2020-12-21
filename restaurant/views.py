@@ -234,8 +234,8 @@ class FoodCategoryViewSet(LoggingMixin, CustomViewSet):
     #logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def category_details(self, request, pk, *args, **kwargs):
-        qs = FoodCategory.objects.filter(id=pk)
-        serializer = self.serializer_class(instance=qs, many=True)
+        qs = FoodCategory.objects.filter(id=pk).last()
+        serializer = self.serializer_class(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='success')
 
 
@@ -294,6 +294,11 @@ class FoodExtraViewSet(LoggingMixin, CustomViewSet):
         return self.serializer_class
 
     # http_method_names = ['post', 'patch', 'get']
+    def food_extra_details(self, request, id, *args, **kwargs):
+        qs = FoodExtra.objects.filter(id=id).last()
+        serializer = FoodExtraSerializer(instance=qs)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
     def create(self, request):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
