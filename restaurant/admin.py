@@ -30,7 +30,13 @@ class FoodAdmin(admin.ModelAdmin):
     list_display = ['id','name','restaurant','category']
 
 class FoodOptionAdmin(admin.ModelAdmin):
-    list_display = ['id','name','price','food']
+    list_display = ['id', 'name', 'price', 'food']
+
+class PopUpAdmin(admin.ModelAdmin):
+    list_display = ['id','title','restaurant','serial_no']
+
+class SliderAdmin(admin.ModelAdmin):
+    list_display = ['id','title','restaurant','serial_no']
 
 admin.site.register(Restaurant)
 admin.site.register(Subscription)
@@ -50,4 +56,5 @@ admin.site.register(FoodOrder,FoodOrderAdmin)
 admin.site.register(OrderedItem, OrderedItemAdmin)
 admin.site.register(Invoice, InvoiceAdmin)
 admin.site.register(Discount, DiscountAdmin)
-admin.site.register(PopUp)
+admin.site.register(PopUp, PopUpAdmin)
+admin.site.register(Slider, SliderAdmin)

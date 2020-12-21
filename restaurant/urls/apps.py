@@ -7,12 +7,12 @@ from ..views import *
 router = DefaultRouter()
 
 
-router.register('food_option_type', FoodOptionTypeViewSet,
-                basename="food_option_extra_type")
+# router.register('food_option_type', FoodOptionTypeViewSet,
+#                 basename="food_option_extra_type")
 
 
-router.register('food_extra_type', FoodExtraTypeViewSet,
-                basename="food_option_extra_type")
+# router.register('food_extra_type', FoodExtraTypeViewSet,
+#                 basename="food_option_extra_type")
 
 # router.register('food_category', FoodCategoryViewSet,
 #                 basename="food_category")
@@ -20,8 +20,8 @@ router.register('food_extra_type', FoodExtraTypeViewSet,
 # router.register('food_extra', FoodExtraViewSet,
 #                 basename="food_extra")
 
-router.register('food_option', FoodOptionViewSet,
-                basename='food_option')
+# router.register('food_option', FoodOptionViewSet,
+#                 basename='food_option')
 
 
 # router.register('table', TableViewSet,
@@ -43,7 +43,7 @@ apps_fake = [
          FoodViewSet.as_view({'get': 'food_details', 'patch': 'update', 'delete': 'destroy'}, name='food')),
     path('food_extra/',
          FoodExtraViewSet.as_view({'post': 'create'}, name='create')),
-    path('food_extra/<int:id>/',
+    path('food_extra/<int:pk>/',
          FoodExtraViewSet.as_view({'patch': 'update', 'delete': 'destroy', 'get': 'food_extra_details'}, name='food_extra')),
 
     path('table/<int:table_id>/add_staff/',
@@ -197,11 +197,26 @@ apps_fake = [
 
     path('restaurant/<int:restaurant_id>/pop_up/',
          PopUpViewset.as_view({'get': 'pop_up_list_by_restaurant'}), name='pop_up_list_by_restaurant'),
+    path('restaurant/<int:restaurant_id>/slider/',
+         SliderViewset.as_view({'get': 'slider_list_by_restaurant'}), name='slider_list_by_restaurant'),
 
     path('food_search/<str:food_name>',
          FoodViewSet.as_view({'get': 'dashboard_food_search'}, name='dashboard_food_search')),
 
+    path('food_option/',
+         FoodOptionViewSet.as_view({'post': 'create'}, name='create')),
+    path('food_option/<int:pk>/',
+         FoodOptionViewSet.as_view({'patch': 'update', 'delete':'destroy','get':'food_option_detail'}, name='food_option')),
 
+    path('food_option_type/',
+         FoodOptionTypeViewSet.as_view({'post': 'create'}, name='create')),
+    path('food_option_type/<int:pk>/',
+         FoodOptionTypeViewSet.as_view({'patch': 'update', 'delete': 'destroy', 'get': 'food_option_type_detail'},
+                                       name='food_option')),
+    path('food_extra_type/',
+         FoodExtraTypeViewSet.as_view({'post': 'create'}, name='create')),
+    path('food_extra_type/<int:pk>/',
+         FoodExtraTypeViewSet.as_view({'patch': 'update', 'delete':'destroy','get':'food_extra_type_detail'}, name='food_extra_type')),
 
 ]
 
@@ -211,6 +226,6 @@ apps_url = [
     path('call_waiter/', FcmCommunication.as_view({"post": "call_waiter"})),
     path('collect_payment/',
          FcmCommunication.as_view({"post": "collect_payment"})),
-    path('order/apps_order_info_price_details/',
-         FoodOrderViewSet.as_view({'post': 'order_info_price_details'}, name='order_info_price_details')),
+    path('order/order_info_price_details/<int:pk>/',
+         FoodOrderViewSet.as_view({'get': 'apps_order_info_price_details'}, name='apps_order_info_price_details')),
 ]+apps_fake

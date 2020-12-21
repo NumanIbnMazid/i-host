@@ -193,7 +193,7 @@ class FoodOrder(SoftDeleteModel):
 
     def __str__(self):
         if self.table:
-            return str(self.table.name)
+            return str(self.id)
         else:
             return 'table null'
 
@@ -282,6 +282,16 @@ class Discount(SoftDeleteModel):
 
 
 class PopUp(models.Model):
+    restaurant = models.ForeignKey(to=Restaurant, on_delete=models.CASCADE)
+    image = models.ImageField()
+    title = models.CharField(max_length=25)
+    description = models.TextField(null=True, blank=True)
+    serial_no = models.IntegerField(default=0)
+    clickable = models.BooleanField(default=False)
+    foods = ArrayField(models.IntegerField(
+        null=True, blank=True), null=True, blank=True)
+
+class Slider(models.Model):
     restaurant = models.ForeignKey(to=Restaurant, on_delete=models.CASCADE)
     image = models.ImageField()
     title = models.CharField(max_length=25)

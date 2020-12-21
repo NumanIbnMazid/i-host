@@ -304,6 +304,8 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   'table_no',
                   'waiter',
                   'restaurant_info',
+                  'created_at',
+                  'updated_at',
                   #   'grand_total_price',
                   #   "total_price",
                   #   "discount_amount",
@@ -679,6 +681,18 @@ class PopUpSerializer(serializers.ModelSerializer):
             return PopUp.objects.create(image=image, **validated_data)
         return PopUp.objects.create(**validated_data)
 
+class SliderSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+
+    class Meta:
+        model = PopUp
+        fields = '__all__'
+
+    def create(self, validated_data):
+        image = validated_data.pop('image', None)
+        if image:
+            return Slider.objects.create(image=image, **validated_data)
+        return Slider.objects.create(**validated_data)
 
 class ReOrderedItemSerializer(serializers.Serializer):
     order_item_id = serializers.IntegerField()
