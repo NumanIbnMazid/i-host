@@ -682,11 +682,21 @@ class PopUpSerializer(serializers.ModelSerializer):
         return PopUp.objects.create(**validated_data)
 
 class SliderSerializer(serializers.ModelSerializer):
+    discoutn_percentage = serializers.SerializerMethodField(read_only=True)
     image = Base64ImageField()
 
     class Meta:
         model = Slider
         fields = '__all__'
+
+
+    def get_discoutn_percentage(self, obj):
+        discount_percentage = 0
+        if obj.food:
+            if obj.food.discount:
+                discount_percentage = obj.food.discount.amount
+        return discount_percentage
+
 
     def create(self, validated_data):
         image = validated_data.pop('image', None)
