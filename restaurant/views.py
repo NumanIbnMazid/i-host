@@ -231,7 +231,7 @@ class FoodCategoryViewSet(LoggingMixin, CustomViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodCategory.objects.all()
     lookup_field = 'pk'
-    #logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+    # logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def category_details(self, request, pk, *args, **kwargs):
         qs = FoodCategory.objects.filter(id=pk).last()
@@ -406,7 +406,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
     #         # if url.__contains__('/dashboard/'):
     #         return CustomLimitPagination
 
-    #pagination_class = property(get_pagination_class)
+    # pagination_class = property(get_pagination_class)
 
     def table_list(self, request, restaurant, *args, **kwargs):
         # url = request.path
@@ -1047,14 +1047,19 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         return self.serializer_class
 
     def destroy(self, request, **kwargs):
-        qs = self.queryset.filter(**kwargs).first()
-        order_qs = qs.food_order
-        if qs:
-            qs.delete()
-            order_item_serializer = FoodOrderSerializer(instance=order_qs)
-            return ResponseWrapper(status=200, msg='deleted', data=order_item_serializer.data)
-        else:
-            return ResponseWrapper(error_msg="failed to delete", error_code=400)
+        item_qs = OrderedItem.objects.filter(
+            **kwargs).exclude(status__in=["4_CANCELLED"], food_order__status__in=['5_PAID', '6_CANCELLED']).last()
+        if not item_qs:
+            return ResponseWrapper(error_msg=['item is invalid or cancelled'], error_code=400)
+        order_qs = item_qs.food_order
+        if not order_qs:
+            return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
+
+        item_qs.status = '4_CANCELLED'
+        item_qs.save()
+        serializer = FoodOrderByTableSerializer(instance=order_qs)
+
+        return ResponseWrapper(data=serializer.data, msg='Served')
 
     def update(self, request, **kwargs):
         serializer_class = self.get_serializer_class()
@@ -1141,7 +1146,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='created')
 
     def re_order_items(self, request):
-        #serializer = self.get_serializer(data=request.data, many = True)
+        # serializer = self.get_serializer(data=request.data, many = True)
         new_quantity = request.data.get('quantity')
         re_order_item_qs = OrderedItem.objects.filter(
             id=request.data.get("order_item_id")).first()
@@ -1183,7 +1188,7 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
     queryset = Food.objects.all()
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
-    #http_method_names = ['post', 'patch', 'get', 'delete']
+    # http_method_names = ['post', 'patch', 'get', 'delete']
 
     def food_details(self, request, pk, *args,  **kwargs):
         qs = Food.objects.filter(pk=pk).last()
@@ -1542,7 +1547,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         #             if not food_option_report.get(food_id):
         #                 food_extra_report[food_id]['food_extra'] = food_extra_info
 
-        #response = {'food_report': food_dict.values(), }
+        # response = {'food_report': food_dict.values(), }
         return ResponseWrapper(data=food_dict.values(), msg='success')
 
     def dashboard_total_report(self, request, restaurant_id, *args, **kwargs):
@@ -1555,7 +1560,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
         for day in range(week):
 
-            #start_of_week = today + timedelta(days=day + (today.weekday() - 1))
+            # start_of_week = today + timedelta(days=day + (today.weekday() - 1))
             day_qs = (today.weekday() + 1) % 7
             start_of_week = today - timezone.timedelta(day_qs-day)
 
