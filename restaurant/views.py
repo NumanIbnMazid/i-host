@@ -239,7 +239,6 @@ class FoodCategoryViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
 
-
 class FoodOptionTypeViewSet(LoggingMixin, CustomViewSet):
     serializer_class = FoodOptionTypeSerializer
     # permission_classes = [permissions.IsAuthenticated]
@@ -406,7 +405,6 @@ class TableViewSet(LoggingMixin, CustomViewSet):
     #         # url = self.request.path
     #         # if url.__contains__('/dashboard/'):
     #         return CustomLimitPagination
-
 
     #pagination_class = property(get_pagination_class)
 
@@ -1187,8 +1185,8 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     #http_method_names = ['post', 'patch', 'get', 'delete']
 
-    def food_details(self, request, *args, id, **kwargs):
-        qs = Food.objects.filter(pk=id).last()
+    def food_details(self, request, pk, *args,  **kwargs):
+        qs = Food.objects.filter(pk=pk).last()
         serializer = FoodDetailSerializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='success')
 
