@@ -39,12 +39,12 @@ apps_fake = [
     path('food/',
          FoodViewSet.as_view({'post': 'create'}, name='create')),
 
-    path('food/<int:id>/',
+    path('food/<int:pk>/',
          FoodViewSet.as_view({'get': 'food_details', 'patch': 'update', 'delete': 'destroy'}, name='food')),
     path('food_extra/',
          FoodExtraViewSet.as_view({'post': 'create'}, name='create')),
     path('food_extra/<int:id>/',
-         FoodExtraViewSet.as_view({'patch': 'update', 'delete':'destroy', 'get':'food_extra_details'}, name='food_extra')),
+         FoodExtraViewSet.as_view({'patch': 'update', 'delete': 'destroy', 'get': 'food_extra_details'}, name='food_extra')),
 
     path('table/<int:table_id>/add_staff/',
          TableViewSet.as_view({'post': 'add_staff'}), name='add_staff'),

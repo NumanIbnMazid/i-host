@@ -176,7 +176,7 @@ fake_dashboard_urls = [
     path('food/',
          FoodViewSet.as_view({'post': 'create'}, name='create')),
 
-    path('food/<int:id>/',
+    path('food/<int:pk>/',
          FoodViewSet.as_view({'get': 'food_details','patch': 'update','delete': 'destroy'}, name='food')),
 
     path('food_extra_by_food/<int:pk>/',
