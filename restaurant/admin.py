@@ -2,6 +2,9 @@ from django.contrib import admin
 from .models import *
 
 # Register your models here.
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = ['id','code', 'title']
+
 class InvoiceAdmin(admin.ModelAdmin):
     list_display = ['id', 'created_at', 'updated_at', 'restaurant']
 
@@ -39,7 +42,7 @@ class SliderAdmin(admin.ModelAdmin):
     list_display = ['id','title','restaurant','serial_no']
 
 admin.site.register(Restaurant)
-admin.site.register(Subscription)
+admin.site.register(Subscription, SubscriptionAdmin)
 admin.site.register(RestaurantContactPerson)
 admin.site.register(RestaurantPromoCategory)
 

@@ -685,7 +685,7 @@ class SliderSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
 
     class Meta:
-        model = PopUp
+        model = Slider
         fields = '__all__'
 
     def create(self, validated_data):
@@ -697,3 +697,9 @@ class SliderSerializer(serializers.ModelSerializer):
 class ReOrderedItemSerializer(serializers.Serializer):
     order_item_id = serializers.IntegerField()
     quantity = serializers.IntegerField(default=1)
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = '__all__'

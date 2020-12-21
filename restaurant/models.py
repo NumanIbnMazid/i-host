@@ -33,7 +33,10 @@ class Subscription(models.Model):
 
 
     def __str__(self):
-        return self.title
+        if self.title:
+            return str(self.title)
+        else:
+            return 'title null'
 
 
 class Restaurant(SoftDeleteModel):
@@ -64,7 +67,10 @@ class Restaurant(SoftDeleteModel):
     trade_licence_no = models.CharField(max_length=250, null=True, blank=True)
 
     def __str__(self):
-        return str(self.name)
+        if self.name:
+            return str(self.name)
+        else:
+            return 'name null'
 
 
 class RestaurantContactPerson(models.Model):
@@ -308,5 +314,5 @@ class Slider(models.Model):
     description = models.TextField(null=True, blank=True)
     serial_no = models.IntegerField(default=0)
     clickable = models.BooleanField(default=False)
-    foods = ArrayField(models.IntegerField(
-        null=True, blank=True), null=True, blank=True)
+    food = models.ForeignKey(
+        Food, on_delete=models.SET_NULL, related_name='sliders', null=True)

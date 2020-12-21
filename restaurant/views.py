@@ -34,7 +34,7 @@ from utils.response_wrapper import ResponseWrapper
 from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodExtraType, FoodOption, FoodOptionType,
                                FoodOrder, Invoice, OrderedItem, PopUp,
-                               Restaurant, Table, Slider)
+                               Restaurant, Table, Slider, Subscription)
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
@@ -62,7 +62,8 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           StaffIdListSerializer, StaffTableSerializer,
                           TableSerializer, TableStaffSerializer,
                           TakeAwayFoodOrderPostSerializer,
-                          TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer)
+                          TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer,
+                          SubscriptionSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -1883,3 +1884,18 @@ class SliderViewset(LoggingMixin, CustomViewSet):
             restaurant=restaurant_id).order_by('serial_no')
         serializer = SliderSerializer(instance=slider_qs, many=True)
         return ResponseWrapper(data=serializer.data)
+
+
+class SubscriptionViewset(LoggingMixin, CustomViewSet):
+    queryset = Subscription.objects.all()
+    lookup_field = 'pk'
+    serializer_class = SubscriptionSerializer
+    logging_methods = ['DELETE','POST','PATCH']
+
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['create', 'update', 'destroy']:
+            permission_classes = [
+                permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+
