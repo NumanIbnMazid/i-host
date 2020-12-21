@@ -19,12 +19,21 @@ import restaurant
 
 
 class Subscription(models.Model):
-    name = models.CharField(max_length=90)
     code = models.CharField(max_length=5, unique=True)
-    details = models.TextField(null=True, blank=True)
+    details = models.CharField(null=True, blank=True,max_length=1500)
+    image = models.ImageField(null=True,blank=True)
+    title = models.CharField(max_length=250,null=True,blank=True)
+    table_limit = models.IntegerField()
+    waiter_limit = models.IntegerField()
+    manager_limit = models.IntegerField()
+    restaurant_limit = models.IntegerField()
+    allow_popup = models.BooleanField()
+    bi_report = models.BooleanField()
+    
 
-    # def __str__(self):
-    #     return self.name
+
+    def __str__(self):
+        return self.title
 
 
 class Restaurant(SoftDeleteModel):
@@ -290,6 +299,7 @@ class PopUp(models.Model):
     clickable = models.BooleanField(default=False)
     foods = ArrayField(models.IntegerField(
         null=True, blank=True), null=True, blank=True)
+
 
 class Slider(models.Model):
     restaurant = models.ForeignKey(to=Restaurant, on_delete=models.CASCADE)
