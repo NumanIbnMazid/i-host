@@ -685,7 +685,7 @@ class SliderSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
 
     class Meta:
-        model = PopUp
+        model = Slider
         fields = '__all__'
 
     def create(self, validated_data):
