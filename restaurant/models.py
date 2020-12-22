@@ -5,6 +5,7 @@ from django.contrib.postgres.fields import ArrayField, JSONField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import manager
+from django.db.models.fields.related import OneToOneField
 from softdelete.models import SoftDeleteModel
 
 import restaurant
@@ -20,17 +21,15 @@ import restaurant
 
 class Subscription(models.Model):
     code = models.CharField(max_length=5, unique=True)
-    details = models.CharField(null=True, blank=True,max_length=1500)
-    image = models.ImageField(null=True,blank=True)
-    title = models.CharField(max_length=250,null=True,blank=True)
+    details = models.CharField(null=True, blank=True, max_length=1500)
+    image = models.ImageField(null=True, blank=True)
+    title = models.CharField(max_length=250, null=True, blank=True)
     table_limit = models.IntegerField()
     waiter_limit = models.IntegerField()
     manager_limit = models.IntegerField()
     restaurant_limit = models.IntegerField()
     allow_popup = models.BooleanField()
     bi_report = models.BooleanField()
-    
-
 
     def __str__(self):
         if self.title:
@@ -316,3 +315,11 @@ class Slider(models.Model):
     clickable = models.BooleanField(default=False)
     food = models.ForeignKey(
         Food, on_delete=models.SET_NULL, related_name='sliders', null=True)
+
+
+class Review(models.Model):
+    order = OneToOneField(to=FoodOrder, related_name='reviews',
+                          on_delete=models.SET_NULL, null=True)
+    rating = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)])
+    review_text = models.TextField(null=True,blank=True)
