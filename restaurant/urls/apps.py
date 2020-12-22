@@ -201,7 +201,7 @@ apps_fake = [
          SliderViewset.as_view({'get': 'slider_list_by_restaurant'}), name='slider_list_by_restaurant'),
 
     path('food_search/<str:food_name>',
-         FoodViewSet.as_view({'get': 'dashboard_food_search'}, name='dashboard_food_search')),
+         FoodViewSet.as_view({'get': 'food_search'}, name='food_search')),
 
     # path('food_option/',
     #      FoodOptionViewSet.as_view({'post': 'create'}, name='create')),

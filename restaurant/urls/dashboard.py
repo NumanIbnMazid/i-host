@@ -224,7 +224,7 @@ dashboard_urls = [
          FoodViewSet.as_view({'get': 'food_list'}, name='food_list')),
 
     path('dashboard_food_search/<str:food_name>',
-         FoodViewSet.as_view({'get': 'dashboard_food_search'}, name='dashboard_food_search')),
+         FoodViewSet.as_view({'get': 'food_search'}, name='food_search')),
 
     path('restaurant/create_discount/',
          DiscountViewSet.as_view({'post': 'create_discount'}), name='create_discount'),
