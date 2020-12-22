@@ -196,11 +196,34 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
         return self.create_staff(request, is_owner=True)
 
     def create_manager(self, request, *args, **kwargs):
+        res_qs = HotelStaffInformation.objects.filter(restaurant_id = request.data.get('restaurant_id'))
+        manager_count = res_qs.filter(is_manager = True).count()
+
+        restaurant_id = res_qs.first().restaurant_id
+        manager_qs = Restaurant.objects.filter(id=restaurant_id).select_related('subscription').first()
+        manager_limit_qs = manager_qs.subscription.manager_limit
+
+        if not manager_count <= manager_limit_qs:
+            return ResponseWrapper(
+                error_msg=["Your Manager Limit is " + str(manager_limit_qs) + ', Please Update Your Subscription '],
+                error_code=400)
         # email = request.data.pop("email")
         # self.check_object_permissions(request, obj=RestaurantUserSignUpSerializer)
         return self.create_staff(request, is_manager=True)
 
     def create_waiter(self, request, *args, **kwargs):
+        res_qs = HotelStaffInformation.objects.filter(restaurant_id = request.data.get('restaurant_id'))
+        waiter_count = res_qs.filter(is_waiter = True).count()
+
+        restaurant_id = res_qs.first().restaurant_id
+        waiter_qs = Restaurant.objects.filter(id=restaurant_id).select_related('subscription').first()
+        waiter_limit_qs = waiter_qs.subscription.waiter_limit
+
+        if not waiter_count <= waiter_limit_qs:
+            return ResponseWrapper(
+                error_msg=["Your Waiter Limit is " + str(waiter_limit_qs) + ', Please Update Your Subscription '],
+                error_code=400)
+
         # email = request.data.pop("email")
         return self.create_staff(request, is_waiter=True)
 
