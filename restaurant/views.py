@@ -1227,8 +1227,8 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             instance=re_order_item_qs.food_order)
 
         order_done_signal.send(
-            sender=self.__class__.create,
-            restaurant_id= re_order_item_qs.food_order.restaurant_id,
+            sender=self.__class__.re_order_items,
+            restaurant_id=re_order_item_qs.food_order.restaurant_id,
         )
         return ResponseWrapper(data=serializer.data, msg='Success')
 
@@ -1239,14 +1239,14 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
     def get_serializer_class(self):
         if self.action in ['retrieve']:
             self.serializer_class = FoodDetailSerializer
-        if self.action in ['dashboard_food_search']:
+        if self.action in ['food_search']:
             self.serializer_class = FoodSerializer
 
         return self.serializer_class
     # permission_classes = [permissions.IsAuthenticated]
 
     def get_permissions(self):
-        if self.action in ['dashboard_food_search', 'food_list']:
+        if self.action in ['food_search', 'food_list']:
             permission_classes = [permissions.IsAuthenticated]
         else:
             permission_classes = [permissions.AllowAny]
@@ -1295,7 +1295,7 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
         openapi.Parameter("restaurant", openapi.IN_QUERY,
                           type=openapi.TYPE_INTEGER)
     ])
-    def dashboard_food_search(self, request, *args, food_name, **kwargs):
+    def food_search(self, request, *args, food_name, **kwargs):
         restaurant_id = int(request.query_params.get('restaurant'))
         is_dashboard = request.path.__contains__('/dashboard/')
         """
