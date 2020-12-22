@@ -670,6 +670,7 @@ class CollectPaymentSerializer(serializers.Serializer):
 
 class PopUpSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
+    foods = serializers.SerializerMethodField()
 
     class Meta:
         model = PopUp
@@ -681,6 +682,13 @@ class PopUpSerializer(serializers.ModelSerializer):
             return PopUp.objects.create(image=image, **validated_data)
         return PopUp.objects.create(**validated_data)
 
+    def get_foods(self, obj):
+        if obj.foods:
+            return obj.foods[0]
+        else:
+            return None
+
+
 class SliderSerializer(serializers.ModelSerializer):
     discoutn_percentage = serializers.SerializerMethodField(read_only=True)
     image = Base64ImageField()
@@ -689,7 +697,6 @@ class SliderSerializer(serializers.ModelSerializer):
         model = Slider
         fields = '__all__'
 
-
     def get_discoutn_percentage(self, obj):
         discount_percentage = 0
         if obj.food:
@@ -697,12 +704,12 @@ class SliderSerializer(serializers.ModelSerializer):
                 discount_percentage = obj.food.discount.amount
         return discount_percentage
 
-
     def create(self, validated_data):
         image = validated_data.pop('image', None)
         if image:
             return Slider.objects.create(image=image, **validated_data)
         return Slider.objects.create(**validated_data)
+
 
 class ReOrderedItemSerializer(serializers.Serializer):
     order_item_id = serializers.IntegerField()
