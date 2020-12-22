@@ -30,7 +30,7 @@ def calculate_price(food_order_obj, include_initial_order=False):
             )
         )
         if ordered_item.food_option.food.discount:
-            discount_amount += ordered_item.food_option.food.discount.amount*item_price
+            discount_amount += (ordered_item.food_option.food.discount.amount/100)*item_price
 
         total_price += item_price+extra_price
     grand_total_price += total_price
