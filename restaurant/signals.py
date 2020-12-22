@@ -5,7 +5,7 @@ import channels.layers
 from channels.generic.websocket import JsonWebsocketConsumer
 import json
 from channels.db import database_sync_to_async
-
+from django.conf import settings
 
 from restaurant.models import Table
 from .models import (
@@ -17,7 +17,6 @@ order_done_signal = Signal(
 
 
 def order_item_list(self, restaurant_id=1):
-
     qs = FoodOrder.objects.filter(table__restaurant=restaurant_id).exclude(
         status__in=['5_PAID', '6_CANCELLED']).order_by('table_id')
     ordered_table_set = set(qs.values_list('table_id', flat=True))
@@ -55,6 +54,8 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, qs=None, d
     state : str
         [data_only]
     """
+    if settings.TURN_OFF_SIGNAL:
+        return
     print('---------------------------------------------------------------------------------------------------------------')
     print("FIRING Signals")
     print('---------------------------------------------------------------------------------------------------------------')
