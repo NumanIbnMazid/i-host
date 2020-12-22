@@ -424,6 +424,22 @@ class TableViewSet(LoggingMixin, CustomViewSet):
 
     # pagination_class = property(get_pagination_class)
 
+    def create(self, request):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+        res_qs = Restaurant.objects.filter(id = request.data.get('restaurant')).select_related('subscription').last()
+        table_count = res_qs.tables.count()
+        # table_count = Table.objects.filter(restaurant_id=res_qs.id).count()
+        table_limit_qs = res_qs.subscription.table_limit
+        if not table_count <= table_limit_qs:
+            return ResponseWrapper(error_msg=["Your Table Limit is "+str(table_limit_qs)+', Please Update Your Subscription '] ,error_code=400)
+        if serializer.is_valid():
+            qs = serializer.save()
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
     def table_list(self, request, restaurant, *args, **kwargs):
         # url = request.path
         # is_dashboard = url.__contains__('/dashboard/')
