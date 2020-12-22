@@ -1295,6 +1295,7 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
         openapi.Parameter("restaurant", openapi.IN_QUERY,
                           type=openapi.TYPE_INTEGER)
     ])
+    
     def dashboard_food_search(self, request, *args, food_name, **kwargs):
         restaurant_id = int(request.query_params.get('restaurant'))
         is_dashboard = request.path.__contains__('/dashboard/')
