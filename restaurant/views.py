@@ -260,6 +260,7 @@ class FoodOptionTypeViewSet(LoggingMixin, CustomViewSet):
         serializer = self.serializer_class(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='success')
 
+
 class FoodOrderedViewSet(LoggingMixin, CustomViewSet):
     serializer_class = FoodOrderSerializer
     queryset = FoodOrder.objects.all()
@@ -377,10 +378,9 @@ class FoodOptionViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def food_option_detail(self, request, pk, *args, **kwargs):
-        food_option_qs = FoodOption.objects.filter(id = pk).first()
+        food_option_qs = FoodOption.objects.filter(id=pk).first()
         serializer = FoodOptionSerializer(instance=food_option_qs)
         return ResponseWrapper(data=serializer.data, msg='success')
-
 
 
 class TableViewSet(LoggingMixin, CustomViewSet):
@@ -1228,6 +1228,7 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
     ])
     def dashboard_food_search(self, request, *args, food_name, **kwargs):
         restaurant_id = int(request.query_params.get('restaurant'))
+        is_dashboard = request.path.__contains__('/dashboard/')
         """
         if not (
             self.request.user.is_staff or HotelStaffInformation.objects.filter(
@@ -1239,7 +1240,12 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
         """
         food_name_qs = Food.objects.filter(
             name__icontains=food_name, restaurant_id=restaurant_id)
-        serializer = FoodDetailSerializer(instance=food_name_qs, many=True)
+        if is_dashboard:
+            serializer = FoodDetailSerializer(instance=food_name_qs, many=True)
+        else:
+            serializer = FoodsByCategorySerializer(
+                instance=food_name_qs, many=True)
+
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def food_extra_by_food(self, request, *args, **kwargs):
@@ -1864,6 +1870,7 @@ class PopUpViewset(LoggingMixin, CustomViewSet):
         serializer = PopUpSerializer(instance=popup_qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
+
 class SliderViewset(LoggingMixin, CustomViewSet):
 
     queryset = Slider.objects.all()
@@ -1890,7 +1897,7 @@ class SubscriptionViewset(LoggingMixin, CustomViewSet):
     queryset = Subscription.objects.all()
     lookup_field = 'pk'
     serializer_class = SubscriptionSerializer
-    logging_methods = ['DELETE','POST','PATCH']
+    logging_methods = ['DELETE', 'POST', 'PATCH']
 
     def get_permissions(self):
         permission_classes = []
@@ -1898,4 +1905,3 @@ class SubscriptionViewset(LoggingMixin, CustomViewSet):
             permission_classes = [
                 permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
-
