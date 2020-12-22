@@ -25,7 +25,7 @@ env.read_env(env_file=os.path.join(BASE_DIR, '.env'))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str('SECRET_KEY')
-TURN_OFF_SIGNAL = env.bool('TURN_OFF_SIGNAL')
+TURN_OFF_SIGNAL = env.bool('TURN_OFF_SIGNAL', False)
 # SECURITY WARNING: don't run with debug turned on in production!
 if env.bool('DEBUG', default=''):
     DEBUG = env.bool('DEBUG')
