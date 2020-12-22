@@ -670,7 +670,7 @@ class CollectPaymentSerializer(serializers.Serializer):
 
 class PopUpSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
-    foods = serializers.SerializerMethodField()
+    food = serializers.SerializerMethodField()
 
     class Meta:
         model = PopUp
@@ -682,7 +682,7 @@ class PopUpSerializer(serializers.ModelSerializer):
             return PopUp.objects.create(image=image, **validated_data)
         return PopUp.objects.create(**validated_data)
 
-    def get_foods(self, obj):
+    def get_food(self, obj):
         if obj.foods:
             return obj.foods[0]
         else:
