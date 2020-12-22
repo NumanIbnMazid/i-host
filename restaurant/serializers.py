@@ -670,7 +670,7 @@ class CollectPaymentSerializer(serializers.Serializer):
 
 class PopUpSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
-    food = serializers.SerializerMethodField()
+    food = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = PopUp
