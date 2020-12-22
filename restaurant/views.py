@@ -597,6 +597,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 serializer = self.serializer_class(instance=qs)
             else:
                 return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
+            order_done_signal.send(
+                sender=self.__class__.create,
+                restaurant_id=table_qs.restaurant_id,
+            )
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -1141,6 +1145,10 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
 
         serializer = OrderedItemGetDetailsSerializer(
             instance=list_of_qs, many=True)
+        order_done_signal.send(
+            sender=self.__class__.create,
+            restaurant_id=restaurant_id,
+        )
         return ResponseWrapper(data=serializer.data, msg='created')
 
     def re_order_items(self, request):
@@ -1161,6 +1169,11 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         # food_order_qs = OrderedItem.objects.filter(food_order_id = re_order_item_qs.food_order_id)
         serializer = FoodOrderByTableSerializer(
             instance=re_order_item_qs.food_order)
+
+        order_done_signal.send(
+            sender=self.__class__.create,
+            restaurant_id= re_order_item_qs.food_order.restaurant_id,
+        )
         return ResponseWrapper(data=serializer.data, msg='Success')
 
 
