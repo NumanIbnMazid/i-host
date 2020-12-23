@@ -129,10 +129,9 @@ class RestaurantSerializer(serializers.ModelSerializer):
         if obj.food_orders:
 
             reviews_list = list(filter(None,obj.food_orders.values_list('reviews__rating', flat=True)))
-            return {'value':sum(reviews_list) / reviews_list.__len__(),'total_reviewers':reviews_list.__len__()}
-
-        else:
-            return {'value':None,'total_reviewers':0}
+            if reviews_list:
+                return {'value':sum(reviews_list) / reviews_list.__len__(),'total_reviewers':reviews_list.__len__()}
+        return {'value':None,'total_reviewers':0}
 
 
 class TableSerializer(serializers.ModelSerializer):
@@ -486,6 +485,16 @@ class FoodGroupByCategoryListSerializer(serializers.ListSerializer):
             }
             for obj in FoodCategory.objects.filter(pk__in=list(data.values_list('category_id', flat=True)))
         ]
+
+    def review(self, obj):
+        review_qs = None
+        if obj.food_orders:
+
+            reviews_list = list(filter(None, obj.food_orders.values_list('reviews__rating', flat=True)))
+            return {'value': sum(reviews_list) / reviews_list.__len__(), 'total_reviewers': reviews_list.__len__()}
+
+        else:
+            return {'value': None, 'total_reviewers': 0}
 
 # class FoodsByCategorySerializer(serializers.ModelSerializer):
 #     foods = FoodWithPriceSerializer(many=True)
