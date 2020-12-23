@@ -323,3 +323,9 @@ class Review(models.Model):
     rating = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)])
     review_text = models.TextField(null=True,blank=True)
+
+
+class RestaurantMessages(models.Model):
+    restaurant = models.ForeignKey(to=Restaurant,on_delete=models.CASCADE)
+    title = models.CharField(max_length=200,null=True,blank=True)
+    message = models.TextField()
