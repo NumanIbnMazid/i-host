@@ -25,6 +25,9 @@ router = DefaultRouter()
 
 # router.register('food', FoodViewSet,
 #                 basename="food")
+
+router.register('restaurant_messages', RestaurantMessagesViewset,
+                basename="restaurant_messages")
 router.register('pop_up', PopUpViewset, basename='pop_up')
 router.register('slider', SliderViewset, basename='slider')
 # router.register('discount', DiscountViewSet,
@@ -207,6 +210,9 @@ fake_dashboard_urls = [
          PopUpViewset.as_view({'get': 'pop_up_list_by_restaurant'}), name='pop_up_list_by_restaurant'),
     path('restaurant/<int:restaurant_id>/slider/',
          SliderViewset.as_view({'get': 'slider_list_by_restaurant'}), name='slider_list_by_restaurant'),
+    path('restaurant_messages_list/<int:restaurant>/',
+         RestaurantMessagesViewset.as_view({'get':'restaurant_messages_list'}, name='restaurant_messages_list')),
+
 
 ]
 

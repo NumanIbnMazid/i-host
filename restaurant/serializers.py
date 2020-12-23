@@ -426,7 +426,6 @@ class FoodSerializer(serializers.ModelSerializer):
 
 class FoodWithPriceSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField(read_only=True)
-    rating = serializers.SerializerMethodField(read_only=True)
     image = Base64ImageField()
 
     class Meta:
@@ -443,7 +442,7 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
             'category',
             'id',
             'discount',
-            'rating'
+
         ]
 
         # extra_kwargs = {
@@ -735,10 +734,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         model = Subscription
         fields = '__all__'
 
-class CustomerInfoDetailSerializer(serializers.ModelSerializer):
-    class Meta:
-        model =  FoodOrder
-        fields = ['customer']
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     customer_info = serializers.SerializerMethodField(read_only=True)
@@ -760,3 +756,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         else:
             return {}
 
+class RestaurantMessagesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model =  RestaurantMessages
+        fields = '__all__'

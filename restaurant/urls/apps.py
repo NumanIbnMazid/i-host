@@ -220,6 +220,8 @@ apps_fake = [
 
     path('review/',
          ReviewViewset.as_view({'post':'create'}, name='create')),
+    path('restaurant_messages_list/<int:restaurant>/',
+         RestaurantMessagesViewset.as_view({'get':'restaurant_messages_list'}, name='restaurant_messages_list')),
 
 ]
 

@@ -34,7 +34,7 @@ from utils.response_wrapper import ResponseWrapper
 from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodExtraType, FoodOption, FoodOptionType,
                                FoodOrder, Invoice, OrderedItem, PopUp,
-                               Restaurant, Table, Slider, Subscription,Review)
+                               Restaurant, Table, Slider, Subscription,Review,RestaurantMessages)
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
@@ -63,7 +63,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           TableSerializer, TableStaffSerializer,
                           TakeAwayFoodOrderPostSerializer,
                           TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer,
-                          SubscriptionSerializer, ReviewSerializer)
+                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -2012,3 +2012,25 @@ class ReviewViewset(LoggingMixin, CustomViewSet):
         restaurant_qs = Review.objects.filter(order__restaurant_id = restaurant)
         serializer = ReviewSerializer(instance=restaurant_qs, many=True)
         return ResponseWrapper(data=serializer.data)
+
+class RestaurantMessagesViewset(LoggingMixin, CustomViewSet):
+    queryset = RestaurantMessages.objects.all()
+    lookup_field = 'pk'
+    serializer_class = RestaurantMessagesSerializer
+    #logging_methods = ['GET','DELETE', 'POST', 'PATCH']
+    # def get_permissions(self):
+    #     permission_classes = []
+    #     if self.action in ['create']:
+    #         permission_classes = [
+    #             permissions.IsAuthenticated]
+    #
+    #     elif self.action in ['destroy']:
+    #         permission_classes = [
+    #             permissions.IsAdminUser]
+    #     return [permission() for permission in permission_classes]
+
+    def restaurant_messages_list(self, request, restaurant,*args, **kwargs):
+        restaurant_qs = RestaurantMessages.objects.filter(restaurant_id = restaurant)
+        serializer = RestaurantMessagesSerializer(instance=restaurant_qs, many=True)
+        return ResponseWrapper(data=serializer.data)
+
