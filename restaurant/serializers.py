@@ -727,10 +727,22 @@ class CustomerInfoDetailSerializer(serializers.ModelSerializer):
         fields = ['customer']
 
 class ReviewSerializer(serializers.ModelSerializer):
+    customer_info = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Review
         fields = '__all__'
 
+    def get_customer_info(self, obj):
+        customer_qs = None
+        if obj.order:
+            customer_qs = obj.order.customer
 
+        if customer_qs:
+            return {
+                'id': customer_qs.pk,
+                'name': customer_qs.name,
+            }
+        else:
+            return {}
 
