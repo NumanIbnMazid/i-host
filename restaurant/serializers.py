@@ -118,10 +118,21 @@ class FoodOptionTypeSerializer(serializers.ModelSerializer):
 
 
 class RestaurantSerializer(serializers.ModelSerializer):
+    review = serializers.SerializerMethodField(read_only= True)
     class Meta:
         model = Restaurant
         # fields = '__all__'
         exclude = ['deleted_at']
+
+    def get_review(self, obj):
+        review_qs = None
+        if obj.food_orders:
+
+            reviews_list = list(filter(None,obj.food_orders.values_list('reviews__rating', flat=True)))
+            return {'value':sum(reviews_list) / reviews_list.__len__(),'total_reviewers':reviews_list.__len__()}
+
+        else:
+            return {'value':None,'total_reviewers':0}
 
 
 class TableSerializer(serializers.ModelSerializer):
