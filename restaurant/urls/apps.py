@@ -218,6 +218,9 @@ apps_fake = [
     path('food_extra_type/<int:pk>/',
          FoodExtraTypeViewSet.as_view({'get':'food_extra_type_detail'}, name='food_extra_type')),
 
+    path('review/',
+         ReviewViewset.as_view({'post':'create'}, name='create')),
+
 ]
 
 apps_url = [

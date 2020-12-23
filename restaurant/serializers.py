@@ -118,10 +118,20 @@ class FoodOptionTypeSerializer(serializers.ModelSerializer):
 
 
 class RestaurantSerializer(serializers.ModelSerializer):
+    review = serializers.SerializerMethodField(read_only= True)
     class Meta:
         model = Restaurant
         # fields = '__all__'
         exclude = ['deleted_at']
+
+    def get_review(self, obj):
+        review_qs = None
+        if obj.food_orders:
+
+            reviews_list = list(filter(None,obj.food_orders.values_list('reviews__rating', flat=True)))
+            if reviews_list:
+                return {'value':sum(reviews_list) / reviews_list.__len__(),'total_reviewers':reviews_list.__len__()}
+        return {'value':None,'total_reviewers':0}
 
 
 class TableSerializer(serializers.ModelSerializer):
@@ -476,6 +486,16 @@ class FoodGroupByCategoryListSerializer(serializers.ListSerializer):
             for obj in FoodCategory.objects.filter(pk__in=list(data.values_list('category_id', flat=True)))
         ]
 
+    def review(self, obj):
+        review_qs = None
+        if obj.food_orders:
+
+            reviews_list = list(filter(None, obj.food_orders.values_list('reviews__rating', flat=True)))
+            return {'value': sum(reviews_list) / reviews_list.__len__(), 'total_reviewers': reviews_list.__len__()}
+
+        else:
+            return {'value': None, 'total_reviewers': 0}
+
 # class FoodsByCategorySerializer(serializers.ModelSerializer):
 #     foods = FoodWithPriceSerializer(many=True)
 
@@ -720,3 +740,29 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = '__all__'
+
+class CustomerInfoDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model =  FoodOrder
+        fields = ['customer']
+
+class ReviewSerializer(serializers.ModelSerializer):
+    customer_info = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Review
+        fields = '__all__'
+
+    def get_customer_info(self, obj):
+        customer_qs = None
+        if obj.order:
+            customer_qs = obj.order.customer
+
+        if customer_qs:
+            return {
+                'id': customer_qs.pk,
+                'name': customer_qs.name,
+            }
+        else:
+            return {}
+

@@ -41,6 +41,10 @@ class PopUpAdmin(admin.ModelAdmin):
 class SliderAdmin(admin.ModelAdmin):
     list_display = ['id','title','restaurant','serial_no']
 
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ['id','order','rating','review_text']
+
+
 admin.site.register(Restaurant)
 admin.site.register(Subscription, SubscriptionAdmin)
 admin.site.register(RestaurantContactPerson)
@@ -61,3 +65,4 @@ admin.site.register(Invoice, InvoiceAdmin)
 admin.site.register(Discount, DiscountAdmin)
 admin.site.register(PopUp, PopUpAdmin)
 admin.site.register(Slider, SliderAdmin)
+admin.site.register(Review, ReviewAdmin)

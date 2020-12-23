@@ -52,7 +52,6 @@ fake_dashboard_urls = [
     #     path('table/<int:table_id>/quantity_list/',
     #          TableViewSet.as_view({'get': 'quantity_list', }), name='quantity_list'),
 
-
     path('restaurant/',
          RestaurantViewSet.as_view({'post': 'create', 'get': 'list'}), name='restaurant_create_and_list'),
 
@@ -66,7 +65,7 @@ fake_dashboard_urls = [
          RestaurantViewSet.as_view({'get': 'today_sell'}), name='today_sell'),
 
     path('food_option_type/',
-         FoodOptionTypeViewSet.as_view({'post': 'create'}, name='create')),
+         FoodOptionTypeViewSet.as_view({'get':'list','post': 'create'}, name='create')),
     path('food_option_type/<int:pk>/',
          FoodOptionTypeViewSet.as_view({'patch': 'update', 'delete':'destroy','get':'food_option_type_detail'}, name='food_option')),
 
@@ -76,14 +75,14 @@ fake_dashboard_urls = [
          FoodOptionViewSet.as_view({'patch': 'update', 'delete':'destroy','get':'food_option_detail'}, name='food_option')),
 
     path('food_extra_type/',
-         FoodExtraTypeViewSet.as_view({'post': 'create'}, name='create')),
+         FoodExtraTypeViewSet.as_view({'get':'list','post': 'create'}, name='create')),
     path('food_extra_type/<int:pk>/',
          FoodExtraTypeViewSet.as_view({'patch': 'update', 'delete':'destroy','get':'food_extra_type_detail'}, name='food_extra_type')),
 
 
 
     path("food_category/",
-         FoodCategoryViewSet.as_view({"post": "create"})),
+         FoodCategoryViewSet.as_view({'get': 'list',"post": "create"})),
     path("food_category/<int:pk>/",
          FoodCategoryViewSet.as_view({"patch": "update", "delete": "destroy","get": "category_details"})),
 
@@ -251,6 +250,10 @@ dashboard_urls = [
          SubscriptionViewset.as_view({'get': 'list','post':'create'}), name ='subscription_list'),
     path('subscription/<int:pk>',
          SubscriptionViewset.as_view({'get': 'retrieve','patch':'update','delete':'destroy'}),name='subscription'),
+    path('review/<int:pk>/',
+         ReviewViewset.as_view({'delete': 'destroy'}, name='destroy')),
 
+    path('review_list/<int:restaurant>/',
+         ReviewViewset.as_view({'get': 'review_list'}, name='review_list')),
 
-] + fake_dashboard_urls
+    ] + fake_dashboard_urls
