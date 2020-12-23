@@ -720,3 +720,17 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = '__all__'
+
+class CustomerInfoDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model =  FoodOrder
+        fields = ['customer']
+
+class ReviewSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Review
+        fields = '__all__'
+
+
+

@@ -250,6 +250,10 @@ dashboard_urls = [
          SubscriptionViewset.as_view({'get': 'list','post':'create'}), name ='subscription_list'),
     path('subscription/<int:pk>',
          SubscriptionViewset.as_view({'get': 'retrieve','patch':'update','delete':'destroy'}),name='subscription'),
+    path('review/<int:pk>/',
+         ReviewViewset.as_view({'delete': 'destroy'}, name='destroy')),
 
+    path('review_list/<int:restaurant>/',
+         ReviewViewset.as_view({'get': 'review_list'}, name='review_list')),
 
-] + fake_dashboard_urls
+    ] + fake_dashboard_urls

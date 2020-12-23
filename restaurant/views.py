@@ -34,7 +34,7 @@ from utils.response_wrapper import ResponseWrapper
 from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodExtraType, FoodOption, FoodOptionType,
                                FoodOrder, Invoice, OrderedItem, PopUp,
-                               Restaurant, Table, Slider, Subscription)
+                               Restaurant, Table, Slider, Subscription,Review)
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
@@ -63,7 +63,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           TableSerializer, TableStaffSerializer,
                           TakeAwayFoodOrderPostSerializer,
                           TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer,
-                          SubscriptionSerializer)
+                          SubscriptionSerializer, ReviewSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -1782,7 +1782,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         discount_qs = Discount.objects.filter(restaurant=restaurant)
         page_qs = self.paginate_queryset(discount_qs)
 
-        serializer = InvoiceSerializer(instance=page_qs, many=True)
+        serializer = DiscountSerializer(instance=page_qs, many=True)
         paginated_data = self.get_paginated_response(serializer.data)
 
         return ResponseWrapper(paginated_data.data)
@@ -1791,7 +1791,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         discount_qs = Discount.objects.all()
         page_qs = self.paginate_queryset(discount_qs)
 
-        serializer = InvoiceSerializer(instance=page_qs, many=True)
+        serializer = DiscountSerializer(instance=page_qs, many=True)
         paginated_data = self.get_paginated_response(serializer.data)
 
         return ResponseWrapper(paginated_data.data)
@@ -1990,3 +1990,25 @@ class SubscriptionViewset(LoggingMixin, CustomViewSet):
             permission_classes = [
                 permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
+
+
+class ReviewViewset(LoggingMixin, CustomViewSet):
+    queryset = Review.objects.all()
+    lookup_field = 'pk'
+    serializer_class = ReviewSerializer
+    #logging_methods = ['GET','DELETE', 'POST', 'PATCH']
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['create']:
+            permission_classes = [
+                permissions.IsAuthenticated]
+
+        elif self.action in ['destroy']:
+            permission_classes = [
+                permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+
+    def review_list(self, request, restaurant,*args, **kwargs):
+        restaurant_qs = Review.objects.filter(order__restaurant_id = restaurant)
+        serializer = ReviewSerializer(instance=restaurant_qs, many=True)
+        return ResponseWrapper(data=serializer.data)
