@@ -114,7 +114,7 @@ class Food(SoftDeleteModel):
     is_recommended = models.BooleanField(default=False)
     ingredients = models.TextField(null=True, blank=True)
     rating = models.FloatField(null= True, blank=True)
-    order_counter = models.IntegerField(null=True, blank=True)
+    order_counter = models.IntegerField(default=0)
     discount = models.ForeignKey(
         to="restaurant.Discount", null=True, blank=True, on_delete=models.SET_NULL, related_name='foods')
 
@@ -331,3 +331,4 @@ class RestaurantMessages(models.Model):
     restaurant = models.ForeignKey(to=Restaurant,on_delete=models.CASCADE)
     title = models.CharField(max_length=200,null=True,blank=True)
     message = models.TextField()
+    updated_at = models.DateTimeField(auto_now=True)
