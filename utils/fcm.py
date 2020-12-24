@@ -71,7 +71,7 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
             'https://fcm.googleapis.com/fcm/send', data=json.dumps(data), headers=headers)
         # print("Fcm Response ", response)
         if 300 > response.status_code >= 200:
-            if response.json().get('failure') < 1:
+            if response.json().get('success') >= 1:
                 success = True
 
     except Exception as e:
