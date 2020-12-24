@@ -63,7 +63,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           TableSerializer, TableStaffSerializer,
                           TakeAwayFoodOrderPostSerializer,
                           TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer,
-                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer)
+                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,FoodPostSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -1250,14 +1250,17 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='Success')
 
 
+
 class FoodViewSet(LoggingMixin, CustomViewSet):
     serializer_class = FoodWithPriceSerializer
 
     def get_serializer_class(self):
         if self.action in ['retrieve']:
             self.serializer_class = FoodDetailSerializer
-        if self.action in ['food_search']:
+        elif self.action in ['food_search']:
             self.serializer_class = FoodSerializer
+        elif self.action in ['create','update','destroy']:
+            self.serializer_class = FoodPostSerializer
 
         return self.serializer_class
     # permission_classes = [permissions.IsAuthenticated]
@@ -1265,6 +1268,9 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
     def get_permissions(self):
         if self.action in ['food_search', 'food_list']:
             permission_classes = [permissions.IsAuthenticated]
+        elif self.action in ['create','update','destroy']:
+            permission_classes = [
+                custom_permissions.IsRestaurantManagementOrAdmin]
         else:
             permission_classes = [permissions.AllowAny]
         return [permission() for permission in permission_classes]

@@ -423,6 +423,42 @@ class FoodSerializer(serializers.ModelSerializer):
         model = Food
         fields = '__all__'
 
+class FoodSerializer(serializers.ModelSerializer):
+    category = FoodCategorySerializer(read_only=True)
+
+    class Meta:
+        model = Food
+        fields = '__all__'
+
+class FoodPostSerializer(serializers.ModelSerializer):
+
+    # price = serializers.SerializerMethodField(read_only=True)
+    image = Base64ImageField()
+
+    class Meta:
+        model = Food
+        fields = [
+            "name",
+            "image",
+            "description",
+            "restaurant",
+            "is_top",
+            "is_recommended",
+            'ingredients',
+            'category',
+            'id',
+            'discount',
+
+        ]
+
+
+    # def get_price(self, obj):
+    #     option_qs = obj.food_options.order_by('price').first()
+    #     if option_qs:
+    #         return round(option_qs.price, 2)
+    #     else:
+    #         return None
+
 
 class FoodWithPriceSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField(read_only=True)

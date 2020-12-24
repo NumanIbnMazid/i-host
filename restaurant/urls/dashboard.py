@@ -126,8 +126,8 @@ fake_dashboard_urls = [
     path('restaurant/<int:restaurant>/recommended_foods_by_category/',
          FoodByRestaurantViewSet.as_view({'get': 'recommended_foods_by_category'}), name='recommended_foods_by_category'),
 
-    path('restaurant/food/mark_as_top_or_recommended/',
-         FoodByRestaurantViewSet.as_view({'post': 'mark_as_top_or_recommended'}, name='mark_as_top_or_recommended')),
+    # path('restaurant/food/mark_as_top_or_recommended/',
+    #      FoodByRestaurantViewSet.as_view({'post': 'mark_as_top_or_recommended'}, name='mark_as_top_or_recommended')),
 
 
     path('order/create_order/',
