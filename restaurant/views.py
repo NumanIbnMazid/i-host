@@ -1806,7 +1806,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
     pagination_class = property(get_pagination_class)
 
     def discount_list(self, request, restaurant, *args, **kwargs):
-        discount_qs = Discount.objects.filter(restaurant=restaurant)
+        discount_qs = Discount.objects.filter(restaurant_id=restaurant)
         page_qs = self.paginate_queryset(discount_qs)
 
         serializer = DiscountSerializer(instance=page_qs, many=True)
