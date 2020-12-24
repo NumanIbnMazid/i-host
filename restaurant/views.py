@@ -239,6 +239,13 @@ class FoodCategoryViewSet(LoggingMixin, CustomViewSet):
     lookup_field = 'pk'
     # logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['create','destroy','patch']:
+            permission_classes = [
+                permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+
     def category_details(self, request, pk, *args, **kwargs):
         qs = FoodCategory.objects.filter(id=pk).last()
         serializer = self.serializer_class(instance=qs)
@@ -248,6 +255,14 @@ class FoodCategoryViewSet(LoggingMixin, CustomViewSet):
 class FoodOptionTypeViewSet(LoggingMixin, CustomViewSet):
     serializer_class = FoodOptionTypeSerializer
     # permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['create','destroy','patch']:
+            permission_classes = [
+                permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+
     queryset = FoodOptionType.objects.all()
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
@@ -287,6 +302,13 @@ class FoodExtraTypeViewSet(LoggingMixin, CustomViewSet):
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['create','destroy','patch']:
+            permission_classes = [
+                permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+
     def food_extra_type_detail(self, request, pk, *args, **kwargs):
         qs = FoodExtraType.objects.get(id=pk)
         serializer = self.serializer_class(instance=qs)
@@ -307,6 +329,15 @@ class FoodExtraViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = FoodExtraSerializer
 
         return self.serializer_class
+
+    def get_permissions(self):
+        if self.action in ['create','update','destroy']:
+            permission_classes = [
+                custom_permissions.IsRestaurantManagementOrAdmin]
+        # else:
+        #     permission_classes = [permissions.AllowAny]
+        return [permission() for permission in permission_classes]
+
 
     # http_method_names = ['post', 'patch', 'get']
     def food_extra_details(self, request, pk, *args, **kwargs):
@@ -344,6 +375,13 @@ class FoodOptionViewSet(LoggingMixin, CustomViewSet):
         else:
             self.serializer_class = FoodOptionSerializer
         return self.serializer_class
+
+    def get_permissions(self):
+        if self.action in ['create','update','destroy']:
+            permission_classes = [
+                custom_permissions.IsRestaurantManagementOrAdmin]
+
+        return [permission() for permission in permission_classes]
 
     # permission_classes = [permissions.IsAuthenticated]
 

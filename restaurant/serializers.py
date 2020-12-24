@@ -433,8 +433,6 @@ class FoodSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class FoodPostSerializer(serializers.ModelSerializer):
-
-    # price = serializers.SerializerMethodField(read_only=True)
     image = Base64ImageField()
 
     class Meta:
@@ -452,14 +450,6 @@ class FoodPostSerializer(serializers.ModelSerializer):
             'discount',
 
         ]
-
-
-    # def get_price(self, obj):
-    #     option_qs = obj.food_options.order_by('price').first()
-    #     if option_qs:
-    #         return round(option_qs.price, 2)
-    #     else:
-    #         return None
 
 
 class FoodWithPriceSerializer(serializers.ModelSerializer):
