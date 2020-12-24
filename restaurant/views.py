@@ -549,7 +549,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = OrderedItemUserPostSerializer
         elif self.action in ['cancel_order', 'apps_cancel_order']:
             self.serializer_class = FoodOrderCancelSerializer
-        elif self.action in ['placed_status']:
+        elif self.action in ['placed_status','revert_back_to_in_table']:
             self.serializer_class = PaymentSerializer
         elif self.action in ['confirm_status', 'cancel_items', 'confirm_status_without_cancel']:
             self.serializer_class = FoodOrderConfirmSerializer
@@ -781,6 +781,27 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             )
 
             return ResponseWrapper(data=serializer.data, msg='Served')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def revert_back_to_in_table(self, request,  *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            order_qs = FoodOrder.objects.filter(pk=request.data.get("order_id")).exclude(
+                status__in=['6_CANCELLED']).first()
+            if not order_qs:
+                return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
+
+            else:
+                if order_qs.status in ['4_CREATE_INVOICE','5_PAID']:
+                    order_qs.status = '2_ORDER_CONFIRMED'
+                    order_qs.save()
+                serializer = FoodOrderByTableSerializer(instance=order_qs)
+                order_done_signal.send(
+                    sender=self.__class__.revert_back_to_in_table,
+                    restaurant_id=order_qs.restaurant_id,
+                )
+                return ResponseWrapper(data=serializer.data, msg='Placed')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
@@ -1786,7 +1807,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
     pagination_class = property(get_pagination_class)
 
     def discount_list(self, request, restaurant, *args, **kwargs):
-        discount_qs = Discount.objects.filter(restaurant=restaurant)
+        discount_qs = Discount.objects.filter(restaurant_id=restaurant)
         page_qs = self.paginate_queryset(discount_qs)
 
         serializer = DiscountSerializer(instance=page_qs, many=True)

@@ -170,7 +170,8 @@ fake_dashboard_urls = [
 
     path('order/placed_status/',
          FoodOrderViewSet.as_view({'post': 'placed_status'}, name='placed_status')),
-
+    path('order/revert_back_to_in_table/',
+         FoodOrderViewSet.as_view({'post': 'revert_back_to_in_table'}, name='revert_back_to_in_table')),
 
     path('ordered_item/<int:pk>/',
          FoodOrderedViewSet.as_view({'get': 'retrieve'}, name='ordered_item')),

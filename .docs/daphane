@@ -1,0 +1,17 @@
+  GNU nano 4.8                                                                         /etc/systemd/system/daphane.service                                                                                    
+[Unit]
+Description=cafe
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/i-host-backend/
+ExecStart=/root/i-host-backend/env/bin/daphne -p 9001  ihost.asgi:application
+#edit myproject
+#If your daphne is not installed globally and is inside your #environment, enter the complete path to daphne
+#ExecStart=/home/ubuntu/myproject/env/bin/daphne -p 9001     
+#          myproject.asgi:application
+[Install]
+WantedBy=multi-user.target
+
