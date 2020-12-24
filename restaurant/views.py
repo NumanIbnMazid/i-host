@@ -2013,6 +2013,29 @@ class ReviewViewset(LoggingMixin, CustomViewSet):
         serializer = ReviewSerializer(instance=restaurant_qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
+    def create(self, request):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+        if serializer.is_valid():
+            qs = serializer.save()
+            food_list_qs = Food.objects.filter(food_options__ordered_items__food_order_id=qs.order.pk)
+            for index, food_qs in enumerate(food_list_qs):
+                food_rating = food_qs.rating
+                if food_rating == None:
+                    food_rating=0
+                new_rating = ((food_rating * food_qs.order_counter)+ qs.rating)/(1+food_qs.order_counter)
+                # food_qs.rating = new_rating
+                # food_qs.save()
+                food_list_qs[index].rating = new_rating
+                food_list_qs[index].order_counter = (1+food_qs.order_counter)
+
+            Food.objects.bulk_update(food_list_qs, ['rating','order_counter'])
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+
 class RestaurantMessagesViewset(LoggingMixin, CustomViewSet):
     queryset = RestaurantMessages.objects.all()
     lookup_field = 'pk'
