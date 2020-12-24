@@ -508,7 +508,7 @@ class FoodsByCategorySerializer(FoodWithPriceSerializer):
 class FoodDetailSerializer(serializers.ModelSerializer):
     category = FoodCategorySerializer(read_only=True)
     food_extras = FoodExtraGroupByTypeSerializer(read_only=True, many=True)
-    food_options = FoodOptionSerializer(read_only=True, many=True)
+    food_options = serializers.SerializerMethodField(read_only=True)
     price = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -537,6 +537,10 @@ class FoodDetailSerializer(serializers.ModelSerializer):
             return round(option_qs.price, 2)
         else:
             return None
+    def get_food_options(self,obj):
+        serializer = FoodOptionSerializer(obj.food_options.order_by('price'),many=True)
+        return serializer.data
+
 
 
 class RestaurantUpdateSerialier(serializers.ModelSerializer):
