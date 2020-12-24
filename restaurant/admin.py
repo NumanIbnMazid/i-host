@@ -43,6 +43,8 @@ class SliderAdmin(admin.ModelAdmin):
 
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ['id','order','rating','review_text']
+class RestaurantMessagesAdmin(admin.ModelAdmin):
+    list_display = ['id','title','message','restaurant']
 
 
 admin.site.register(Restaurant)
@@ -66,3 +68,4 @@ admin.site.register(Discount, DiscountAdmin)
 admin.site.register(PopUp, PopUpAdmin)
 admin.site.register(Slider, SliderAdmin)
 admin.site.register(Review, ReviewAdmin)
+admin.site.register(RestaurantMessages, RestaurantMessagesAdmin)

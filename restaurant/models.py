@@ -331,3 +331,4 @@ class RestaurantMessages(models.Model):
     restaurant = models.ForeignKey(to=Restaurant,on_delete=models.CASCADE)
     title = models.CharField(max_length=200,null=True,blank=True)
     message = models.TextField()
+    updated_at = models.DateTimeField(auto_now=True)
