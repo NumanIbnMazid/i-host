@@ -442,6 +442,8 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
             'category',
             'id',
             'discount',
+            'rating',
+            'order_counter',
 
         ]
 
@@ -523,6 +525,7 @@ class FoodDetailSerializer(serializers.ModelSerializer):
             "food_options",
             'ingredients',
             'price',
+
         ]
 
     def get_price(self, obj):
