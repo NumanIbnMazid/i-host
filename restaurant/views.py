@@ -169,7 +169,8 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
     def delete_restaurant(self, request, pk, *args, **kwargs):
         qs = self.queryset.filter(pk=pk).first()
         if qs:
-            qs.delete()
+            qs.deleted_at=timezone.now()
+            qs.save()
             return ResponseWrapper(status=200, msg='deleted')
         else:
             return ResponseWrapper(error_msg="failed to delete", error_code=400)
