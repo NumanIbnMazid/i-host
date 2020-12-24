@@ -34,7 +34,7 @@ from utils.response_wrapper import ResponseWrapper
 from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodExtraType, FoodOption, FoodOptionType,
                                FoodOrder, Invoice, OrderedItem, PopUp,
-                               Restaurant, Table, Slider, Subscription,Review,RestaurantMessages)
+                               Restaurant, Table, Slider, Subscription, Review, RestaurantMessages)
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
@@ -168,9 +168,13 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
 
     def delete_restaurant(self, request, pk, *args, **kwargs):
         qs = self.queryset.filter(pk=pk).first()
+
         if qs:
-            qs.deleted_at=timezone.now()
+            qs.deleted_at = timezone.now()
             qs.save()
+            qs.tables.update(deleted_at=timezone.now())
+            # table_qs.deleted_at=timezone.now()
+            # table_qs.save()
             return ResponseWrapper(status=200, msg='deleted')
         else:
             return ResponseWrapper(error_msg="failed to delete", error_code=400)
@@ -428,12 +432,13 @@ class TableViewSet(LoggingMixin, CustomViewSet):
     def create(self, request):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
-        res_qs = Restaurant.objects.filter(id = request.data.get('restaurant')).select_related('subscription').last()
+        res_qs = Restaurant.objects.filter(id=request.data.get(
+            'restaurant')).select_related('subscription').last()
         table_count = res_qs.tables.count()
         # table_count = Table.objects.filter(restaurant_id=res_qs.id).count()
         table_limit_qs = res_qs.subscription.table_limit
         if not table_count <= table_limit_qs:
-            return ResponseWrapper(error_msg=["Your Table Limit is "+str(table_limit_qs)+', Please Update Your Subscription '] ,error_code=400)
+            return ResponseWrapper(error_msg=["Your Table Limit is "+str(table_limit_qs)+', Please Update Your Subscription '], error_code=400)
         if serializer.is_valid():
             qs = serializer.save()
             serializer = self.serializer_class(instance=qs)
@@ -1998,6 +2003,7 @@ class ReviewViewset(LoggingMixin, CustomViewSet):
     lookup_field = 'pk'
     serializer_class = ReviewSerializer
     #logging_methods = ['GET','DELETE', 'POST', 'PATCH']
+
     def get_permissions(self):
         permission_classes = []
         if self.action in ['create']:
@@ -2009,8 +2015,8 @@ class ReviewViewset(LoggingMixin, CustomViewSet):
                 permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
 
-    def review_list(self, request, restaurant,*args, **kwargs):
-        restaurant_qs = Review.objects.filter(order__restaurant_id = restaurant)
+    def review_list(self, request, restaurant, *args, **kwargs):
+        restaurant_qs = Review.objects.filter(order__restaurant_id=restaurant)
         serializer = ReviewSerializer(instance=restaurant_qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
@@ -2019,18 +2025,20 @@ class ReviewViewset(LoggingMixin, CustomViewSet):
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
             qs = serializer.save()
-            food_list_qs = Food.objects.filter(food_options__ordered_items__food_order_id=qs.order.pk)
+            food_list_qs = Food.objects.filter(
+                food_options__ordered_items__food_order_id=qs.order.pk)
             for index, food_qs in enumerate(food_list_qs):
                 food_rating = food_qs.rating
                 if food_rating == None:
-                    food_rating=0
-                new_rating = ((food_rating * food_qs.order_counter)+ qs.rating)/(1+food_qs.order_counter)
+                    food_rating = 0
+                new_rating = ((food_rating * food_qs.order_counter) +
+                              qs.rating)/(1+food_qs.order_counter)
                 # food_qs.rating = new_rating
                 # food_qs.save()
                 food_list_qs[index].rating = new_rating
                 food_list_qs[index].order_counter = (1+food_qs.order_counter)
 
-            Food.objects.bulk_update(food_list_qs, ['rating','order_counter'])
+            Food.objects.bulk_update(food_list_qs, ['rating', 'order_counter'])
             serializer = self.serializer_class(instance=qs)
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
@@ -2053,8 +2061,9 @@ class RestaurantMessagesViewset(LoggingMixin, CustomViewSet):
     #             permissions.IsAdminUser]
     #     return [permission() for permission in permission_classes]
 
-    def restaurant_messages_list(self, request, restaurant,*args, **kwargs):
-        restaurant_qs = RestaurantMessages.objects.filter(restaurant_id = restaurant)
-        serializer = RestaurantMessagesSerializer(instance=restaurant_qs, many=True)
+    def restaurant_messages_list(self, request, restaurant, *args, **kwargs):
+        restaurant_qs = RestaurantMessages.objects.filter(
+            restaurant_id=restaurant)
+        serializer = RestaurantMessagesSerializer(
+            instance=restaurant_qs, many=True)
         return ResponseWrapper(data=serializer.data)
-

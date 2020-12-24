@@ -118,7 +118,8 @@ class FoodOptionTypeSerializer(serializers.ModelSerializer):
 
 
 class RestaurantSerializer(serializers.ModelSerializer):
-    review = serializers.SerializerMethodField(read_only= True)
+    review = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Restaurant
         # fields = '__all__'
@@ -128,10 +129,11 @@ class RestaurantSerializer(serializers.ModelSerializer):
         review_qs = None
         if obj.food_orders:
 
-            reviews_list = list(filter(None,obj.food_orders.values_list('reviews__rating', flat=True)))
+            reviews_list = list(
+                filter(None, obj.food_orders.values_list('reviews__rating', flat=True)))
             if reviews_list:
-                return {'value':sum(reviews_list) / reviews_list.__len__(),'total_reviewers':reviews_list.__len__()}
-        return {'value':None,'total_reviewers':0}
+                return {'value': sum(reviews_list) / reviews_list.__len__(), 'total_reviewers': reviews_list.__len__()}
+        return {'value': None, 'total_reviewers': 0}
 
 
 class TableSerializer(serializers.ModelSerializer):
@@ -490,7 +492,6 @@ class FoodGroupByCategoryListSerializer(serializers.ListSerializer):
         ]
 
 
-
 # class FoodsByCategorySerializer(serializers.ModelSerializer):
 #     foods = FoodWithPriceSerializer(many=True)
 
@@ -525,6 +526,8 @@ class FoodDetailSerializer(serializers.ModelSerializer):
             "food_options",
             'ingredients',
             'price',
+            'rating',
+            'order_counter',
 
         ]
 
@@ -738,7 +741,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
 class ReviewSerializer(serializers.ModelSerializer):
     customer_info = serializers.SerializerMethodField(read_only=True)
 
@@ -759,7 +761,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         else:
             return {}
 
+
 class RestaurantMessagesSerializer(serializers.ModelSerializer):
     class Meta:
-        model =  RestaurantMessages
+        model = RestaurantMessages
         fields = '__all__'
