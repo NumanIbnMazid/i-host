@@ -783,5 +783,5 @@ class RestaurantMessagesSerializer(serializers.ModelSerializer):
 
 class Payment_TypeSerializer(serializers.ModelSerializer):
     class Meta:
-        models: Payment_type
+        models= Payment_type
         fields = '__all__'

@@ -2121,7 +2121,7 @@ class RestaurantMessagesViewset(LoggingMixin, CustomViewSet):
 
 
 class Payment_TypeViewSet(LoggingMixin, CustomViewSet):
-    # permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAdminUser]
     queryset = Payment_type.objects.all()
     lookup_field = 'pk'
     serializer_class = Payment_TypeSerializer
