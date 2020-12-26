@@ -556,8 +556,6 @@ class FoodDetailSerializer(serializers.ModelSerializer):
         return serializer.data
 
 class RestaurantPostSerialier(serializers.ModelSerializer):
-    logo = Base64ImageField()
-
     class Meta:
         model = Restaurant
         exclude = ['deleted_at']
