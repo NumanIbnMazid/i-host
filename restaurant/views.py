@@ -532,7 +532,14 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg="table not found", error_code=400)
 
+    def free_table_list(self, request, restaurant, *args, **kwargs):
 
+        qs = Table.objects.filter(restaurant_id=restaurant, is_occupied = False)
+
+        serializer = self.get_serializer(
+            instance=qs, many=True)
+
+        return ResponseWrapper(data=serializer.data, msg='success')
 class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
     # permission_classes = [permissions.IsAuthenticated]
@@ -794,8 +801,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
             else:
                 if order_qs.status in ['4_CREATE_INVOICE','5_PAID']:
-                    order_qs.status = '2_ORDER_CONFIRMED'
-                    order_qs.save()
+                   order_qs.status = '2_ORDER_CONFIRMED'
+                   order_qs.save()
                 serializer = FoodOrderByTableSerializer(instance=order_qs)
                 order_done_signal.send(
                     sender=self.__class__.revert_back_to_in_table,
