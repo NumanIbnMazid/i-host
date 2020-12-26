@@ -117,9 +117,14 @@ class FoodOptionTypeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 """
 
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = '__all__'
 
 class RestaurantSerializer(serializers.ModelSerializer):
     review = serializers.SerializerMethodField(read_only=True)
+    subscription = SubscriptionSerializer(read_only= True)
 
     class Meta:
         model = Restaurant
@@ -558,6 +563,12 @@ class RestaurantUpdateSerialier(serializers.ModelSerializer):
                 return Restaurant.objects.create(logo=logo, **validated_data)
             return Restaurant.objects.create(**validated_data)
 
+class RestaurantPostSerialier(serializers.ModelSerializer):
+    logo = Base64ImageField()
+
+    class Meta:
+        model = Restaurant
+        exclude = ['deleted_at']
 
 class RestaurantContactPersonSerializer(serializers.ModelSerializer):
     class Meta:
@@ -749,10 +760,6 @@ class ReOrderedItemSerializer(serializers.Serializer):
     quantity = serializers.IntegerField(default=1)
 
 
-class SubscriptionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Subscription
-        fields = '__all__'
 
 
 class ReviewSerializer(serializers.ModelSerializer):

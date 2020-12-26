@@ -63,7 +63,8 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           TableSerializer, TableStaffSerializer,
                           TakeAwayFoodOrderPostSerializer,
                           TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer,
-                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,Payment_TypeSerializer)
+                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,
+                          Payment_TypeSerializer, RestaurantPostSerialier)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -74,7 +75,7 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
 
     def get_serializer_class(self):
         if self.action == 'create':
-            self.serializer_class = RestaurantSerializer
+            self.serializer_class = RestaurantPostSerialier
         elif self.action == 'update':
             self.serializer_class = RestaurantUpdateSerialier
         else:
@@ -92,10 +93,11 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         return [permission() for permission in permission_classes]
 
     def create(self, request, *args, **kwargs):
-        serializer = RestaurantSerializer(data=request.data)
+        serializer = RestaurantPostSerialier(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return ResponseWrapper(data=serializer.data, msg='created')
+            qs = serializer.save()
+            serializer = RestaurantSerializer(instance=qs)
+            return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_code=400, error_msg=serializer.errors, msg='failed to create restaurent')
 
@@ -115,7 +117,7 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
             )
         ):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg="can't update please consult with manager or owner of the hotel")
-        serializer = RestaurantUpdateSerialier(data=request.data, partial=True)
+        serializer = RestaurantSerializer(data=request.data, partial=True)
         if not serializer.is_valid():
             return ResponseWrapper(error_code=400, error_msg=serializer.errors)
         qs = Restaurant.objects.filter(pk=pk)
