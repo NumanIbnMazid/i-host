@@ -28,6 +28,7 @@ router = DefaultRouter()
 
 router.register('restaurant_messages', RestaurantMessagesViewset,
                 basename="restaurant_messages")
+router.register('payment_type', PaymentTypeViewSet, basename='payment_type')
 router.register('pop_up', PopUpViewset, basename='pop_up')
 router.register('slider', SliderViewset, basename='slider')
 # router.register('discount', DiscountViewSet,
@@ -248,13 +249,19 @@ dashboard_urls = [
     path('report_by_date_range/',
          ReportingViewset.as_view({'post': 'report_by_date_range'}), name='report_by_date_range'),
 
+    path('dashboard_fotka_api/',
+         ReportingViewset.as_view({'get': 'admin_all_report'}), name='admin_all_report'),
+
     path('food_report_by_date_range/',
          ReportingViewset.as_view({'post': 'food_report_by_date_range'}), name='food_report_by_date_range'),
 
     path('dashboard_total_report/<int:restaurant_id>',
          ReportingViewset.as_view({'get': 'dashboard_total_report'}), name='dashboard_total_report'),
-    path('subscription',
+    path('subscription/',
          SubscriptionViewset.as_view({'get': 'list','post':'create'}), name ='subscription_list'),
+    path('subscription_by_restaurant/<int:restaurant_id>/',
+         SubscriptionViewset.as_view({'get': 'subscription_by_restaurant'}), name ='subscription_by_restaurant'),
+
     path('subscription/<int:pk>',
          SubscriptionViewset.as_view({'get': 'retrieve','patch':'update','delete':'destroy'}),name='subscription'),
     path('review/<int:pk>/',

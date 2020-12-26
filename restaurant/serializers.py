@@ -1,3 +1,4 @@
+from django.contrib.postgres import fields
 from drf_extra_fields.fields import Base64ImageField
 import copy
 from account_management.models import HotelStaffInformation
@@ -117,8 +118,14 @@ class FoodOptionTypeSerializer(serializers.ModelSerializer):
 """
 
 
+class PaymentTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment_type
+        fields = '__all__'
+
 class RestaurantSerializer(serializers.ModelSerializer):
     review = serializers.SerializerMethodField(read_only=True)
+    payment_type = PaymentTypeSerializer(read_only=True,many=True)
 
     class Meta:
         model = Restaurant
@@ -673,8 +680,8 @@ class DiscountSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         image = validated_data.pop('image', None)
         if image:
-            return PopUp.objects.create(image=image, **validated_data)
-        return PopUp.objects.create(**validated_data)
+            return Discount.objects.create(image=image, **validated_data)
+        return Discount.objects.create(**validated_data)
 
 
 class FoodDetailsByDiscountSerializer(serializers.ModelSerializer):

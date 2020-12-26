@@ -1,6 +1,6 @@
 from rest_framework_tracking.models import APIRequestLog
 
-from restaurant.models import Restaurant
+from restaurant.models import Restaurant, Subscription
 
 from django.http import request
 from rest_framework import fields
@@ -8,6 +8,7 @@ from rest_framework.serializers import Serializer
 
 from rest_framework import serializers
 from .models import CustomerFcmDevice, CustomerInfo, HotelStaffInformation, StaffFcmDevice, UserAccount, models
+# from restaurant import serializers as restaurant_serializer
 
 from drf_extra_fields.fields import Base64ImageField
 from drf_extra_fields.fields import HybridImageField
@@ -125,9 +126,14 @@ class StaffInfoGetSerializer(serializers.ModelSerializer):
             "email",
         ]
 
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = '__all__'
 
 class RestaurantSerializer(serializers.ModelSerializer):
     review = serializers.SerializerMethodField(read_only=True)
+    subscription = SubscriptionSerializer(read_only=True)
     class Meta:
         model = Restaurant
         fields = '__all__'
