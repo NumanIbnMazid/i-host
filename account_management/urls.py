@@ -8,6 +8,8 @@ router = DefaultRouter()
 router.register('customer_info', CustomerInfoViewset,
                 basename="customer_info")
 router.register('apps/staff_fcm_device', StaffFcmDeviceViewset, basename='fcm')
+router.register('apps/user_fcm_device',
+                UserFcmDeviceViewset, basename='fcm_user')
 
 
 user_account_get_post_patch_delete = UserAccountManagerViewSet.as_view(

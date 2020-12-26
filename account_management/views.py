@@ -29,10 +29,10 @@ from rest_framework.response import Response
 from restaurant.models import Restaurant
 from utils.response_wrapper import ResponseWrapper
 
-from account_management.models import CustomerInfo, StaffFcmDevice, HotelStaffInformation
+from account_management.models import CustomerFcmDevice, CustomerInfo, StaffFcmDevice, HotelStaffInformation
 from account_management.models import UserAccount
 from account_management.models import UserAccount as User
-from account_management.serializers import (CustomerInfoSerializer, StaffFcmDeviceSerializer, OtpLoginSerializer,
+from account_management.serializers import (CustomerFcmDeviceSerializer, CustomerInfoSerializer, StaffFcmDeviceSerializer, OtpLoginSerializer,
                                             RestaurantUserSignUpSerializer, StaffInfoGetSerializer, StaffInfoSerializer,
                                             StaffLoginInfoGetSerializer,
                                             UserAccountPatchSerializer,
@@ -58,6 +58,40 @@ class StaffFcmDeviceViewset(LoggingMixin, CustomViewSet):
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
             staff_fcm_qs = StaffFcmDevice.objects.filter(
+                hotel_staff=request.data.get("hotel_staff"))
+            staff_fcm_qs.delete()
+            qs = serializer.save()
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def update(self, request, **kwargs):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data, partial=True)
+        if serializer.is_valid():
+            qs = serializer.update(instance=self.get_object(
+            ), validated_data=serializer.validated_data)
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+
+class UserFcmDeviceViewset(LoggingMixin, CustomViewSet):
+    queryset = CustomerFcmDevice.objects.all()
+    lookup_field = 'customer'
+    serializer_class = CustomerFcmDeviceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+    http_method_names = ('post',)
+
+    def create(self, request):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+        if serializer.is_valid():
+            staff_fcm_qs = CustomerFcmDevice.objects.filter(
                 hotel_staff=request.data.get("hotel_staff"))
             staff_fcm_qs.delete()
             qs = serializer.save()
