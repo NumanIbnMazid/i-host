@@ -28,6 +28,7 @@ router = DefaultRouter()
 
 router.register('restaurant_messages', RestaurantMessagesViewset,
                 basename="restaurant_messages")
+router.register('payment_type',Payment_TypeViewSet,basename='payment_type')
 router.register('pop_up', PopUpViewset, basename='pop_up')
 router.register('slider', SliderViewset, basename='slider')
 # router.register('discount', DiscountViewSet,

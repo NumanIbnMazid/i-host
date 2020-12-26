@@ -1,3 +1,4 @@
+from django.contrib.postgres import fields
 from drf_extra_fields.fields import Base64ImageField
 import copy
 from account_management.models import HotelStaffInformation
@@ -778,4 +779,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 class RestaurantMessagesSerializer(serializers.ModelSerializer):
     class Meta:
         model = RestaurantMessages
+        fields = '__all__'
+
+class Payment_TypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        models: Payment_type
         fields = '__all__'

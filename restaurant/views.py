@@ -33,7 +33,7 @@ from utils.response_wrapper import ResponseWrapper
 
 from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodExtraType, FoodOption, FoodOptionType,
-                               FoodOrder, Invoice, OrderedItem, PopUp,
+                               FoodOrder, Invoice, OrderedItem, Payment_type, PopUp,
                                Restaurant, Table, Slider, Subscription, Review, RestaurantMessages)
 
 from . import permissions as custom_permissions
@@ -63,7 +63,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           TableSerializer, TableStaffSerializer,
                           TakeAwayFoodOrderPostSerializer,
                           TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer,
-                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer)
+                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,Payment_TypeSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -2118,3 +2118,10 @@ class RestaurantMessagesViewset(LoggingMixin, CustomViewSet):
         serializer = RestaurantMessagesSerializer(
             instance=restaurant_qs, many=True)
         return ResponseWrapper(data=serializer.data)
+
+
+class Payment_TypeViewSet(LoggingMixin, CustomViewSet):
+    permission_classes = [permissions.IsAdminUser]
+    queryset = Payment_type.objects.all()
+    lookup_field = 'pk'
+    serializer_class = Payment_TypeSerializer
