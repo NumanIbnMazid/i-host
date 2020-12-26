@@ -537,10 +537,11 @@ class FoodDetailSerializer(serializers.ModelSerializer):
             return round(option_qs.price, 2)
         else:
             return None
-    def get_food_options(self,obj):
-        serializer = FoodOptionSerializer(obj.food_options.order_by('price'),many=True)
-        return serializer.data
 
+    def get_food_options(self, obj):
+        serializer = FoodOptionSerializer(
+            obj.food_options.order_by('price'), many=True)
+        return serializer.data
 
 
 class RestaurantUpdateSerialier(serializers.ModelSerializer):
@@ -662,10 +663,18 @@ class DiscountByFoodSerializer(serializers.Serializer):
 
 
 class DiscountSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+
     class Meta:
         model = Discount
         # fields ='__all__'
         exclude = ['deleted_at']
+
+    def create(self, validated_data):
+        image = validated_data.pop('image', None)
+        if image:
+            return PopUp.objects.create(image=image, **validated_data)
+        return PopUp.objects.create(**validated_data)
 
 
 class FoodDetailsByDiscountSerializer(serializers.ModelSerializer):
