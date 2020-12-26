@@ -83,8 +83,8 @@ apps_fake = [
     path('restaurant_staff/<int:staff_id>/tables/',
          TableViewSet.as_view({'get': 'staff_table_list'}), name='staff_table_list'),
 
-    #     path('table/<int:table_id>/',
-    #          TableViewSet.as_view({'delete': 'destroy'}), name='destroy_tables'),
+    path('free_table_list/<int:restaurant>/',
+         TableViewSet.as_view({'get': 'free_table_list'}), name='free_table_list'),
 
     path('restaurant/<int:restaurant_id>/order_item_list/',
          RestaurantViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),

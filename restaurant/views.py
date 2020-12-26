@@ -532,7 +532,14 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg="table not found", error_code=400)
 
+    def free_table_list(self, request, restaurant, *args, **kwargs):
 
+        qs = Table.objects.filter(restaurant_id=restaurant, is_occupied = False)
+
+        serializer = self.get_serializer(
+            instance=qs, many=True)
+
+        return ResponseWrapper(data=serializer.data, msg='success')
 class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
     # permission_classes = [permissions.IsAuthenticated]
