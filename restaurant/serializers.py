@@ -673,8 +673,8 @@ class DiscountSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         image = validated_data.pop('image', None)
         if image:
-            return PopUp.objects.create(image=image, **validated_data)
-        return PopUp.objects.create(**validated_data)
+            return Discount.objects.create(image=image, **validated_data)
+        return Discount.objects.create(**validated_data)
 
 
 class FoodDetailsByDiscountSerializer(serializers.ModelSerializer):
