@@ -1119,6 +1119,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         paginated_data = self.get_paginated_response(serializer.data)
 
         return ResponseWrapper(paginated_data.data)
+    
 
 
 class OrderedItemViewSet(LoggingMixin, CustomViewSet):
@@ -1213,7 +1214,8 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             # if order_order_qs:
             #     order_order_qs.update(status='0_ORDER_INITIALIZED')
 
-            serializer = OrderedItemSerializer(instance=qs, many=True)
+
+            serializer = FoodOrderByTableSerializer(instance=food_order_qs)
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=restaurant_id,
