@@ -1147,19 +1147,11 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
 
         return self.serializer_class
 
-    def destroy(self, request, **kwargs):
-        item_qs = OrderedItem.objects.filter(
-            **kwargs).exclude(status__in=["4_CANCELLED"], food_order__status__in=['5_PAID', '6_CANCELLED']).last()
-        if not item_qs:
-            return ResponseWrapper(error_msg=['item is invalid or cancelled'], error_code=400)
-        order_qs = item_qs.food_order
-        if not order_qs:
-            return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
-
-        item_qs.status = '4_CANCELLED'
-        item_qs.save()
-        serializer = FoodOrderByTableSerializer(instance=order_qs)
-
+    def destroy(self, request,pk, **kwargs):
+        order_item_qs =  OrderedItem.objects.filter(id = pk).first()
+        if order_item_qs:
+            order_item_qs.delete()
+            serializer = FoodOrderByTableSerializer(instance=order_item_qs.food_order)
         return ResponseWrapper(data=serializer.data, msg='Served')
 
     def update(self, request, **kwargs):
@@ -1717,6 +1709,35 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                      "day_wise_order": weekly_day_wise_order_list,
                                      }, msg="success")
 
+    def admin_all_report(self, request, *args, **kwargs):
+       # today = timezone.datetime.now()
+        this_month = timezone.datetime.now().month
+        total_restaurant = Restaurant.objects.all().count()
+        total_order = FoodOrder.objects.filter(status = '5_PAID').count()
+        total_cancel_order = FoodOrder.objects.filter(status = '6_CANCELLED').count()
+        total_invoice_qs = Invoice.objects.filter(payment_status='1_PAID')
+        total_payable_amount_list = total_invoice_qs.values_list(
+            'payable_amount', flat=True)
+        total_amaount = sum(total_payable_amount_list)
+        this_month_total_restaurant = Restaurant.objects.filter(created_at__contains = this_month).count()
+        this_month_total_order = FoodOrder.objects.filter(status = '5_PAID',created_at__contains = this_month).count()
+        this_month_cancel_order = FoodOrder.objects.filter(status = '6_CANCELLED',created_at__contains = this_month).count()
+        this_month_total_invoice_qs = Invoice.objects.filter(created_at__contains = this_month,payment_status='1_PAID')
+        this_month_total_payable_amount_list = this_month_total_invoice_qs.values_list(
+            'payable_amount', flat=True)
+        this_month_total_amaount = sum(this_month_total_payable_amount_list)
+
+
+        return ResponseWrapper(data={'total_restaurant': total_restaurant,
+                                     'total_order': total_order,
+                                     'total_cancel_order':total_cancel_order,
+                                     'total_amaount':total_amaount,
+                                     'this_month_total_restaurant':this_month_total_restaurant,
+                                     'this_month_total_order':this_month_total_order,
+                                     'this_month_cancel_order':this_month_cancel_order,
+                                     'this_month_total_amaount':this_month_total_amaount,
+                                     }, msg="success")
+
 
 class InvoiceViewSet(LoggingMixin, CustomViewSet):
     serializer_class = InvoiceSerializer
@@ -2018,6 +2039,13 @@ class SubscriptionViewset(LoggingMixin, CustomViewSet):
             permission_classes = [
                 permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
+
+    def subscription_by_restaurant(self, request, restaurant_id, *args, **kwargs):
+        restaurant_qs = Restaurant.objects.filter(pk=restaurant_id).first()
+        restaurant_qs = restaurant_qs.subscription
+        serializer = SubscriptionSerializer(instance=restaurant_qs)
+        return ResponseWrapper(data=serializer.data)
+
 
 
 class ReviewViewset(LoggingMixin, CustomViewSet):
