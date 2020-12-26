@@ -555,6 +555,12 @@ class FoodDetailSerializer(serializers.ModelSerializer):
             obj.food_options.order_by('price'), many=True)
         return serializer.data
 
+class RestaurantPostSerialier(serializers.ModelSerializer):
+    logo = Base64ImageField()
+
+    class Meta:
+        model = Restaurant
+        exclude = ['deleted_at']
 
 class RestaurantUpdateSerialier(serializers.ModelSerializer):
     logo = Base64ImageField()
@@ -759,11 +765,6 @@ class ReOrderedItemSerializer(serializers.Serializer):
     order_item_id = serializers.IntegerField()
     quantity = serializers.IntegerField(default=1)
 
-
-class SubscriptionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Subscription
-        fields = '__all__'
 
 
 class ReviewSerializer(serializers.ModelSerializer):

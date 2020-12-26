@@ -64,8 +64,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           TakeAwayFoodOrderPostSerializer,
                           TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer,
                           SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,
-                          Payment_TypeSerializer, RestaurantPostSerialier)
-                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,PaymentTypeSerializer)
+                          PaymentTypeSerializer, RestaurantPostSerialier)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -94,11 +93,11 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         return [permission() for permission in permission_classes]
 
     def create(self, request, *args, **kwargs):
-        serializer = RestaurantPostSerialier(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             qs = serializer.save()
             serializer = RestaurantSerializer(instance=qs)
-            return ResponseWrapper(data=serializer.data)
+            return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_code=400, error_msg=serializer.errors, msg='failed to create restaurent')
 
@@ -118,7 +117,7 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
             )
         ):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg="can't update please consult with manager or owner of the hotel")
-        serializer = RestaurantSerializer(data=request.data, partial=True)
+        serializer = RestaurantUpdateSerialier(data=request.data, partial=True)
         if not serializer.is_valid():
             return ResponseWrapper(error_code=400, error_msg=serializer.errors)
         qs = Restaurant.objects.filter(pk=pk)
@@ -2130,8 +2129,8 @@ class RestaurantMessagesViewset(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data)
 
 
-class Payment_TypeViewSet(LoggingMixin, CustomViewSet):
+class PaymentTypeViewSet(LoggingMixin, CustomViewSet):
     permission_classes = [permissions.IsAdminUser]
     queryset = Payment_type.objects.all()
     lookup_field = 'pk'
-    serializer_class = Payment_TypeSerializer
+    serializer_class = PaymentTypeSerializer
