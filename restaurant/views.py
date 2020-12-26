@@ -65,6 +65,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer,
                           SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,
                           Payment_TypeSerializer, RestaurantPostSerialier)
+                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,PaymentTypeSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
