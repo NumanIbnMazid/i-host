@@ -118,8 +118,14 @@ class FoodOptionTypeSerializer(serializers.ModelSerializer):
 """
 
 
+class PaymentTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment_type
+        fields = '__all__'
+
 class RestaurantSerializer(serializers.ModelSerializer):
     review = serializers.SerializerMethodField(read_only=True)
+    payment_type = PaymentTypeSerializer(read_only=True,many=True)
 
     class Meta:
         model = Restaurant
@@ -779,9 +785,4 @@ class ReviewSerializer(serializers.ModelSerializer):
 class RestaurantMessagesSerializer(serializers.ModelSerializer):
     class Meta:
         model = RestaurantMessages
-        fields = '__all__'
-
-class Payment_TypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Payment_type
         fields = '__all__'

@@ -63,7 +63,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           TableSerializer, TableStaffSerializer,
                           TakeAwayFoodOrderPostSerializer,
                           TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer,
-                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,Payment_TypeSerializer)
+                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,PaymentTypeSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -2127,8 +2127,8 @@ class RestaurantMessagesViewset(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data)
 
 
-class Payment_TypeViewSet(LoggingMixin, CustomViewSet):
+class PaymentTypeViewSet(LoggingMixin, CustomViewSet):
     permission_classes = [permissions.IsAdminUser]
     queryset = Payment_type.objects.all()
     lookup_field = 'pk'
-    serializer_class = Payment_TypeSerializer
+    serializer_class = PaymentTypeSerializer
