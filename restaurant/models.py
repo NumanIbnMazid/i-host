@@ -332,3 +332,6 @@ class RestaurantMessages(models.Model):
     title = models.CharField(max_length=200,null=True,blank=True)
     message = models.TextField()
     updated_at = models.DateTimeField(auto_now=True)
+
+class Payment_type(models.Model):
+    name = models.CharField(max_length=100,null=True,blank=True)
