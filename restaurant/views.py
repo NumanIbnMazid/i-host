@@ -2134,3 +2134,8 @@ class PaymentTypeViewSet(LoggingMixin, CustomViewSet):
     queryset = Payment_type.objects.all()
     lookup_field = 'pk'
     serializer_class = PaymentTypeSerializer
+
+    def restaurant_payment_type(self, request, restaurant, *args, **kwargs):
+        payment_type_qs = Restaurant.objects.filter(payment_type_id=restaurant)
+        serializer = PaymentTypeSerializer(instance=payment_type_qs,many=True)
+        return ResponseWrapper(data=serializer.data)
