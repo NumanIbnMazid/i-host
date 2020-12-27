@@ -185,7 +185,8 @@ class CustomerFcmDevice(models.Model):
 
 
 class OtpUser(models.Model):
-    user = models.OneToOneField(to=UserAccount, null=True, blank=True,on_delete=models.SET_NULL)
+    user = models.OneToOneField(
+        to=UserAccount, null=True, blank=True, on_delete=models.SET_NULL)
     phone = models.CharField(max_length=20, unique=True)
-    otp_code = models.IntegerField()
+    otp_code = models.IntegerField(null=True)
     updated_at = models.DateTimeField(auto_now=True)
