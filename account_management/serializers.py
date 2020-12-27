@@ -1,6 +1,6 @@
 from rest_framework_tracking.models import APIRequestLog
 
-from restaurant.models import Restaurant, Subscription
+from restaurant.models import Restaurant, Subscription,PaymentType
 
 from django.http import request
 from rest_framework import fields
@@ -131,9 +131,15 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         model = Subscription
         fields = '__all__'
 
+class PaymentTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentType
+        fields = '__all__'
+
 class RestaurantSerializer(serializers.ModelSerializer):
     review = serializers.SerializerMethodField(read_only=True)
     subscription = SubscriptionSerializer(read_only=True)
+    subscription = PaymentTypeSerializer(read_only=True)
     class Meta:
         model = Restaurant
         fields = '__all__'
