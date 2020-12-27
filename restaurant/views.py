@@ -77,7 +77,9 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         if self.action == 'create':
             self.serializer_class = RestaurantPostSerialier
         elif self.action == 'update':
-            self.serializer_class = RestaurantUpdateSerialier
+            # self.serializer_class = RestaurantUpdateSerialier
+            self.serializer_class = RestaurantPostSerialier
+
         else:
             self.serializer_class = RestaurantSerializer
 
@@ -117,7 +119,11 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
             )
         ):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg="can't update please consult with manager or owner of the hotel")
-        serializer = RestaurantUpdateSerialier(data=request.data, partial=True)
+        if self.request.user.is_staff:
+            serializer = RestaurantPostSerialier(data=request.data, partial=True)
+        else:
+            serializer = RestaurantUpdateSerialier(data=request.data, partial=True)
+
         if not serializer.is_valid():
             return ResponseWrapper(error_code=400, error_msg=serializer.errors)
         qs = Restaurant.objects.filter(pk=pk)
@@ -834,9 +840,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                     food_order=order_qs.pk, status__in=["0_ORDER_INITIALIZED"])
                 all_items_qs.update(status='1_ORDER_PLACED')
 
-                if order_qs.status in ['0_ORDER_INITIALIZED']:
-                    order_qs.status = '1_ORDER_PLACED'
-                    order_qs.save()
+                # if order_qs.status in ['0_ORDER_INITIALIZED']:
+                order_qs.status = '1_ORDER_PLACED'
+                order_qs.save()
                 serializer = FoodOrderByTableSerializer(instance=order_qs)
                 order_done_signal.send(
                     sender=self.__class__.create,
@@ -870,9 +876,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         # order_qs.status = '2_ORDER_CONFIRMED'
         # order_qs.save()
         # serializer = FoodOrderByTableSerializer(instance=order_qs)
-        if order_qs.status in ["0_ORDER_INITIALIZED", "1_ORDER_PLACED"]:
-            order_qs.status = '2_ORDER_CONFIRMED'
-            order_qs.save()
+        # if order_qs.status in ["0_ORDER_INITIALIZED", "1_ORDER_PLACED"]:
+        order_qs.status = '2_ORDER_CONFIRMED'
+        order_qs.save()
 
         serializer = FoodOrderByTableSerializer(instance=order_qs)
         order_done_signal.send(
@@ -905,9 +911,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         # order_qs.status = '2_ORDER_CONFIRMED'
         # order_qs.save()
         # serializer = FoodOrderByTableSerializer(instance=order_qs)
-        if order_qs.status in ["0_ORDER_INITIALIZED", "1_ORDER_PLACED"]:
-            order_qs.status = '2_ORDER_CONFIRMED'
-            order_qs.save()
+        # if order_qs.status in ["0_ORDER_INITIALIZED", "1_ORDER_PLACED"]:
+        order_qs.status = '2_ORDER_CONFIRMED'
+        order_qs.save()
 
         serializer = FoodOrderByTableSerializer(instance=order_qs)
         order_done_signal.send(
@@ -927,16 +933,17 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                                                             ]).first()
             if not order_qs:
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
-
             all_items_qs = OrderedItem.objects.filter(
-                food_order=order_qs, status__in=["2_ORDER_CONFIRMED"])
-            if all_items_qs:
-                all_items_qs.filter(pk__in=request.data.get(
+                food_order=order_qs).exclude(status__in=["0_ORDER_INITIALIZED"]).order_by("status")
+            confirmed_items_qs = all_items_qs.filter(status__in=["2_ORDER_CONFIRMED"])
+            if confirmed_items_qs:
+                confirmed_items_qs.filter(pk__in=request.data.get(
                     'food_items')).update(status='3_IN_TABLE')
 
-            if order_qs.status in ["2_ORDER_CONFIRMED", "1_ORDER_PLACED", "0_ORDER_INITIALIZED"]:
-                order_qs.status = '3_IN_TABLE'
-                order_qs.save()
+            # if order_qs.status in ["2_ORDER_CONFIRMED", "1_ORDER_PLACED", "0_ORDER_INITIALIZED"]:
+            if all_items_qs:
+                order_qs.status = all_items_qs.first().status
+            order_qs.save()
             serializer = FoodOrderByTableSerializer(instance=order_qs)
             order_done_signal.send(
                 sender=self.__class__.create,
