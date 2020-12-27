@@ -164,7 +164,7 @@ class OtpSignUpView(KnoxLoginView):
     def post(self, request, format=None):
         phone = request.data.get('phone')
         otp_qs = OtpUser.objects.filter(phone=phone).last()
-        if otp_qs.updated_at > timezone.now() - timezone.timedelta(minutes=5):
+        if otp_qs.updated_at < (timezone.now() - timezone.timedelta(minutes=5)):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp timeout'])
         if request.data.get('otp') != otp_qs.otp_code:
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp mismatched'])
