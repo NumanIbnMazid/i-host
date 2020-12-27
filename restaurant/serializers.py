@@ -580,7 +580,6 @@ class RestaurantPostSerialier(serializers.ModelSerializer):
     def update(self,instance, validated_data):
         logo = validated_data.pop('logo', None)
 
-
         if logo:
             instance.logo = logo
             instance.save()
