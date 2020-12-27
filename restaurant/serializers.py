@@ -738,7 +738,10 @@ class ReportDateRangeSerializer(serializers.Serializer):
 class StaffFcmSerializer(serializers.Serializer):
     table_id = serializers.IntegerField()
 
-
+class  OnlyFoodOrderIdSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodOrder
+        fields= ['id']
 class CollectPaymentSerializer(serializers.Serializer):
     table_id = serializers.IntegerField()
     payment_method = serializers.CharField()
