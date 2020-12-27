@@ -560,9 +560,23 @@ class FoodDetailSerializer(serializers.ModelSerializer):
         return serializer.data
 
 class RestaurantPostSerialier(serializers.ModelSerializer):
+    logo = Base64ImageField()
     class Meta:
         model = Restaurant
         exclude = ['deleted_at']
+
+    def create(self, validated_data):
+        logo = validated_data.pop('logo', None)
+        if logo:
+            return Restaurant.objects.create(logo=logo, **validated_data)
+        return Restaurant.objects.create(**validated_data)
+
+    def update(self, validated_data):
+        logo = validated_data.pop('logo', None)
+        if logo:
+            return Restaurant.objects.create(logo=logo, **validated_data)
+        return Restaurant.objects.create(**validated_data)
+
 
 class RestaurantUpdateSerialier(serializers.ModelSerializer):
     logo = Base64ImageField()
