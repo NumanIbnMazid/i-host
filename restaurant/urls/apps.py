@@ -225,6 +225,8 @@ apps_fake = [
          ReviewViewset.as_view({'post':'create'}, name='create')),
     path('restaurant_messages_list/<int:restaurant>/',
          RestaurantMessagesViewset.as_view({'get':'restaurant_messages_list'}, name='restaurant_messages_list')),
+    path('payment_type/<int:restaurant>/',
+         PaymentTypeViewSet.as_view({'get': 'restaurant_payment_type'}, name='restaurant_payment_type')),
 
 ]
 

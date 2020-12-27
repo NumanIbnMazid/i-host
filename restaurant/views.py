@@ -2148,7 +2148,13 @@ class RestaurantMessagesViewset(LoggingMixin, CustomViewSet):
 
 
 class PaymentTypeViewSet(LoggingMixin, CustomViewSet):
-    permission_classes = [permissions.IsAdminUser]
     queryset = PaymentType.objects.all()
     lookup_field = 'pk'
     serializer_class = PaymentTypeSerializer
+
+
+    def restaurant_payment_type(self, request, restaurant, *args, **kwargs):
+        restaurant = Restaurant.objects.filter(id=restaurant).last()
+        qs = restaurant.payment_type.all()
+        serializer = PaymentTypeSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data)
