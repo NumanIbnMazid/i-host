@@ -142,12 +142,17 @@ class LoginView(KnoxLoginView):
         data = self.get_post_response_data(request, token, instance)
         user_serializer = UserAccountSerializer(instance=user)
         staff_info = {}
+        customer_info = {}
         if user.hotel_staff.first():
             staff_info_serializer = StaffLoginInfoGetSerializer(
                 instance=user.hotel_staff.all(), many=True)
             staff_info = staff_info_serializer.data
+        if user.customer_info:
+            customer_info_serialzier = CustomerInfoSerializer(
+                instance=user.customer_info)
+            customer_info = customer_info_serialzier.data
 
-        return ResponseWrapper(data={'auth': data, 'user': user_serializer.data, 'staff_info': staff_info})
+        return ResponseWrapper(data={'auth': data, 'user': user_serializer.data, 'staff_info': staff_info, 'customer_info': customer_info})
 
 
 class OtpSignUpView(KnoxLoginView):
