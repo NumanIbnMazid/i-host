@@ -1244,6 +1244,8 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
                     order_pk_list.append(item.pk)
                 qs = OrderedItem.objects.filter(pk__in=order_pk_list)
                 qs.update(status='2_ORDER_CONFIRMED')
+                food_order_qs.status='2_ORDER_CONFIRMED'
+                food_order_qs.save()
 
             # order_order_qs= FoodOrder.objects.filter(status = '0_ORDER_INITIALIZED',pk=request.data.get('id'))
             # if order_order_qs:
@@ -2174,3 +2176,4 @@ class PaymentTypeViewSet(LoggingMixin, CustomViewSet):
         qs = restaurant.payment_type.all()
         serializer = PaymentTypeSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
+    

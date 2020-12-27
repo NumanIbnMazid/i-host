@@ -159,7 +159,7 @@ class OtpSignUpView(KnoxLoginView):
     def post(self, request, format=None):
         phone = request.data.get('phone')
         otp_qs = OtpUser.objects.filter(phone=phone).last()
-        if otp_qs.updated_at < (timezone.now() - timezone.timedelta(minutes=5)):
+        if otp_qs.updated_at > timezone.now() - timezone.timedelta(minutes=5):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp timeout'])
         if request.data.get('otp') != otp_qs.otp_code:
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp mismatched'])
@@ -248,7 +248,7 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
             id=restaurant_id).select_related('subscription').first()
         manager_limit_qs = manager_qs.subscription.manager_limit
 
-        if not manager_count <= manager_limit_qs:
+        if not manager_count < manager_limit_qs:
             return ResponseWrapper(
                 error_msg=["Your Manager Limit is " +
                            str(manager_limit_qs) + ', Please Update Your Subscription '],
@@ -265,12 +265,12 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
         restaurant_id = res_qs.first().restaurant_id
         waiter_qs = Restaurant.objects.filter(
             id=restaurant_id).select_related('subscription').first()
-        waiter_limit_qs = waiter_qs.subscription.waiter_limit
+        waiter_limit = waiter_qs.subscription.waiter_limit
 
-        if not waiter_count <= waiter_limit_qs:
+        if not waiter_count < waiter_limit:
             return ResponseWrapper(
                 error_msg=["Your Waiter Limit is " +
-                           str(waiter_limit_qs) + ', Please Update Your Subscription '],
+                           str(waiter_limit) + ', Please Update Your Subscription '],
                 error_code=400)
 
         # email = request.data.pop("email")
@@ -515,7 +515,7 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
 
     def get_otp(self, request, phone, **kwargs):
         otp = random.randint(1000, 9999)
-        otp_qs, _ = OtpUser.objects.get_or_create(phone=str(phone))
+        otp_qs = OtpUser.objects.get_or_create(phone=str(phone))
         if request.user.pk:
             otp_qs.user = request.user
         otp_qs.otp_code = otp
