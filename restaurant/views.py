@@ -2156,3 +2156,4 @@ class PaymentTypeViewSet(LoggingMixin, CustomViewSet):
         qs = restaurant.payment_type.all()
         serializer = PaymentTypeSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
+    
