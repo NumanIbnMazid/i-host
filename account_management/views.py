@@ -2,6 +2,7 @@ from calendar import month
 from datetime import datetime
 import random
 from utils.sms import send_sms
+from re import error
 from utils.pagination import CustomLimitPagination
 from drf_yasg2 import openapi
 
@@ -316,6 +317,7 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_code=404, error_msg=[{"restaurant_id": "restaurant not found"}])
         phone = request.data["phone"]
         user_qs = User.objects.filter(phone=phone).first()
+        error_msg = []
         if not user_qs:
             password = make_password(password=password)
             user_qs = User.objects.create(
@@ -324,6 +326,8 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
             )
         else:
             User.objects.filter(phone=phone).update(**user_info_dict)
+            error_msg.append(
+                'user already exists so staff is created successfully but password remains unchanged')
 
         staff_qs = HotelStaffInformation.objects.filter(
             user=user_qs, restaurant=restaurant_qs).first()
@@ -342,6 +346,8 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
         # user_serializer = UserAccountSerializer(instance=user_qs, many=False)
 
         staff_serializer = StaffInfoGetSerializer(instance=staff_qs)
+        if error_msg:
+            return ResponseWrapper(data=staff_serializer.data, error_msg=error_msg)
         return ResponseWrapper(data=staff_serializer.data, status=200)
 
     # def retrieve(self, request, *args, **kwargs):
