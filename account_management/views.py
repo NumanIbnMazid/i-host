@@ -94,9 +94,9 @@ class UserFcmDeviceViewset(LoggingMixin, CustomViewSet):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
-            staff_fcm_qs = CustomerFcmDevice.objects.filter(
-                hotel_staff=request.data.get("hotel_staff"))
-            staff_fcm_qs.delete()
+            customer_fcm_qs = CustomerFcmDevice.objects.filter(
+                customer_id=request.data.get("customer"))
+            customer_fcm_qs.delete()
             qs = serializer.save()
             serializer = self.serializer_class(instance=qs)
             return ResponseWrapper(data=serializer.data, msg='created')
