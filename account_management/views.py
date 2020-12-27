@@ -1,5 +1,7 @@
 from calendar import month
 from datetime import datetime
+import random
+from utils.sms import send_sms
 from utils.pagination import CustomLimitPagination
 from drf_yasg2 import openapi
 
@@ -29,7 +31,7 @@ from rest_framework.response import Response
 from restaurant.models import Restaurant
 from utils.response_wrapper import ResponseWrapper
 
-from account_management.models import CustomerFcmDevice, CustomerInfo, StaffFcmDevice, HotelStaffInformation
+from account_management.models import CustomerFcmDevice, CustomerInfo, OtpUser, StaffFcmDevice, HotelStaffInformation
 from account_management.models import UserAccount
 from account_management.models import UserAccount as User
 from account_management.serializers import (CustomerFcmDeviceSerializer, CustomerInfoSerializer, StaffFcmDeviceSerializer, OtpLoginSerializer,
@@ -154,7 +156,11 @@ class OtpSignUpView(KnoxLoginView):
 
     @swagger_auto_schema(request_body=OtpLoginSerializer)
     def post(self, request, format=None):
-        if request.data.get('otp') != 1234:
+        phone = request.data.get('phone')
+        otp_qs = OtpUser.objects.filter(phone=phone).last()
+        if otp_qs.updated_at < (timezone.now() - timezone.timedelta(minutes=5)):
+            return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp timeout'])
+        if request.data.get('otp') != otp_qs.otp_code:
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp mismatched'])
         token_limit_per_user = self.get_token_limit_per_user()
         user_qs = User.objects.filter(phone=request.data.get('phone')).first()
@@ -502,7 +508,17 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
         return ResponseWrapper(data="Active account not found", status=400)
 
     def get_otp(self, request, phone, **kwargs):
-        return ResponseWrapper(msg='otp sent', status=200)
+        otp = random.randint(1000, 9999)
+        otp_qs, _ = OtpUser.objects.get_or_create(phone=str(phone))
+        if request.user.pk:
+            otp_qs.user = request.user
+        otp_qs.otp_code = otp
+        otp_qs.save()
+
+        if send_sms(body=f'Your OTP code for I-HOST is {otp} . Thanks for using I-HOST.', phone=str(phone)):
+            return ResponseWrapper(msg='otp sent', status=200)
+        else:
+            return ResponseWrapper(error_msg='otp sending failed')
 
 
 class CustomerInfoViewset(LoggingMixin, viewsets.ModelViewSet):
