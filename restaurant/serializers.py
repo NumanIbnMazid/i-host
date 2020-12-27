@@ -566,10 +566,10 @@ class RestaurantPostSerialier(serializers.ModelSerializer):
         exclude = ['deleted_at']
 
     def create(self, validated_data):
-        image = validated_data.pop('image', None)
-        if image:
-            return Discount.objects.create(image=image, **validated_data)
-        return Discount.objects.create(**validated_data)
+        logo = validated_data.pop('logo', None)
+        if logo:
+            return Restaurant.objects.create(logo=logo, **validated_data)
+        return Restaurant.objects.create(**validated_data)
 
     def update(self, validated_data):
         logo = validated_data.pop('logo', None)
