@@ -64,7 +64,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           TakeAwayFoodOrderPostSerializer,
                           TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer,
                           SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,
-                          PaymentTypeSerializer, RestaurantPostSerialier)
+                          PaymentTypeSerializer, RestaurantPostSerialier, FreeTableSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -538,7 +538,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
 
         qs = Table.objects.filter(restaurant_id=restaurant, is_occupied = False)
 
-        serializer = self.get_serializer(
+        serializer = FreeTableSerializer(
             instance=qs, many=True)
 
         return ResponseWrapper(data=serializer.data, msg='success')
@@ -1128,6 +1128,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         table_qs = Table.objects.filter(id = request.data.get('table_id')).last()
         if table_qs.is_occupied:
             return ResponseWrapper(msg='Table is already occupied')
+        food_order_qs.table.is_occupied =False
+        food_order_qs.table.save()
 
         food_order_qs.table_id = table_qs.id
         table_qs.is_occupied = True
