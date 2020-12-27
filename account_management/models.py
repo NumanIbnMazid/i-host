@@ -5,7 +5,7 @@ import restaurant
 from django.contrib.auth.base_user import BaseUserManager
 from ihost.settings import TIME_ZONE
 from django.db import models
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.auth.models import AbstractUser, User, UserManager
 import uuid
 from django.utils import timezone
 from random import randint
@@ -182,3 +182,10 @@ class CustomerFcmDevice(models.Model):
         choices=[('web', 'web'), ('ios', 'ios'), ('android', 'android')], default='android', max_length=25)
     created_at = models.DateField(auto_now_add=True)
     updated_at = models.DateField(auto_now=True)
+
+
+class OtpUser(models.Model):
+    user = models.OneToOneField(to=UserAccount, null=True, blank=True)
+    phone = models.CharField(max_length=20, unique=True)
+    otp_code = models.IntegerField()
+    updated_at = models.DateTimeField(auto_now=True)
