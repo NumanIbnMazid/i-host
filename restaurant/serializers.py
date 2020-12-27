@@ -303,6 +303,10 @@ class FoodOrderSerializer(serializers.ModelSerializer):
     def get_price(self, obj):
         return calculate_price(food_order_obj=obj, include_initial_order=True)
 
+class FreeTableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Table
+        fields = ['id', 'table_no']
 
 class FoodOrderByTableSerializer(serializers.ModelSerializer):
     status_details = serializers.CharField(source='get_status_display')

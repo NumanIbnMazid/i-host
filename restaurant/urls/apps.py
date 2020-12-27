@@ -121,6 +121,9 @@ apps_fake = [
     path('order/create_order/',
          FoodOrderViewSet.as_view({'post': 'create_order_apps'}, name='create_order_apps')),
 
+    path('order/table_transfer/',
+         FoodOrderViewSet.as_view({'post': 'table_transfer'}, name='table_transfer')),
+
     path('reorder/', FoodOrderViewSet.as_view(
         {'post': 'food_reorder_by_order_id'}, name='food_reorder_by_order_id')),
     path('customer_order_history/', FoodOrderViewSet.as_view(
@@ -222,6 +225,8 @@ apps_fake = [
          ReviewViewset.as_view({'post':'create'}, name='create')),
     path('restaurant_messages_list/<int:restaurant>/',
          RestaurantMessagesViewset.as_view({'get':'restaurant_messages_list'}, name='restaurant_messages_list')),
+    path('payment_type/<int:restaurant>/',
+         PaymentTypeViewSet.as_view({'get': 'restaurant_payment_type'}, name='restaurant_payment_type')),
 
 ]
 

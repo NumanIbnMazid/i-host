@@ -64,7 +64,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           TakeAwayFoodOrderPostSerializer,
                           TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer,
                           SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,
-                          PaymentTypeSerializer, RestaurantPostSerialier)
+                          PaymentTypeSerializer, RestaurantPostSerialier, FreeTableSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -538,7 +538,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
 
         qs = Table.objects.filter(restaurant_id=restaurant, is_occupied = False)
 
-        serializer = self.get_serializer(
+        serializer = FreeTableSerializer(
             instance=qs, many=True)
 
         return ResponseWrapper(data=serializer.data, msg='success')
@@ -568,7 +568,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = PaymentSerializer
         elif self.action in ['retrieve']:
             self.serializer_class = FoodOrderByTableSerializer
-        elif self.action in ['food_reorder_by_order_id']:
+        elif self.action in ['food_reorder_by_order_id','table_transfer']:
             self.serializer_class = ReorderSerializer
 
         else:
@@ -1119,6 +1119,24 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             restaurant_id=reorder_qs.restaurant_id,
         )
         return ResponseWrapper(data=serializer.data, msg='Success')
+
+
+    def table_transfer(self, request,  *args, **kwargs):
+        food_order_qs = FoodOrder.objects.filter(id = request.data.get('order_id')).first()
+        if not food_order_qs:
+            return ResponseWrapper(msg='Invalid Food Order')
+        table_qs = Table.objects.filter(id = request.data.get('table_id')).last()
+        if table_qs.is_occupied:
+            return ResponseWrapper(msg='Table is already occupied')
+        food_order_qs.table.is_occupied =False
+        food_order_qs.table.save()
+
+        food_order_qs.table_id = table_qs.id
+        table_qs.is_occupied = True
+        table_qs.save()
+        food_order_qs.save()
+        serializer = FoodOrderByTableSerializer(instance=food_order_qs)
+        return ResponseWrapper(data=serializer.data, msg='Table Transfer')
 
     def customer_order_history(self, request, *args, **kwargs):
         order_qs = FoodOrder.objects.filter(customer__user=request.user.pk)
@@ -2130,7 +2148,13 @@ class RestaurantMessagesViewset(LoggingMixin, CustomViewSet):
 
 
 class PaymentTypeViewSet(LoggingMixin, CustomViewSet):
-    permission_classes = [permissions.IsAdminUser]
     queryset = PaymentType.objects.all()
     lookup_field = 'pk'
     serializer_class = PaymentTypeSerializer
+
+
+    def restaurant_payment_type(self, request, restaurant, *args, **kwargs):
+        restaurant = Restaurant.objects.filter(id=restaurant).last()
+        qs = restaurant.payment_type.all()
+        serializer = PaymentTypeSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data)

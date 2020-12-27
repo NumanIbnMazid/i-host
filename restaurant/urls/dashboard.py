@@ -249,7 +249,7 @@ dashboard_urls = [
     path('report_by_date_range/',
          ReportingViewset.as_view({'post': 'report_by_date_range'}), name='report_by_date_range'),
 
-    path('dashboard_fotka_api/',
+    path('admin_all_report/',
          ReportingViewset.as_view({'get': 'admin_all_report'}), name='admin_all_report'),
 
     path('food_report_by_date_range/',
