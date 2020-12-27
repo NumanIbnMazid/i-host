@@ -77,7 +77,9 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         if self.action == 'create':
             self.serializer_class = RestaurantPostSerialier
         elif self.action == 'update':
-            self.serializer_class = RestaurantUpdateSerialier
+            # self.serializer_class = RestaurantUpdateSerialier
+            self.serializer_class = RestaurantPostSerialier
+
         else:
             self.serializer_class = RestaurantSerializer
 
