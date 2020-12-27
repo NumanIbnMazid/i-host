@@ -248,7 +248,7 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
             id=restaurant_id).select_related('subscription').first()
         manager_limit_qs = manager_qs.subscription.manager_limit
 
-        if not manager_count <= manager_limit_qs:
+        if not manager_count < manager_limit_qs:
             return ResponseWrapper(
                 error_msg=["Your Manager Limit is " +
                            str(manager_limit_qs) + ', Please Update Your Subscription '],
@@ -265,12 +265,12 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
         restaurant_id = res_qs.first().restaurant_id
         waiter_qs = Restaurant.objects.filter(
             id=restaurant_id).select_related('subscription').first()
-        waiter_limit_qs = waiter_qs.subscription.waiter_limit
+        waiter_limit = waiter_qs.subscription.waiter_limit
 
-        if not waiter_count <= waiter_limit_qs:
+        if not waiter_count < waiter_limit:
             return ResponseWrapper(
                 error_msg=["Your Waiter Limit is " +
-                           str(waiter_limit_qs) + ', Please Update Your Subscription '],
+                           str(waiter_limit) + ', Please Update Your Subscription '],
                 error_code=400)
 
         # email = request.data.pop("email")
@@ -522,7 +522,7 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
         otp_qs.save()
 
         if send_sms(body=f'Your OTP code for I-HOST is {otp} . Thanks for using I-HOST.', phone=str(phone)):
-            return ResponseWrapper(msg='otp sent', status=200)
+            return ResponseWrapper(msg='otp sent', data={'name': None, 'id': None, 'phone': phone}, status=200)
         else:
             return ResponseWrapper(error_msg='otp sending failed')
 
