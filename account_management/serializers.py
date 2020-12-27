@@ -139,7 +139,7 @@ class PaymentTypeSerializer(serializers.ModelSerializer):
 class RestaurantSerializer(serializers.ModelSerializer):
     review = serializers.SerializerMethodField(read_only=True)
     subscription = SubscriptionSerializer(read_only=True)
-    subscription = PaymentTypeSerializer(read_only=True)
+    payment_type = PaymentTypeSerializer(read_only=True, many= True)
     class Meta:
         model = Restaurant
         fields = '__all__'
