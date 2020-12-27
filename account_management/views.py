@@ -520,7 +520,7 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
 
     def get_otp(self, request, phone, **kwargs):
         otp = random.randint(1000, 9999)
-        otp_qs = OtpUser.objects.get_or_create(phone=str(phone))
+        otp_qs, _ = OtpUser.objects.get_or_create(phone=str(phone))
         if request.user.pk:
             otp_qs.user = request.user
         otp_qs.otp_code = otp
