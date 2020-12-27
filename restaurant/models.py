@@ -64,7 +64,8 @@ class Restaurant(SoftDeleteModel):
     vat_registration_no = models.CharField(
         max_length=250, null=True, blank=True)
     trade_licence_no = models.CharField(max_length=250, null=True, blank=True)
-    payment_type = models.ManyToManyField('Payment_type', blank=True,null=True)
+    payment_type = models.ManyToManyField(
+        to='restaurant.PaymentType', blank=True, null=True)
 
     def __str__(self):
         if self.name:
@@ -114,7 +115,7 @@ class Food(SoftDeleteModel):
     is_top = models.BooleanField(default=False)
     is_recommended = models.BooleanField(default=False)
     ingredients = models.TextField(null=True, blank=True)
-    rating = models.FloatField(null= True, blank=True)
+    rating = models.FloatField(null=True, blank=True)
     order_counter = models.IntegerField(default=0)
     discount = models.ForeignKey(
         to="restaurant.Discount", null=True, blank=True, on_delete=models.SET_NULL, related_name='foods')
@@ -325,17 +326,19 @@ class Review(models.Model):
                           on_delete=models.SET_NULL, null=True)
     rating = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)])
-    review_text = models.TextField(null=True,blank=True)
+    review_text = models.TextField(null=True, blank=True)
 
 
 class RestaurantMessages(models.Model):
-    restaurant = models.ForeignKey(to=Restaurant,on_delete=models.CASCADE)
-    title = models.CharField(max_length=200,null=True,blank=True)
+    restaurant = models.ForeignKey(to=Restaurant, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200, null=True, blank=True)
     message = models.TextField()
     updated_at = models.DateTimeField(auto_now=True)
 
-class Payment_type(models.Model):
-    name = models.CharField(max_length=100,null=True,blank=True)
+
+class PaymentType(models.Model):
+    name = models.CharField(max_length=100, null=True, blank=True)
+    image = models.ImageField()
 
     def __str__(self):
         return self.name

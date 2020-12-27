@@ -124,7 +124,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 class PaymentTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Payment_type
+        model = PaymentType
         fields = '__all__'
 
 class RestaurantSerializer(serializers.ModelSerializer):

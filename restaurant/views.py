@@ -33,7 +33,7 @@ from utils.response_wrapper import ResponseWrapper
 
 from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodExtraType, FoodOption, FoodOptionType,
-                               FoodOrder, Invoice, OrderedItem, Payment_type, PopUp,
+                               FoodOrder, Invoice, OrderedItem, PaymentType, PopUp,
                                Restaurant, Table, Slider, Subscription, Review, RestaurantMessages)
 
 from . import permissions as custom_permissions
@@ -2131,6 +2131,6 @@ class RestaurantMessagesViewset(LoggingMixin, CustomViewSet):
 
 class PaymentTypeViewSet(LoggingMixin, CustomViewSet):
     permission_classes = [permissions.IsAdminUser]
-    queryset = Payment_type.objects.all()
+    queryset = PaymentType.objects.all()
     lookup_field = 'pk'
     serializer_class = PaymentTypeSerializer
