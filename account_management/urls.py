@@ -8,6 +8,8 @@ router = DefaultRouter()
 router.register('customer_info', CustomerInfoViewset,
                 basename="customer_info")
 router.register('apps/staff_fcm_device', StaffFcmDeviceViewset, basename='fcm')
+router.register('apps/user_fcm_device',
+                UserFcmDeviceViewset, basename='fcm_user')
 
 
 user_account_get_post_patch_delete = UserAccountManagerViewSet.as_view(
@@ -77,6 +79,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path("auth/", include(auth_urlpatterns), name="auth"),
     path("user_account/", user_account_get_post_patch_delete),
+    path("apps/user_account/",UserAccountManagerViewSet.as_view({"patch":"update"})),
 
 
 ]+restaurant_account_management

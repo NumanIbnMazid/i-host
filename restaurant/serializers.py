@@ -1,3 +1,4 @@
+from django.contrib.postgres import fields
 from drf_extra_fields.fields import Base64ImageField
 import copy
 from account_management.models import HotelStaffInformation
@@ -116,9 +117,20 @@ class FoodOptionTypeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 """
 
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = '__all__'
+
+class PaymentTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentType
+        fields = '__all__'
 
 class RestaurantSerializer(serializers.ModelSerializer):
     review = serializers.SerializerMethodField(read_only=True)
+    subscription = SubscriptionSerializer(read_only= True)
+    payment_type = PaymentTypeSerializer(read_only=True,many=True)
 
     class Meta:
         model = Restaurant
@@ -291,6 +303,10 @@ class FoodOrderSerializer(serializers.ModelSerializer):
     def get_price(self, obj):
         return calculate_price(food_order_obj=obj, include_initial_order=True)
 
+class FreeTableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Table
+        fields = ['id', 'table_no']
 
 class FoodOrderByTableSerializer(serializers.ModelSerializer):
     status_details = serializers.CharField(source='get_status_display')
@@ -534,7 +550,7 @@ class FoodsByCategorySerializer(FoodWithPriceSerializer):
 class FoodDetailSerializer(serializers.ModelSerializer):
     category = FoodCategorySerializer(read_only=True)
     food_extras = FoodExtraGroupByTypeSerializer(read_only=True, many=True)
-    food_options = FoodOptionSerializer(read_only=True, many=True)
+    food_options = serializers.SerializerMethodField(read_only=True)
     price = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -564,6 +580,37 @@ class FoodDetailSerializer(serializers.ModelSerializer):
         else:
             return None
 
+    def get_food_options(self, obj):
+        serializer = FoodOptionSerializer(
+            obj.food_options.order_by('price'), many=True)
+        return serializer.data
+
+class RestaurantPostSerialier(serializers.ModelSerializer):
+    logo = Base64ImageField()
+    class Meta:
+        model = Restaurant
+        exclude = ['deleted_at']
+
+    def create(self, validated_data):
+        logo = validated_data.pop('logo', None)
+        payment_type = validated_data.pop('payment_type', [])
+
+        if logo:
+            qs= Restaurant.objects.create(logo=logo, **validated_data)
+        else:
+            qs = Restaurant.objects.create(**validated_data)
+        qs.payment_type.set(payment_type)
+        qs.save()
+        return qs
+
+    def update(self,instance, validated_data):
+        logo = validated_data.pop('logo', None)
+
+        if logo:
+            instance.logo = logo
+            instance.save()
+        return  super(RestaurantPostSerialier,self).update(instance,validated_data)
+
 
 class RestaurantUpdateSerialier(serializers.ModelSerializer):
     logo = Base64ImageField()
@@ -572,11 +619,13 @@ class RestaurantUpdateSerialier(serializers.ModelSerializer):
         model = Restaurant
         exclude = ['status', 'subscription', 'subscription_ends', 'deleted_at']
 
-        def update(self, validated_data):
+        def update(self, instance, validated_data):
             logo = validated_data.pop('logo', None)
+
             if logo:
-                return Restaurant.objects.create(logo=logo, **validated_data)
-            return Restaurant.objects.create(**validated_data)
+                instance.logo = logo
+                instance.save()
+            return super(RestaurantPostSerialier, self).update(instance, validated_data)
 
 
 class RestaurantContactPersonSerializer(serializers.ModelSerializer):
@@ -684,10 +733,18 @@ class DiscountByFoodSerializer(serializers.Serializer):
 
 
 class DiscountSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+
     class Meta:
         model = Discount
         # fields ='__all__'
         exclude = ['deleted_at']
+
+    def create(self, validated_data):
+        image = validated_data.pop('image', None)
+        if image:
+            return Discount.objects.create(image=image, **validated_data)
+        return Discount.objects.create(**validated_data)
 
 
 class FoodDetailsByDiscountSerializer(serializers.ModelSerializer):
@@ -707,7 +764,10 @@ class ReportDateRangeSerializer(serializers.Serializer):
 class StaffFcmSerializer(serializers.Serializer):
     table_id = serializers.IntegerField()
 
-
+class  OnlyFoodOrderIdSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodOrder
+        fields= ['id']
 class CollectPaymentSerializer(serializers.Serializer):
     table_id = serializers.IntegerField()
     payment_method = serializers.CharField()
@@ -760,11 +820,6 @@ class ReOrderedItemSerializer(serializers.Serializer):
     order_item_id = serializers.IntegerField()
     quantity = serializers.IntegerField(default=1)
 
-
-class SubscriptionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Subscription
-        fields = '__all__'
 
 
 class ReviewSerializer(serializers.ModelSerializer):

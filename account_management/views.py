@@ -1,5 +1,8 @@
 from calendar import month
 from datetime import datetime
+import random
+from utils.sms import send_sms
+from re import error
 from utils.pagination import CustomLimitPagination
 from drf_yasg2 import openapi
 
@@ -29,10 +32,10 @@ from rest_framework.response import Response
 from restaurant.models import Restaurant
 from utils.response_wrapper import ResponseWrapper
 
-from account_management.models import CustomerInfo, StaffFcmDevice, HotelStaffInformation
+from account_management.models import CustomerFcmDevice, CustomerInfo, OtpUser, StaffFcmDevice, HotelStaffInformation
 from account_management.models import UserAccount
 from account_management.models import UserAccount as User
-from account_management.serializers import (CustomerInfoSerializer, StaffFcmDeviceSerializer, OtpLoginSerializer,
+from account_management.serializers import (CustomerFcmDeviceSerializer, CustomerInfoSerializer, StaffFcmDeviceSerializer, OtpLoginSerializer,
                                             RestaurantUserSignUpSerializer, StaffInfoGetSerializer, StaffInfoSerializer,
                                             StaffLoginInfoGetSerializer,
                                             UserAccountPatchSerializer,
@@ -42,6 +45,27 @@ from account_management.serializers import (CustomerInfoSerializer, StaffFcmDevi
 from rest_framework_tracking.mixins import LoggingMixin
 
 from restaurant import permissions as custom_permissions
+
+
+def login_related_info(user):
+    user_serializer = UserAccountSerializer(instance=user)
+    staff_info = []
+    customer_info = None
+    try:
+        if user.hotel_staff.first():
+            staff_info_serializer = StaffLoginInfoGetSerializer(
+                instance=user.hotel_staff.all(), many=True)
+            staff_info = staff_info_serializer.data
+    except:
+        pass
+    try:
+        if user.customer_info:
+            customer_info_serialzier = CustomerInfoSerializer(
+                instance=user.customer_info)
+            customer_info = customer_info_serialzier.data
+    except:
+        pass
+    return customer_info, staff_info, user_serializer
 
 
 class StaffFcmDeviceViewset(LoggingMixin, CustomViewSet):
@@ -60,6 +84,40 @@ class StaffFcmDeviceViewset(LoggingMixin, CustomViewSet):
             staff_fcm_qs = StaffFcmDevice.objects.filter(
                 hotel_staff=request.data.get("hotel_staff"))
             staff_fcm_qs.delete()
+            qs = serializer.save()
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def update(self, request, **kwargs):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data, partial=True)
+        if serializer.is_valid():
+            qs = serializer.update(instance=self.get_object(
+            ), validated_data=serializer.validated_data)
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+
+class UserFcmDeviceViewset(LoggingMixin, CustomViewSet):
+    queryset = CustomerFcmDevice.objects.all()
+    lookup_field = 'customer'
+    serializer_class = CustomerFcmDeviceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+    http_method_names = ('post',)
+
+    def create(self, request):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+        if serializer.is_valid():
+            customer_fcm_qs = CustomerFcmDevice.objects.filter(
+                customer_id=request.data.get("customer"))
+            customer_fcm_qs.delete()
             qs = serializer.save()
             serializer = self.serializer_class(instance=qs)
             return ResponseWrapper(data=serializer.data, msg='created')
@@ -103,14 +161,8 @@ class LoginView(KnoxLoginView):
         user_logged_in.send(sender=request.user.__class__,
                             request=request, user=request.user)
         data = self.get_post_response_data(request, token, instance)
-        user_serializer = UserAccountSerializer(instance=user)
-        staff_info = {}
-        if user.hotel_staff.first():
-            staff_info_serializer = StaffLoginInfoGetSerializer(
-                instance=user.hotel_staff.all(), many=True)
-            staff_info = staff_info_serializer.data
-
-        return ResponseWrapper(data={'auth': data, 'user': user_serializer.data, 'staff_info': staff_info})
+        customer_info, staff_info, user_serializer = login_related_info(user)
+        return ResponseWrapper(data={'auth': data, 'user': user_serializer.data, 'staff_info': staff_info, 'customer_info': customer_info})
 
 
 class OtpSignUpView(KnoxLoginView):
@@ -120,7 +172,11 @@ class OtpSignUpView(KnoxLoginView):
 
     @swagger_auto_schema(request_body=OtpLoginSerializer)
     def post(self, request, format=None):
-        if request.data.get('otp') != 1234:
+        phone = request.data.get('phone')
+        otp_qs = OtpUser.objects.filter(phone=phone).last()
+        if otp_qs.updated_at < (timezone.now() - timezone.timedelta(minutes=5)):
+            return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp timeout'])
+        if request.data.get('otp') != otp_qs.otp_code:
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp mismatched'])
         token_limit_per_user = self.get_token_limit_per_user()
         user_qs = User.objects.filter(phone=request.data.get('phone')).first()
@@ -129,6 +185,7 @@ class OtpSignUpView(KnoxLoginView):
                 phone=request.data.get('phone'),
                 password=uuid.uuid4().__str__()
             )
+            customer_qs, _ = CustomerInfo.objects.get_or_create(user=user_qs)
 
         if token_limit_per_user is not None:
             now = timezone.now()
@@ -196,32 +253,40 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
         return self.create_staff(request, is_owner=True)
 
     def create_manager(self, request, *args, **kwargs):
-        res_qs = HotelStaffInformation.objects.filter(restaurant_id = request.data.get('restaurant_id'))
-        manager_count = res_qs.filter(is_manager = True).count()
+        res_qs = HotelStaffInformation.objects.filter(
+            restaurant_id=request.data.get('restaurant_id'))
+        if not res_qs:
+            return ResponseWrapper(msg='invalid restaurant_id')
+        manager_count = res_qs.filter(is_manager=True).count()
 
         restaurant_id = res_qs.first().restaurant_id
-        manager_qs = Restaurant.objects.filter(id=restaurant_id).select_related('subscription').first()
+        manager_qs = Restaurant.objects.filter(
+            id=restaurant_id).select_related('subscription').first()
         manager_limit_qs = manager_qs.subscription.manager_limit
 
-        if not manager_count <= manager_limit_qs:
+        if not manager_count < manager_limit_qs:
             return ResponseWrapper(
-                error_msg=["Your Manager Limit is " + str(manager_limit_qs) + ', Please Update Your Subscription '],
+                error_msg=["Your Manager Limit is " +
+                           str(manager_limit_qs) + ', Please Update Your Subscription '],
                 error_code=400)
         # email = request.data.pop("email")
         # self.check_object_permissions(request, obj=RestaurantUserSignUpSerializer)
         return self.create_staff(request, is_manager=True)
 
     def create_waiter(self, request, *args, **kwargs):
-        res_qs = HotelStaffInformation.objects.filter(restaurant_id = request.data.get('restaurant_id'))
-        waiter_count = res_qs.filter(is_waiter = True).count()
+        res_qs = HotelStaffInformation.objects.filter(
+            restaurant_id=request.data.get('restaurant_id'))
+        waiter_count = res_qs.filter(is_waiter=True).count()
 
         restaurant_id = res_qs.first().restaurant_id
-        waiter_qs = Restaurant.objects.filter(id=restaurant_id).select_related('subscription').first()
-        waiter_limit_qs = waiter_qs.subscription.waiter_limit
+        waiter_qs = Restaurant.objects.filter(
+            id=restaurant_id).select_related('subscription').first()
+        waiter_limit = waiter_qs.subscription.waiter_limit
 
-        if not waiter_count <= waiter_limit_qs:
+        if not waiter_count < waiter_limit:
             return ResponseWrapper(
-                error_msg=["Your Waiter Limit is " + str(waiter_limit_qs) + ', Please Update Your Subscription '],
+                error_msg=["Your Waiter Limit is " +
+                           str(waiter_limit) + ', Please Update Your Subscription '],
                 error_code=400)
 
         # email = request.data.pop("email")
@@ -268,6 +333,7 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_code=404, error_msg=[{"restaurant_id": "restaurant not found"}])
         phone = request.data["phone"]
         user_qs = User.objects.filter(phone=phone).first()
+        error_msg = []
         if not user_qs:
             password = make_password(password=password)
             user_qs = User.objects.create(
@@ -276,6 +342,8 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
             )
         else:
             User.objects.filter(phone=phone).update(**user_info_dict)
+            error_msg.append(
+                'user already exists so staff is created successfully but password remains unchanged')
 
         staff_qs = HotelStaffInformation.objects.filter(
             user=user_qs, restaurant=restaurant_qs).first()
@@ -294,6 +362,8 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
         # user_serializer = UserAccountSerializer(instance=user_qs, many=False)
 
         staff_serializer = StaffInfoGetSerializer(instance=staff_qs)
+        if error_msg:
+            return ResponseWrapper(data=staff_serializer.data, error_msg=error_msg)
         return ResponseWrapper(data=staff_serializer.data, status=200)
 
     # def retrieve(self, request, *args, **kwargs):
@@ -435,8 +505,16 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
 
         if not updated:
             return ResponseWrapper(error_code=status.HTTP_400_BAD_REQUEST, error_msg=['failed to update'])
-        user_serializer = UserAccountSerializer(
-            instance=user_qs.first(), many=False)
+        is_apps = request.path.__contains__('/apps/')
+        if is_apps:
+            customer_info, staff_info, user_serializer = login_related_info(
+                user_qs.first())
+            return ResponseWrapper(data={'user': user_serializer.data, 'staff_info': staff_info,
+                                         'customer_info': customer_info})
+
+        else:
+            user_serializer = UserAccountSerializer(
+                instance=user_qs.first(), many=False)
         return ResponseWrapper(data=user_serializer.data, status=200)
 
     def retrieve(self, request, *args, **kwargs):
@@ -460,7 +538,17 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
         return ResponseWrapper(data="Active account not found", status=400)
 
     def get_otp(self, request, phone, **kwargs):
-        return ResponseWrapper(msg='otp sent', status=200)
+        otp = random.randint(1000, 9999)
+        otp_qs, _ = OtpUser.objects.get_or_create(phone=str(phone))
+        if request.user.pk:
+            otp_qs.user = request.user
+        otp_qs.otp_code = otp
+        otp_qs.save()
+
+        if send_sms(body=f'Your OTP code for I-HOST is {otp} . Thanks for using I-HOST.', phone=str(phone)):
+            return ResponseWrapper(msg='otp sent', data={'name': None, 'id': None, 'phone': phone}, status=200)
+        else:
+            return ResponseWrapper(error_msg='otp sending failed')
 
 
 class CustomerInfoViewset(LoggingMixin, viewsets.ModelViewSet):
@@ -527,6 +615,6 @@ class HotelStaffLogViewSet(CustomViewSet):
         paginated_data = self.get_paginated_response(serializer.data)
 
         return ResponseWrapper(paginated_data.data)
-        #return ResponseWrapper(serializer.data)
+        # return ResponseWrapper(serializer.data)
 
         # return ResponseWrapper(data=waiter_qs.data,status=200)

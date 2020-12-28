@@ -1,6 +1,6 @@
 from rest_framework_tracking.models import APIRequestLog
 
-from restaurant.models import Restaurant
+from restaurant.models import Restaurant, Subscription, PaymentType
 
 from django.http import request
 from rest_framework import fields
@@ -8,6 +8,7 @@ from rest_framework.serializers import Serializer
 
 from rest_framework import serializers
 from .models import CustomerFcmDevice, CustomerInfo, HotelStaffInformation, StaffFcmDevice, UserAccount, models
+# from restaurant import serializers as restaurant_serializer
 
 from drf_extra_fields.fields import Base64ImageField
 from drf_extra_fields.fields import HybridImageField
@@ -19,9 +20,14 @@ import imghdr
 
 
 class CustomerInfoSerializer(serializers.ModelSerializer):
+    phone = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = CustomerInfo
         fields = '__all__'
+
+    def get_phone(self, obj):
+        return obj.user.phone
 
 
 class UserSignupSerializer(serializers.ModelSerializer):
@@ -126,8 +132,23 @@ class StaffInfoGetSerializer(serializers.ModelSerializer):
         ]
 
 
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = '__all__'
+
+
+class PaymentTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentType
+        fields = '__all__'
+
+
 class RestaurantSerializer(serializers.ModelSerializer):
     review = serializers.SerializerMethodField(read_only=True)
+    subscription = SubscriptionSerializer(read_only=True)
+    payment_type = PaymentTypeSerializer(read_only=True, many=True)
+
     class Meta:
         model = Restaurant
         fields = '__all__'
@@ -136,11 +157,11 @@ class RestaurantSerializer(serializers.ModelSerializer):
         review_qs = None
         if obj.food_orders:
 
-            reviews_list = list(filter(None,obj.food_orders.values_list('reviews__rating', flat=True)))
+            reviews_list = list(
+                filter(None, obj.food_orders.values_list('reviews__rating', flat=True)))
             if reviews_list:
-                return {'value':sum(reviews_list) / reviews_list.__len__(),'total_reviewers':reviews_list.__len__()}
-        return {'value':None,'total_reviewers':0}
-
+                return {'value': sum(reviews_list) / reviews_list.__len__(), 'total_reviewers': reviews_list.__len__()}
+        return {'value': None, 'total_reviewers': 0}
 
 
 class StaffLoginInfoGetSerializer(serializers.ModelSerializer):

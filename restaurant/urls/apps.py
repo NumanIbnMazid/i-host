@@ -83,8 +83,8 @@ apps_fake = [
     path('restaurant_staff/<int:staff_id>/tables/',
          TableViewSet.as_view({'get': 'staff_table_list'}), name='staff_table_list'),
 
-    #     path('table/<int:table_id>/',
-    #          TableViewSet.as_view({'delete': 'destroy'}), name='destroy_tables'),
+    path('free_table_list/<int:restaurant>/',
+         TableViewSet.as_view({'get': 'free_table_list'}), name='free_table_list'),
 
     path('restaurant/<int:restaurant_id>/order_item_list/',
          RestaurantViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),
@@ -120,6 +120,9 @@ apps_fake = [
 
     path('order/create_order/',
          FoodOrderViewSet.as_view({'post': 'create_order_apps'}, name='create_order_apps')),
+
+    path('order/table_transfer/',
+         FoodOrderViewSet.as_view({'post': 'table_transfer'}, name='table_transfer')),
 
     path('reorder/', FoodOrderViewSet.as_view(
         {'post': 'food_reorder_by_order_id'}, name='food_reorder_by_order_id')),
@@ -222,6 +225,8 @@ apps_fake = [
          ReviewViewset.as_view({'post':'create'}, name='create')),
     path('restaurant_messages_list/<int:restaurant>/',
          RestaurantMessagesViewset.as_view({'get':'restaurant_messages_list'}, name='restaurant_messages_list')),
+    path('payment_type/<int:restaurant>/',
+         PaymentTypeViewSet.as_view({'get': 'restaurant_payment_type'}, name='restaurant_payment_type')),
 
 ]
 
