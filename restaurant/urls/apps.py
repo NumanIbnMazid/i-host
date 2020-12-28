@@ -209,7 +209,7 @@ apps_fake = [
     # path('food_option/',
     #      FoodOptionViewSet.as_view({'post': 'create'}, name='create')),
     path('food_option/<int:pk>/',
-         FoodOptionViewSet.as_view({'get':'food_option_detail'}, name='food_option')),
+         FoodOptionViewSet.as_view({'get': 'food_option_detail'}, name='food_option')),
 
     # path('food_option_type/',
     #      FoodOptionTypeViewSet.as_view({'post': 'create'}, name='create')),
@@ -219,12 +219,12 @@ apps_fake = [
     # path('food_extra_type/',
     #      FoodExtraTypeViewSet.as_view({'post': 'create'}, name='create')),
     path('food_extra_type/<int:pk>/',
-         FoodExtraTypeViewSet.as_view({'get':'food_extra_type_detail'}, name='food_extra_type')),
+         FoodExtraTypeViewSet.as_view({'get': 'food_extra_type_detail'}, name='food_extra_type')),
 
     path('review/',
-         ReviewViewset.as_view({'post':'create'}, name='create')),
+         ReviewViewset.as_view({'post': 'create'}, name='create')),
     path('restaurant_messages_list/<int:restaurant>/',
-         RestaurantMessagesViewset.as_view({'get':'restaurant_messages_list'}, name='restaurant_messages_list')),
+         RestaurantMessagesViewset.as_view({'get': 'restaurant_messages_list'}, name='restaurant_messages_list')),
     path('payment_type/<int:restaurant>/',
          PaymentTypeViewSet.as_view({'get': 'restaurant_payment_type'}, name='restaurant_payment_type')),
 
@@ -236,6 +236,9 @@ apps_url = [
     path('call_waiter/', FcmCommunication.as_view({"post": "call_waiter"})),
     path('collect_payment/',
          FcmCommunication.as_view({"post": "collect_payment"})),
+    #     fcm_notification_history_for_staff
+    path('fcm_notification_history/<int:staff_id>/',
+         FcmCommunication.as_view({"get": "fcm_notification_history_for_staff"})),
     path('order/order_info_price_details/<int:pk>/',
          FoodOrderViewSet.as_view({'get': 'apps_order_info_price_details'}, name='apps_order_info_price_details')),
 ]+apps_fake
