@@ -185,6 +185,7 @@ class OtpSignUpView(KnoxLoginView):
                 phone=request.data.get('phone'),
                 password=uuid.uuid4().__str__()
             )
+            customer_qs, _ = CustomerInfo.objects.get_or_create(user=user_qs)
 
         if token_limit_per_user is not None:
             now = timezone.now()
