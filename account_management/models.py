@@ -176,7 +176,7 @@ class StaffFcmDevice(models.Model):
 class CustomerFcmDevice(models.Model):
     customer = models.ForeignKey(
         to=CustomerInfo, on_delete=models.CASCADE, related_name='customer_fcm_devices')
-    device_id = models.CharField(max_length=255)
+    device_id = models.CharField(max_length=255,null=True,blank=True)
     token = models.CharField(max_length=255)
     device_type = models.CharField(
         choices=[('web', 'web'), ('ios', 'ios'), ('android', 'android')], default='android', max_length=25)
