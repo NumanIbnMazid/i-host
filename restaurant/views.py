@@ -1941,12 +1941,12 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
         if not request.data:
-            return ResponseWrapper(error_code=400, error_msg='empty request body')
+            return ResponseWrapper(error_code=400, error_msg=['empty request body'])
 
         restaurant_id = request.data.get('restaurant')
         if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
                                                     restaurant_id=restaurant_id):
-            return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg='user is not manager or owner')
+            return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['user is not manager or owner'])
 
         if serializer.is_valid():
             qs = serializer.update(instance=self.get_object(
