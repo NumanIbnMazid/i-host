@@ -50,7 +50,7 @@ from restaurant import permissions as custom_permissions
 
 def login_related_info(user):
     user_serializer = UserAccountSerializer(instance=user)
-    staff_info = None
+    staff_info = []
     customer_info = None
     try:
         if user.hotel_staff.first():
