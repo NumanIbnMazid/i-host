@@ -47,10 +47,10 @@ from rest_framework_tracking.mixins import LoggingMixin
 from restaurant import permissions as custom_permissions
 
 
-def login_related_info( user):
+def login_related_info(user):
     user_serializer = UserAccountSerializer(instance=user)
-    staff_info = {}
-    customer_info = {}
+    staff_info = []
+    customer_info = None
     try:
         if user.hotel_staff.first():
             staff_info_serializer = StaffLoginInfoGetSerializer(
@@ -506,7 +506,8 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
             return ResponseWrapper(error_code=status.HTTP_400_BAD_REQUEST, error_msg=['failed to update'])
         is_apps = request.path.__contains__('/apps/')
         if is_apps:
-            customer_info, staff_info, user_serializer = login_related_info(user_qs.first())
+            customer_info, staff_info, user_serializer = login_related_info(
+                user_qs.first())
             return ResponseWrapper(data={'user': user_serializer.data, 'staff_info': staff_info,
                                          'customer_info': customer_info})
 
