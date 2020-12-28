@@ -65,7 +65,8 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer,
                           SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,
 
-                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer, FoodPostSerializer)
+                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer, FoodPostSerializer,
+                          ReportByDateRangeSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -1574,6 +1575,16 @@ class FoodOrderViewSet(CustomViewSet):
 class ReportingViewset(LoggingMixin, viewsets.ViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
+    # def get_serializer_class(self):
+    #     if self.action in ['report_by_date_range']:
+    #         self.serializer_class = ReportDateRangeSerializer
+    #     elif self.action in ['food_report_by_date_range']:
+    #         self.serializer_class = ReportDateRangeSerializer
+    #     elif self.action in ['invoice_all_report']:
+    #         self.serializer_class = ReportByDateRangeSerializer
+    #
+    #     return self.serializer_class
+
     def get_permissions(self):
         permission_classes = []
         if self.action in [""]:
@@ -1622,6 +1633,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         return order_date_range_qs
     """
 
+
     @swagger_auto_schema(
         request_body=ReportDateRangeSerializer
     )
@@ -1645,9 +1657,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         request_body=ReportDateRangeSerializer
     )
     def food_report_by_date_range(self, request, *args, **kwargs):
-        # """
-        # n^2
-        # """
+
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
         restaurant_id = request.data.get('restaurant_id')
@@ -1844,6 +1854,8 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                      }, msg="success")
 
 
+
+
 class InvoiceViewSet(LoggingMixin, CustomViewSet):
     serializer_class = InvoiceSerializer
     # pagination_class = CustomLimitPagination
@@ -1851,18 +1863,56 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
     def get_serializer_class(self):
         if self.action in ['invoice_history']:
             self.serializer_class = InvoiceSerializer
-
+        if self.action in ['invoice_all_report']:
+            self.serializer_class = ReportByDateRangeSerializer
         return self.serializer_class
 
     def get_pagination_class(self):
-        if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice']:
-
+        if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice','invoice_all_report']:
             return CustomLimitPagination
 
     queryset = Invoice.objects.all()
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     pagination_class = property(get_pagination_class)
+
+    # @swagger_auto_schema(
+    #     request_body=ReportByDateRangeSerializer
+    # )
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter("limit", openapi.IN_QUERY,
+                          type=openapi.TYPE_INTEGER),
+        openapi.Parameter("offset", openapi.IN_QUERY,
+                          type=openapi.TYPE_INTEGER)
+    ])
+    def invoice_all_report(self, request,restaurant, *args, **kwargs):
+        start_date = request.data.get('start_date')
+        end_date = request.data.get('end_date')
+
+        food_items_date_range_qs = Invoice.objects.filter(restaurant_id= restaurant,
+            created_at__gte=start_date, updated_at__lte=end_date)
+        total_order = food_items_date_range_qs.count()
+        total_payable_amount = food_items_date_range_qs.values_list(
+            'payable_amount', flat=True)
+
+        total_amaount = sum(total_payable_amount)
+
+        page_qs = self.paginate_queryset(food_items_date_range_qs)
+
+        serializer = InvoiceSerializer(instance=page_qs, many=True)
+        paginated_data = self.get_paginated_response(serializer.data)
+        order_details = dict(self.get_paginated_response(serializer.data).data)
+
+        order_details['total_amaount'] = total_amaount
+        order_details['total_order'] = total_order
+
+
+        # page_qs = self.paginate_queryset(order_details)
+        #
+        # #serializer = InvoiceSerializer(instance=page_qs, many=True)
+        # paginated_data = self.get_paginated_response(page_qs.data)
+
+        return ResponseWrapper(data=order_details)
 
     def invoice_history(self, request, restaurant, *args, **kwargs):
         invoice_qs = Invoice.objects.filter(
@@ -1873,6 +1923,8 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         paginated_data = self.get_paginated_response(serializer.data)
 
         return ResponseWrapper(paginated_data.data)
+
+
 
     def paid_cancel_invoice_history(self, request, restaurant, *args, **kwargs):
         invoice_qs = Invoice.objects.filter(restaurant_id=restaurant, order__status__in=[
