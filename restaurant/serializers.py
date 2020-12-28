@@ -1,7 +1,7 @@
 from django.contrib.postgres import fields
 from drf_extra_fields.fields import Base64ImageField
 import copy
-from account_management.models import HotelStaffInformation
+from account_management.models import FcmNotificationStaff, HotelStaffInformation
 from account_management.serializers import StaffInfoGetSerializer
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
@@ -857,4 +857,10 @@ class ReviewSerializer(serializers.ModelSerializer):
 class RestaurantMessagesSerializer(serializers.ModelSerializer):
     class Meta:
         model = RestaurantMessages
+        fields = '__all__'
+
+
+class FcmNotificationStaffSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FcmNotificationStaff
         fields = '__all__'

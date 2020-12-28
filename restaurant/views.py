@@ -9,7 +9,7 @@ from .signals import order_done_signal
 from django.utils.decorators import method_decorator
 
 from account_management import models, serializers
-from account_management.models import (CustomerInfo, HotelStaffInformation,
+from account_management.models import (CustomerInfo, FcmNotificationStaff, HotelStaffInformation,
                                        StaffFcmDevice, UserAccount)
 from account_management.serializers import (ListOfIdSerializer,
                                             StaffInfoSerializer)
@@ -38,7 +38,7 @@ from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
-                          DiscountSerializer, FoodCategorySerializer,
+                          DiscountSerializer, FcmNotificationStaffSerializer, FoodCategorySerializer,
                           FoodDetailsByDiscountSerializer,
                           FoodDetailSerializer, FoodExtraPostPatchSerializer,
                           FoodExtraSerializer, FoodExtraTypeDetailSerializer,
@@ -1472,7 +1472,8 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
         serializer = serializer_class(data=request.data, partial=True)
         if serializer.is_valid():
             old_qs = self.get_object()
-            qs = serializer.update(instance=old_qs, validated_data=serializer.validated_data)
+            qs = serializer.update(
+                instance=old_qs, validated_data=serializer.validated_data)
             serializer = FoodDetailSerializer(instance=qs)
             return ResponseWrapper(data=serializer.data)
         else:
@@ -2086,6 +2087,12 @@ class FcmCommunication(viewsets.GenericViewSet):
             return ResponseWrapper(msg='Success')
         else:
             return ResponseWrapper(error_msg="failed to notify")
+
+    def fcm_notification_history_for_staff(self, request, staff_id):
+        qs = FcmNotificationStaff.objects.filter(
+            hotel_staff=staff_id, created_at__gte=timezone.now().date()).order_by('-created_at')
+        serializer = FcmNotificationStaffSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data)
 
 
 class PopUpViewset(LoggingMixin, CustomViewSet):
