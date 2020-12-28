@@ -227,6 +227,9 @@ apps_fake = [
          RestaurantMessagesViewset.as_view({'get':'restaurant_messages_list'}, name='restaurant_messages_list')),
     path('payment_type/<int:restaurant>/',
          PaymentTypeViewSet.as_view({'get': 'restaurant_payment_type'}, name='restaurant_payment_type')),
+         
+    path('order_id_by/<int:table_id>/',
+         TableViewSet.as_view({'get': 'order_id_by_table', }), name='order_id_by_table'),
 
 ]
 

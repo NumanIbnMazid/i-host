@@ -117,20 +117,23 @@ class FoodOptionTypeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 """
 
+
 class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = '__all__'
+
 
 class PaymentTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PaymentType
         fields = '__all__'
 
+
 class RestaurantSerializer(serializers.ModelSerializer):
     review = serializers.SerializerMethodField(read_only=True)
-    subscription = SubscriptionSerializer(read_only= True)
-    payment_type = PaymentTypeSerializer(read_only=True,many=True)
+    subscription = SubscriptionSerializer(read_only=True)
+    payment_type = PaymentTypeSerializer(read_only=True, many=True)
 
     class Meta:
         model = Restaurant
@@ -303,10 +306,12 @@ class FoodOrderSerializer(serializers.ModelSerializer):
     def get_price(self, obj):
         return calculate_price(food_order_obj=obj, include_initial_order=True)
 
+
 class FreeTableSerializer(serializers.ModelSerializer):
     class Meta:
         model = Table
         fields = ['id', 'table_no']
+
 
 class FoodOrderByTableSerializer(serializers.ModelSerializer):
     status_details = serializers.CharField(source='get_status_display')
@@ -441,12 +446,14 @@ class FoodSerializer(serializers.ModelSerializer):
         model = Food
         fields = '__all__'
 
+
 class FoodSerializer(serializers.ModelSerializer):
     category = FoodCategorySerializer(read_only=True)
 
     class Meta:
         model = Food
         fields = '__all__'
+
 
 class FoodPostSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
@@ -585,8 +592,10 @@ class FoodDetailSerializer(serializers.ModelSerializer):
             obj.food_options.order_by('price'), many=True)
         return serializer.data
 
+
 class RestaurantPostSerialier(serializers.ModelSerializer):
     logo = Base64ImageField()
+
     class Meta:
         model = Restaurant
         exclude = ['deleted_at']
@@ -596,20 +605,20 @@ class RestaurantPostSerialier(serializers.ModelSerializer):
         payment_type = validated_data.pop('payment_type', [])
 
         if logo:
-            qs= Restaurant.objects.create(logo=logo, **validated_data)
+            qs = Restaurant.objects.create(logo=logo, **validated_data)
         else:
             qs = Restaurant.objects.create(**validated_data)
         qs.payment_type.set(payment_type)
         qs.save()
         return qs
 
-    def update(self,instance, validated_data):
+    def update(self, instance, validated_data):
         logo = validated_data.pop('logo', None)
 
         if logo:
             instance.logo = logo
             instance.save()
-        return  super(RestaurantPostSerialier,self).update(instance,validated_data)
+        return super(RestaurantPostSerialier, self).update(instance, validated_data)
 
 
 class RestaurantUpdateSerialier(serializers.ModelSerializer):
@@ -764,10 +773,13 @@ class ReportDateRangeSerializer(serializers.Serializer):
 class StaffFcmSerializer(serializers.Serializer):
     table_id = serializers.IntegerField()
 
-class  OnlyFoodOrderIdSerializer(serializers.ModelSerializer):
+
+class OnlyFoodOrderIdSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOrder
-        fields= ['id']
+        fields = ['id']
+
+
 class CollectPaymentSerializer(serializers.Serializer):
     table_id = serializers.IntegerField()
     payment_method = serializers.CharField()
@@ -819,7 +831,6 @@ class SliderSerializer(serializers.ModelSerializer):
 class ReOrderedItemSerializer(serializers.Serializer):
     order_item_id = serializers.IntegerField()
     quantity = serializers.IntegerField(default=1)
-
 
 
 class ReviewSerializer(serializers.ModelSerializer):
