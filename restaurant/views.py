@@ -594,6 +594,8 @@ class TableViewSet(LoggingMixin, CustomViewSet):
 
     def order_id_by_table(self, request, table_id, *args, **kwargs):
         table_qs = FoodOrder.objects.filter(table_id=table_id).first()
+        if not table_qs:
+            return ResponseWrapper(msg='Wrong Table ID')
         if not table_qs.table.is_occupied:
             return ResponseWrapper(msg='No Order in table')
         serializer = OnlyFoodOrderIdSerializer(instance=table_qs)
