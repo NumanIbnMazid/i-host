@@ -2000,7 +2000,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
         if not request.data:
-            return ResponseWrapper(error_code=400, error_msg=['empty request body'])
+            return ResponseWrapper(error_code=400, error_msg='empty request body')
 
         restaurant_id = request.data.get('restaurant')
         if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
