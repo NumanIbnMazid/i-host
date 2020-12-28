@@ -65,7 +65,7 @@ class Restaurant(SoftDeleteModel):
         max_length=250, null=True, blank=True)
     trade_licence_no = models.CharField(max_length=250, null=True, blank=True)
     payment_type = models.ManyToManyField(
-        to='restaurant.PaymentType', blank=True, null=True)
+        to='restaurant.PaymentType', blank=True)
 
     def __str__(self):
         if self.name:
