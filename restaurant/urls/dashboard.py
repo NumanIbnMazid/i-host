@@ -52,8 +52,7 @@ fake_dashboard_urls = [
          TableViewSet.as_view({'patch': 'update', 'delete': 'destroy'}), name='table'),
     path('table/<int:table_id>/staff_remove/',
          TableViewSet.as_view({'post': 'remove_staff', }), name='remove_staff'),
-    path('order_id_by/<int:table_id>/',
-             TableViewSet.as_view({'get': 'order_id_by_table', }), name='order_id_by_table'),
+    
     # New Add
     #     path('table/<int:table_id>/quantity_list/',
     #          TableViewSet.as_view({'get': 'quantity_list', }), name='quantity_list'),
