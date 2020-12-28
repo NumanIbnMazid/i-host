@@ -147,10 +147,13 @@ class LoginView(KnoxLoginView):
             staff_info_serializer = StaffLoginInfoGetSerializer(
                 instance=user.hotel_staff.all(), many=True)
             staff_info = staff_info_serializer.data
-        if user.customer_info:
-            customer_info_serialzier = CustomerInfoSerializer(
-                instance=user.customer_info)
-            customer_info = customer_info_serialzier.data
+        try:
+            if user.customer_info:
+                customer_info_serialzier = CustomerInfoSerializer(
+                    instance=user.customer_info)
+                customer_info = customer_info_serialzier.data
+        except:
+            pass
 
         return ResponseWrapper(data={'auth': data, 'user': user_serializer.data, 'staff_info': staff_info, 'customer_info': customer_info})
 
