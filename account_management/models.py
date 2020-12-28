@@ -1,5 +1,7 @@
 
 # from rest_framework import viewsets
+from django.db.models import JSONField
+
 from softdelete.models import SoftDeleteModel
 import restaurant
 from django.contrib.auth.base_user import BaseUserManager
@@ -176,7 +178,7 @@ class StaffFcmDevice(models.Model):
 class CustomerFcmDevice(models.Model):
     customer = models.ForeignKey(
         to=CustomerInfo, on_delete=models.CASCADE, related_name='customer_fcm_devices')
-    device_id = models.CharField(max_length=255,null=True,blank=True)
+    device_id = models.CharField(max_length=255, null=True, blank=True)
     token = models.CharField(max_length=255)
     device_type = models.CharField(
         choices=[('web', 'web'), ('ios', 'ios'), ('android', 'android')], default='android', max_length=25)
@@ -190,3 +192,10 @@ class OtpUser(models.Model):
     phone = models.CharField(max_length=20, unique=True)
     otp_code = models.IntegerField(null=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class FcmNotificationStaff(models.Model):
+    hotel_staff = models.OneToOneField(
+        to=StaffFcmDevice, null=True, on_delete=models.SET_NULL)
+    data = JSONField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)

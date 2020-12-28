@@ -1,7 +1,9 @@
 import uuid
 from os import name, truncate
 
-from django.contrib.postgres.fields import ArrayField, JSONField
+from django.contrib.postgres.fields import ArrayField
+from django.db.models import JSONField
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import manager
