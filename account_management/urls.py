@@ -79,6 +79,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path("auth/", include(auth_urlpatterns), name="auth"),
     path("user_account/", user_account_get_post_patch_delete),
+    path("apps/user_account/",UserAccountManagerViewSet.as_view({"patch":"update"})),
 
 
 ]+restaurant_account_management

@@ -47,6 +47,27 @@ from rest_framework_tracking.mixins import LoggingMixin
 from restaurant import permissions as custom_permissions
 
 
+def login_related_info( user):
+    user_serializer = UserAccountSerializer(instance=user)
+    staff_info = {}
+    customer_info = {}
+    try:
+        if user.hotel_staff.first():
+            staff_info_serializer = StaffLoginInfoGetSerializer(
+                instance=user.hotel_staff.all(), many=True)
+            staff_info = staff_info_serializer.data
+    except:
+        pass
+    try:
+        if user.customer_info:
+            customer_info_serialzier = CustomerInfoSerializer(
+                instance=user.customer_info)
+            customer_info = customer_info_serialzier.data
+    except:
+        pass
+    return customer_info, staff_info, user_serializer
+
+
 class StaffFcmDeviceViewset(LoggingMixin, CustomViewSet):
     queryset = StaffFcmDevice.objects.all()
     lookup_field = 'hotel_staff'
@@ -140,21 +161,7 @@ class LoginView(KnoxLoginView):
         user_logged_in.send(sender=request.user.__class__,
                             request=request, user=request.user)
         data = self.get_post_response_data(request, token, instance)
-        user_serializer = UserAccountSerializer(instance=user)
-        staff_info = {}
-        customer_info = {}
-        if user.hotel_staff.first():
-            staff_info_serializer = StaffLoginInfoGetSerializer(
-                instance=user.hotel_staff.all(), many=True)
-            staff_info = staff_info_serializer.data
-        try:
-            if user.customer_info:
-                customer_info_serialzier = CustomerInfoSerializer(
-                    instance=user.customer_info)
-                customer_info = customer_info_serialzier.data
-        except:
-            pass
-
+        customer_info, staff_info, user_serializer = login_related_info(user)
         return ResponseWrapper(data={'auth': data, 'user': user_serializer.data, 'staff_info': staff_info, 'customer_info': customer_info})
 
 
@@ -497,8 +504,15 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
 
         if not updated:
             return ResponseWrapper(error_code=status.HTTP_400_BAD_REQUEST, error_msg=['failed to update'])
-        user_serializer = UserAccountSerializer(
-            instance=user_qs.first(), many=False)
+        is_apps = request.path.__contains__('/apps/')
+        if is_apps:
+            customer_info, staff_info, user_serializer = login_related_info(user_qs.first())
+            return ResponseWrapper(data={'user': user_serializer.data, 'staff_info': staff_info,
+                                         'customer_info': customer_info})
+
+        else:
+            user_serializer = UserAccountSerializer(
+                instance=user_qs.first(), many=False)
         return ResponseWrapper(data=user_serializer.data, status=200)
 
     def retrieve(self, request, *args, **kwargs):
