@@ -56,9 +56,9 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, qs=None, d
     """
     if settings.TURN_OFF_SIGNAL:
         return
-    print('---------------------------------------------------------------------------------------------------------------')
-    print("FIRING Signals")
-    print('---------------------------------------------------------------------------------------------------------------')
+    # print('---------------------------------------------------------------------------------------------------------------')
+    # print("FIRING Signals")
+    # print('---------------------------------------------------------------------------------------------------------------')
     response_data = {}
     # if state in ['data_only']:
     #     if not data:
@@ -84,7 +84,7 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, qs=None, d
         #         'message': message,
         #     }
         # )
-        print('done')
+        # print('done')
     except:
         pass
     # print('signal got a call', order_qs, table_qs, state)

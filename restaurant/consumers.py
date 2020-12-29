@@ -9,7 +9,7 @@ from channels.db import database_sync_to_async
 
 class DashboardConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        print('-----------------connect----------------')
+        # print('-----------------connect----------------')
         self.restaurant_id = int(self.scope.get(
             'url_route', {}).get('kwargs', {}).get('restaurant_id'))
         self.group_name = 'restaurant_%s' % self.restaurant_id
@@ -104,7 +104,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         data = event.get('data')
         restaurant_id = event.get('restaurant_id')
         response_data = {}
-        print('---------------response to listener--------------')
+        # print('---------------response to listener--------------')
         state = event.get('state')
         if state in ['data_only']:
             if not data:
