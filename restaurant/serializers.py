@@ -772,7 +772,8 @@ class ReportDateRangeSerializer(serializers.Serializer):
 class ReportByDateRangeSerializer(serializers.Serializer):
     start_date = serializers.DateField(required=False)
     end_date = serializers.DateField(required=False)
-    # restaurant = serializers.IntegerField(required=True)
+    category = serializers.ListSerializer(child=serializers.IntegerField())
+    item = serializers.ListSerializer(child=serializers.IntegerField())
 
 class StaffFcmSerializer(serializers.Serializer):
     table_id = serializers.IntegerField()

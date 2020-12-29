@@ -1649,7 +1649,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         #   return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg='not a valid manager or owner')
 
         food_items_date_range_qs = Invoice.objects.filter(
-            created_at__gte=start_date, updated_at__lte=end_date, payment_status='1_PAID')
+            created_at__gte=start_date, created_at__lte=end_date, payment_status='1_PAID')
         sum_of_payable_amount = sum(
             food_items_date_range_qs.values_list('payable_amount', flat=True))
         response = {'total_sell': round(sum_of_payable_amount, 2)}
@@ -1666,7 +1666,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         restaurant_id = request.data.get('restaurant_id')
 
         food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant_id,
-                                                          created_at__gte=start_date, updated_at__lte=end_date, payment_status='1_PAID')
+                                                          created_at__gte=start_date, created_at__lte=end_date, payment_status='1_PAID')
 
         order_items_list = food_items_date_range_qs.values_list(
             'order_info__ordered_items', flat=True)
@@ -1889,11 +1889,42 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
                           type=openapi.TYPE_INTEGER)
     ])
     def invoice_all_report(self, request,restaurant, *args, **kwargs):
-        start_date = request.data.get('start_date')
-        end_date = request.data.get('end_date')
+        start_date = request.data.get('start_date',timezone.now().date())
+        end_date = request.data.get('end_date',timezone.now().date())
+        category_list = request.data.get("category",[])
+        item_list = request.data.get('item',[])
+        # start_date = datetime.strptime(start_date, '%Y-%m-%d')
+        # end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        if item_list:
+            if start_date==end_date:
+                food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
+                                                                  created_at__gte=start_date,
+                                                                  order__ordered_items__food_option__food_id__in=item_list)
+            else:
+                food_items_date_range_qs = Invoice.objects.filter(restaurant_id= restaurant,
+                    created_at__gte=start_date, created_at__lte=end_date,order__ordered_items__food_option__food_id__in=item_list)
+        elif category_list:
+            if start_date==end_date:
+                food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
+                                                                  created_at__gte=start_date,
+                                                                  order__ordered_items__food_option__food__category_id__in=category_list
+                                                                  )
 
-        food_items_date_range_qs = Invoice.objects.filter(restaurant_id= restaurant,
-            created_at__gte=start_date, updated_at__lte=end_date)
+            else:
+                food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
+                                                                  created_at__gte=start_date, created_at__lte=end_date,
+                                                                  order__ordered_items__food_option__food__category_id__in=category_list
+                                                                  )
+        else:
+            if start_date==end_date:
+                food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
+                                                                  created_at__gte=start_date
+                                                                  )
+            else:
+                food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
+                                                                  created_at__gte=start_date, created_at__lte=end_date,
+                                                                  )
+
         total_order = food_items_date_range_qs.count()
         total_payable_amount = food_items_date_range_qs.values_list(
             'payable_amount', flat=True)
@@ -1906,7 +1937,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         paginated_data = self.get_paginated_response(serializer.data)
         order_details = dict(self.get_paginated_response(serializer.data).data)
 
-        order_details['total_amaount'] = total_amaount
+        order_details['total_amaount'] = round(total_amaount,2)
         order_details['total_order'] = total_order
 
 
