@@ -74,15 +74,17 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
         if 300 > response.status_code >= 200:
             if response.json().get('success') >= 1:
                 success = True
+        if success:
+            fcm_notification_staff_obj_list = list()
+            for staff_id in staff_id_list:
+                fcm_notification_staff_obj_list.append(
+                    FcmNotificationStaff(hotel_staff_id=staff_id))
+            if fcm_notification_staff_obj_list:
+                FcmNotificationStaff.objects.bulk_create(
+                    fcm_notification_staff_obj_list, ignore_conflicts=True)
+
 
     except Exception as e:
         print("FCm Exception ", e)
-    if success:
-        fcm_notification_staff_obj_list = list()
-        for staff_id in staff_id_list:
-            fcm_notification_staff_obj_list.append(
-                FcmNotificationStaff(hotel_staff_id=staff_id))
-        if fcm_notification_staff_obj_list:
-            FcmNotificationStaff.objects.bulk_create(
-                fcm_notification_staff_obj_list, ignore_conflicts=True)
+    
     return success
