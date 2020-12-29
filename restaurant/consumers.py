@@ -70,7 +70,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         )
 
     @database_sync_to_async
-    def order_item_list(self, restaurant_id=1):
+    def order_item_list(self, restaurant_id=17):
 
         qs = FoodOrder.objects.filter(table__restaurant=restaurant_id).exclude(
             status__in=['5_PAID', '6_CANCELLED']).order_by('table_id')
@@ -102,7 +102,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
 
     async def response_to_listener(self, event):
         data = event.get('data')
-        restaurant_id = event.get('restaurant_id')
+        restaurant_id = event.get('restaurant_id',17)
         response_data = {}
         # print('---------------response to listener--------------')
         state = event.get('state')
