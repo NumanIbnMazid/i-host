@@ -101,13 +101,18 @@ class DashboardConsumer(AsyncWebsocketConsumer):
     #     }))
 
     async def response_to_listener(self, event):
-        data = event['data']
-        restaurant_id = event['restaurant_id']
-
+        data = event.get('data')
+        restaurant_id = event.get('restaurant_id')
+        response_data = {}
         print('---------------response to listener--------------')
-
+        state = event.get('state')
+        if state in ['data_only']:
+            if not data:
+                response_data = await self.order_item_list(restaurant_id=restaurant_id)
+            else:
+                response_data = data
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
-            'data': await self.order_item_list(restaurant_id=restaurant_id)
+            'data': response_data
             # 'test': 'test success',
         }))
