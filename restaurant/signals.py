@@ -60,10 +60,10 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, qs=None, d
     print("FIRING Signals")
     print('---------------------------------------------------------------------------------------------------------------')
     response_data = {}
-    if state in ['data_only']:
-        if not data:
-            data = order_item_list(restaurant_id)
-        response_data = data
+    # if state in ['data_only']:
+    #     if not data:
+    #         data = order_item_list(restaurant_id)
+    #     response_data = data
 
     layer = channels.layers.get_channel_layer()
     try:
@@ -75,7 +75,7 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, qs=None, d
 
         # })
         async_to_sync(layer.group_send)(
-            group_name, {'type': 'response_to_listener', 'data': response_data})
+            group_name, {'type': 'response_to_listener', 'data': response_data, "restaurant_id": restaurant_id})
 
         # layer.group_send(
         #     str(res_id),
