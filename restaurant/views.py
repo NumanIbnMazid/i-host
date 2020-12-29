@@ -2101,7 +2101,7 @@ class FcmCommunication(viewsets.GenericViewSet):
         staff_fcm_device_qs = StaffFcmDevice.objects.filter(
             hotel_staff__tables=table_id)
         staff_id_list = staff_fcm_device_qs.values_list(
-            'hotel_staff_id', flat=True)
+            'pk', flat=True)
         if send_fcm_push_notification_appointment(
             tokens_list=list(staff_fcm_device_qs.values_list(
                 'token', flat=True)),
@@ -2128,7 +2128,7 @@ class FcmCommunication(viewsets.GenericViewSet):
         staff_fcm_device_qs = StaffFcmDevice.objects.filter(
             hotel_staff__tables=table_id)
         staff_id_list = staff_fcm_device_qs.values_list(
-            'hotel_staff_id', flat=True)
+            'pk', flat=True)
         if send_fcm_push_notification_appointment(
             tokens_list=list(staff_fcm_device_qs.values_list(
                 'token', flat=True)),

@@ -78,7 +78,7 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
             fcm_notification_staff_obj_list = list()
             for staff_id in staff_id_list:
                 fcm_notification_staff_obj_list.append(
-                    FcmNotificationStaff(hotel_staff_id=staff_id))
+                    FcmNotificationStaff(staff_device_id=staff_id))
             if fcm_notification_staff_obj_list:
                 FcmNotificationStaff.objects.bulk_create(
                     fcm_notification_staff_obj_list, ignore_conflicts=True)
