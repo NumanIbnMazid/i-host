@@ -16,7 +16,7 @@ order_done_signal = Signal(
     providing_args=["qs", "data", "state"])
 
 
-def order_item_list(self, restaurant_id=1):
+def order_item_list(restaurant_id=1):
     qs = FoodOrder.objects.filter(table__restaurant=restaurant_id).exclude(
         status__in=['5_PAID', '6_CANCELLED']).order_by('table_id')
     ordered_table_set = set(qs.values_list('table_id', flat=True))
