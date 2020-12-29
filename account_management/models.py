@@ -197,7 +197,7 @@ class OtpUser(models.Model):
 
 
 class FcmNotificationStaff(models.Model):
-    hotel_staff = models.ForeignKey(
+    staff_device = models.ForeignKey(
         to=StaffFcmDevice, null=True, on_delete=models.SET_NULL)
     data = JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

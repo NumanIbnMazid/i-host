@@ -1636,7 +1636,6 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         return order_date_range_qs
     """
 
-
     @swagger_auto_schema(
         request_body=ReportDateRangeSerializer
     )
@@ -1857,8 +1856,6 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                      }, msg="success")
 
 
-
-
 class InvoiceViewSet(LoggingMixin, CustomViewSet):
     serializer_class = InvoiceSerializer
     # pagination_class = CustomLimitPagination
@@ -1871,7 +1868,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         return self.serializer_class
 
     def get_pagination_class(self):
-        if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice','invoice_all_report']:
+        if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice', 'invoice_all_report']:
             return CustomLimitPagination
 
     queryset = Invoice.objects.all()
@@ -1888,12 +1885,12 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         openapi.Parameter("offset", openapi.IN_QUERY,
                           type=openapi.TYPE_INTEGER)
     ])
-    def invoice_all_report(self, request,restaurant, *args, **kwargs):
+    def invoice_all_report(self, request, restaurant, *args, **kwargs):
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
 
-        food_items_date_range_qs = Invoice.objects.filter(restaurant_id= restaurant,
-            created_at__gte=start_date, updated_at__lte=end_date)
+        food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
+                                                          created_at__gte=start_date, updated_at__lte=end_date)
         total_order = food_items_date_range_qs.count()
         total_payable_amount = food_items_date_range_qs.values_list(
             'payable_amount', flat=True)
@@ -1908,7 +1905,6 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
         order_details['total_amaount'] = total_amaount
         order_details['total_order'] = total_order
-
 
         # page_qs = self.paginate_queryset(order_details)
         #
@@ -1926,8 +1922,6 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         paginated_data = self.get_paginated_response(serializer.data)
 
         return ResponseWrapper(paginated_data.data)
-
-
 
     def paid_cancel_invoice_history(self, request, restaurant, *args, **kwargs):
         invoice_qs = Invoice.objects.filter(restaurant_id=restaurant, order__status__in=[
@@ -2107,7 +2101,7 @@ class FcmCommunication(viewsets.GenericViewSet):
         staff_fcm_device_qs = StaffFcmDevice.objects.filter(
             hotel_staff__tables=table_id)
         staff_id_list = staff_fcm_device_qs.values_list(
-            'hotel_staff', flat=True)
+            'hotel_staff_id', flat=True)
         if send_fcm_push_notification_appointment(
             tokens_list=list(staff_fcm_device_qs.values_list(
                 'token', flat=True)),
@@ -2134,7 +2128,7 @@ class FcmCommunication(viewsets.GenericViewSet):
         staff_fcm_device_qs = StaffFcmDevice.objects.filter(
             hotel_staff__tables=table_id)
         staff_id_list = staff_fcm_device_qs.values_list(
-            'hotel_staff', flat=True)
+            'hotel_staff_id', flat=True)
         if send_fcm_push_notification_appointment(
             tokens_list=list(staff_fcm_device_qs.values_list(
                 'token', flat=True)),
