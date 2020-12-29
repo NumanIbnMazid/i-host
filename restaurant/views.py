@@ -1891,7 +1891,8 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         category_list = request.data.get("category",[])
         item_list = request.data.get('item',[])
         # start_date = datetime.strptime(start_date, '%Y-%m-%d')
-        # end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        end_date += timedelta(days=1)
         if item_list:
             if start_date==end_date:
                 food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
@@ -1919,7 +1920,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
                                                                   )
             else:
                 food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
-                                                                  created_at__gte=start_date, created_at__lte=end_date,
+                                                                  created_at__gte=start_date, created_at__lte=end_date
                                                                   )
 
         total_order = food_items_date_range_qs.count()
