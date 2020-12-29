@@ -1470,11 +1470,11 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             instance.food_options.all(), many=True)
         return ResponseWrapper(data=serializer.data)
 
-    def update(self, request, **kwargs):
+    def update(self, request, pk, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data, partial=True)
         if serializer.is_valid():
-            old_qs = self.get_object()
+            old_qs = Food.objects.filter(pk=pk).first()
             qs = serializer.update(
                 instance=old_qs, validated_data=serializer.validated_data)
             serializer = FoodDetailSerializer(instance=qs)
