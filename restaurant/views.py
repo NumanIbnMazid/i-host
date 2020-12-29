@@ -2144,7 +2144,7 @@ class FcmCommunication(viewsets.GenericViewSet):
 
     def fcm_notification_history_for_staff(self, request, staff_id):
         qs = FcmNotificationStaff.objects.filter(
-            hotel_staff=staff_id, created_at__gte=timezone.now().date()).order_by('-created_at')
+            staff_device__hotel_staff_id=staff_id, created_at__gte=timezone.now().date()).order_by('-created_at')
         serializer = FcmNotificationStaffSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
