@@ -1894,34 +1894,17 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         end_date = datetime.strptime(end_date, '%Y-%m-%d')
         end_date += timedelta(days=1)
         if item_list:
-            if start_date==end_date:
-                food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
-                                                                  created_at__gte=start_date,
-                                                                  order__ordered_items__food_option__food_id__in=item_list)
-            else:
-                food_items_date_range_qs = Invoice.objects.filter(restaurant_id= restaurant,
-                    created_at__gte=start_date, created_at__lte=end_date,order__ordered_items__food_option__food_id__in=item_list)
+            food_items_date_range_qs = Invoice.objects.filter(restaurant_id= restaurant,
+                created_at__gte=start_date, created_at__lte=end_date,order__ordered_items__food_option__food_id__in=item_list)
         elif category_list:
-            if start_date==end_date:
-                food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
-                                                                  created_at__gte=start_date,
-                                                                  order__ordered_items__food_option__food__category_id__in=category_list
-                                                                  )
-
-            else:
-                food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
-                                                                  created_at__gte=start_date, created_at__lte=end_date,
-                                                                  order__ordered_items__food_option__food__category_id__in=category_list
-                                                                  )
+            food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
+                                                              created_at__gte=start_date, created_at__lte=end_date,
+                                                              order__ordered_items__food_option__food__category_id__in=category_list
+                                                              )
         else:
-            if start_date==end_date:
-                food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
-                                                                  created_at__gte=start_date
-                                                                  )
-            else:
-                food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
-                                                                  created_at__gte=start_date, created_at__lte=end_date
-                                                                  )
+            food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
+                                                              created_at__gte=start_date, created_at__lte=end_date
+                                                              )
 
         total_order = food_items_date_range_qs.count()
         total_payable_amount = food_items_date_range_qs.values_list(
