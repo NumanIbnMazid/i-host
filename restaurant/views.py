@@ -2052,11 +2052,14 @@ class FcmCommunication(viewsets.GenericViewSet):
 
         staff_fcm_device_qs = StaffFcmDevice.objects.filter(
             hotel_staff__tables=table_id)
+        staff_id_list = staff_fcm_device_qs.values_list(
+            'hotel_staff', flat=True)
         if send_fcm_push_notification_appointment(
             tokens_list=list(staff_fcm_device_qs.values_list(
                 'token', flat=True)),
                 table_no=table_qs.table_no if table_qs else None,
                 status="CallStaff",
+                staff_id_list=staff_id_list,
         ):
             return ResponseWrapper(msg='Success')
         else:
@@ -2076,12 +2079,15 @@ class FcmCommunication(viewsets.GenericViewSet):
 
         staff_fcm_device_qs = StaffFcmDevice.objects.filter(
             hotel_staff__tables=table_id)
+        staff_id_list = staff_fcm_device_qs.values_list(
+            'hotel_staff', flat=True)
         if send_fcm_push_notification_appointment(
             tokens_list=list(staff_fcm_device_qs.values_list(
                 'token', flat=True)),
                 table_no=table_qs.table_no if table_qs else None,
                 status="CallStaffForPayment",
                 msg=payment_method,
+                staff_id_list=staff_id_list,
 
         ):
             return ResponseWrapper(msg='Success')

@@ -1,4 +1,5 @@
 
+from account_management.models import FcmNotificationStaff
 import datetime
 import json
 
@@ -16,7 +17,7 @@ FCM_DJANGO_SETTINGS = {
 FCM_SERVER_KEY = FCM_DJANGO_SETTINGS.get('FCM_SERVER_KEY')
 
 
-def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff", table_no=0, msg=''):
+def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff", table_no=0, msg='', staff_id_list: list = list()):
     status_value = {
         "Received": {
             'notification': {'title': 'Received',
@@ -76,4 +77,12 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
 
     except Exception as e:
         print("FCm Exception ", e)
+    if success:
+        fcm_notification_staff_obj_list = list()
+        for staff_id in staff_id_list:
+            fcm_notification_staff_obj_list.append(
+                FcmNotificationStaff(hotel_staff_id=staff_id))
+        if fcm_notification_staff_obj_list:
+            FcmNotificationStaff.objects.bulk_create(
+                fcm_notification_staff_obj_list, ignore_conflicts=True)
     return success
