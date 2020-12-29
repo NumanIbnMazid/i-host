@@ -167,7 +167,7 @@ class PhoneVerification(models.Model):
 class StaffFcmDevice(models.Model):
     hotel_staff = models.ForeignKey(
         to=HotelStaffInformation, on_delete=models.CASCADE, related_name='staff_fcm_devices')
-    device_id = models.CharField(max_length=255)
+    device_id = models.CharField(max_length=255, null=True, blank=True)
     token = models.CharField(max_length=255)
     device_type = models.CharField(
         choices=[('web', 'web'), ('ios', 'ios'), ('android', 'android')], default='android', max_length=25)
@@ -197,7 +197,7 @@ class OtpUser(models.Model):
 
 
 class FcmNotificationStaff(models.Model):
-    hotel_staff = models.ForeignKey(
+    staff_device = models.ForeignKey(
         to=StaffFcmDevice, null=True, on_delete=models.SET_NULL)
     data = JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

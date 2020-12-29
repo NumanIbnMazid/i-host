@@ -1636,7 +1636,6 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         return order_date_range_qs
     """
 
-
     @swagger_auto_schema(
         request_body=ReportDateRangeSerializer
     )
@@ -1857,8 +1856,6 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                      }, msg="success")
 
 
-
-
 class InvoiceViewSet(LoggingMixin, CustomViewSet):
     serializer_class = InvoiceSerializer
     # pagination_class = CustomLimitPagination
@@ -1871,7 +1868,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         return self.serializer_class
 
     def get_pagination_class(self):
-        if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice','invoice_all_report']:
+        if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice', 'invoice_all_report']:
             return CustomLimitPagination
 
     queryset = Invoice.objects.all()
@@ -1940,7 +1937,6 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         order_details['total_amaount'] = round(total_amaount,2)
         order_details['total_order'] = total_order
 
-
         # page_qs = self.paginate_queryset(order_details)
         #
         # #serializer = InvoiceSerializer(instance=page_qs, many=True)
@@ -1957,8 +1953,6 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         paginated_data = self.get_paginated_response(serializer.data)
 
         return ResponseWrapper(paginated_data.data)
-
-
 
     def paid_cancel_invoice_history(self, request, restaurant, *args, **kwargs):
         invoice_qs = Invoice.objects.filter(restaurant_id=restaurant, order__status__in=[
@@ -2138,7 +2132,7 @@ class FcmCommunication(viewsets.GenericViewSet):
         staff_fcm_device_qs = StaffFcmDevice.objects.filter(
             hotel_staff__tables=table_id)
         staff_id_list = staff_fcm_device_qs.values_list(
-            'hotel_staff', flat=True)
+            'pk', flat=True)
         if send_fcm_push_notification_appointment(
             tokens_list=list(staff_fcm_device_qs.values_list(
                 'token', flat=True)),
@@ -2165,7 +2159,7 @@ class FcmCommunication(viewsets.GenericViewSet):
         staff_fcm_device_qs = StaffFcmDevice.objects.filter(
             hotel_staff__tables=table_id)
         staff_id_list = staff_fcm_device_qs.values_list(
-            'hotel_staff', flat=True)
+            'pk', flat=True)
         if send_fcm_push_notification_appointment(
             tokens_list=list(staff_fcm_device_qs.values_list(
                 'token', flat=True)),
@@ -2181,7 +2175,7 @@ class FcmCommunication(viewsets.GenericViewSet):
 
     def fcm_notification_history_for_staff(self, request, staff_id):
         qs = FcmNotificationStaff.objects.filter(
-            hotel_staff=staff_id, created_at__gte=timezone.now().date()).order_by('-created_at')
+            staff_device__hotel_staff_id=staff_id, created_at__gte=timezone.now().date()).order_by('-created_at')
         serializer = FcmNotificationStaffSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
