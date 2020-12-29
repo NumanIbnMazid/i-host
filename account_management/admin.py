@@ -5,9 +5,11 @@ from .models import *
 
 class HotelStaffInformationAdmin(admin.ModelAdmin):
     list_display = ['user', 'restaurant']
-    
+
+
 class CustomerFcmDeviceAdmin(admin.ModelAdmin):
-    list_display = ['customer', 'device_id', 'device_type']
+    list_display = ['customer', 'device_type']
+
 
 admin.site.register(UserAccount)
 admin.site.register(HotelStaffInformation, HotelStaffInformationAdmin)
