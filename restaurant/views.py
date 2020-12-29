@@ -594,7 +594,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def order_id_by_table(self, request, table_id, *args, **kwargs):
-        table_qs = FoodOrder.objects.filter(table_id=table_id).first()
+        table_qs = FoodOrder.objects.filter(table_id=table_id).last()
         if not table_qs:
             return ResponseWrapper(msg='Wrong Table ID')
         if not table_qs.table.is_occupied:
