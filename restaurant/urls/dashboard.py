@@ -52,8 +52,7 @@ fake_dashboard_urls = [
          TableViewSet.as_view({'patch': 'update', 'delete': 'destroy'}), name='table'),
     path('table/<int:table_id>/staff_remove/',
          TableViewSet.as_view({'post': 'remove_staff', }), name='remove_staff'),
-    path('order_id_by/<int:table_id>/',
-             TableViewSet.as_view({'get': 'order_id_by_table', }), name='order_id_by_table'),
+    
     # New Add
     #     path('table/<int:table_id>/quantity_list/',
     #          TableViewSet.as_view({'get': 'quantity_list', }), name='quantity_list'),
@@ -250,6 +249,9 @@ dashboard_urls = [
 
     path('report_by_date_range/',
          ReportingViewset.as_view({'post': 'report_by_date_range'}), name='report_by_date_range'),
+
+    path('invoice_all_report/<int:restaurant>/',
+         InvoiceViewSet.as_view({'post': 'invoice_all_report'}), name='invoice_all_report'),
 
     path('admin_all_report/',
          ReportingViewset.as_view({'get': 'admin_all_report'}), name='admin_all_report'),
