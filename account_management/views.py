@@ -555,6 +555,7 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
             return ResponseWrapper(msg='otp sent', data={'name': None, 'id': None, 'phone': phone}, status=200)
         else:
             return ResponseWrapper(error_msg='otp sending failed')
+            
 
 
 class CustomerInfoViewset(LoggingMixin, viewsets.ModelViewSet):
