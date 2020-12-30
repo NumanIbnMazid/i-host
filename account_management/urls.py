@@ -62,9 +62,9 @@ restaurant_account_management = [
         "get": "hotel_staff_logger"
     }), name="hotel_staff_logger"),
 
-    path("customer_notification/<int:restaurant>/", CustomerNotificationViewSet.as_view({
-        "get": "customer_notification_by_restaurant"
-    }), name="customer_notification_by_restaurant")
+    path('customer_notification_by_restaurant/<int:restaurant>/',
+         CustomerNotificationViewSet.as_view({'get': 'customer_notification_by_restaurant'}), name='customer_notification_by_restaurant'),
+
 ]
 
 auth_urlpatterns = [

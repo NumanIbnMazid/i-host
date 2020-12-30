@@ -626,25 +626,37 @@ class HotelStaffLogViewSet(CustomViewSet):
         # return ResponseWrapper(data=waiter_qs.data,status=200)
 
 
+# class CustomerNotificationViewSet(LoggingMixin, CustomViewSet):
+#     queryset = FcmNotificationCustomer.objects.all()
+#     lookup_field = 'pk'
+#     serializer_class = CustomerNotificationSerializer
+#     #logging_methods = ['DELETE', 'POST', 'PATCH', 'GET']
+#
+#     # def get_permissions(self):
+#     #     permission_classes = []
+#     #     if self.action in ["customer_notification_by_restaurant"]:
+#     #         permission_classes = [
+#     #             custom_permissions.IsRestaurantManagementOrAdmin]
+#     #     # else:
+#     #         # permission_classes = [
+#     #         # custom_permissions.IsRestaurantManagementOrAdmin]
+#
+#     #     return [permission() for permission in permission_classes]
+#
+#     def customer_notification_by_restaurant(self, request, restaurant, *args, **kwargs):
+#         notification_qs = FcmNotificationCustomer.objects.filter(restaurant_id=restaurant)
+#         serializer = CustomerNotificationSerializer(
+#             instance=notification_qs, many=True)
+#         return ResponseWrapper(data=serializer.data)
+
 class CustomerNotificationViewSet(LoggingMixin, CustomViewSet):
     queryset = FcmNotificationCustomer.objects.all()
     lookup_field = 'pk'
     serializer_class = CustomerNotificationSerializer
     logging_methods = ['DELETE', 'POST', 'PATCH', 'GET']
 
-    # def get_permissions(self):
-    #     permission_classes = []
-    #     if self.action in ["customer_notification_by_restaurant"]:
-    #         permission_classes = [
-    #             custom_permissions.IsRestaurantManagementOrAdmin]
-    #     # else:
-    #         # permission_classes = [
-    #         # custom_permissions.IsRestaurantManagementOrAdmin]
-
-    #     return [permission() for permission in permission_classes]
-
     def customer_notification_by_restaurant(self, request, restaurant, *args, **kwargs):
-        notification_qs = FcmNotificationCustomer.objects.filter(restaurant_id=restaurant)
+        restaurant_qs = FcmNotificationCustomer.objects.filter(restaurant_id=restaurant)
         serializer = CustomerNotificationSerializer(
-            instance=notification_qs, many=True)
+            instance=restaurant_qs, many=True)
         return ResponseWrapper(data=serializer.data)
