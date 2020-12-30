@@ -250,6 +250,9 @@ dashboard_urls = [
     path('report_by_date_range/',
          ReportingViewset.as_view({'post': 'report_by_date_range'}), name='report_by_date_range'),
 
+    path('month_wise_total_report/<int:restaurant_id>/',
+         ReportingViewset.as_view({'get': 'month_wise_total_report'}), name='month_wise_total_report'),
+
     path('invoice_all_report/<int:restaurant>/',
          InvoiceViewSet.as_view({'post': 'invoice_all_report'}), name='invoice_all_report'),
 
@@ -258,6 +261,9 @@ dashboard_urls = [
 
     path('food_report_by_date_range/',
          ReportingViewset.as_view({'post': 'food_report_by_date_range'}), name='food_report_by_date_range'),
+
+    path('top_food_items_by_date_range/<int:restaurant_id>/',
+         InvoiceViewSet.as_view({'post': 'top_food_items_by_date_range'}), name='top_food_items_by_date_range'),
 
     path('dashboard_total_report/<int:restaurant_id>',
          ReportingViewset.as_view({'get': 'dashboard_total_report'}), name='dashboard_total_report'),
