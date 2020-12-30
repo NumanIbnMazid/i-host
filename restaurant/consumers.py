@@ -91,7 +91,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             )
         serializer = FoodOrderByTableSerializer(instance=qs, many=True)
         response_data = serializer.data+empty_table_data
-        return response_data if response_data else ['from consumer order_item_list', restaurant_id]
+        return response_data if response_data else ['from consumer order_item_list', str(restaurant_id)]
 
     # async def chat_message(self, event):
     #     message = event['message']
