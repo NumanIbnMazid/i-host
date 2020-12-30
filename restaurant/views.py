@@ -1650,13 +1650,9 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
         return ResponseWrapper(data=response, msg='success')
 
-
-
     @swagger_auto_schema(
         request_body=ReportDateRangeSerializer
     )
-
-
     def food_report_by_date_range(self, request, *args, **kwargs):
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
@@ -1881,8 +1877,9 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             monthly_wise_order_list.append(monthly_wise_order_list)
 
         return ResponseWrapper(data={'total_restaurant': monthly_wise_income_list,
-                                             'total_order': this_month_total_order,
-                                             }, msg="success")
+                                     'total_order': this_month_total_order,
+                                     }, msg="success")
+
 
 class InvoiceViewSet(LoggingMixin, CustomViewSet):
     serializer_class = InvoiceSerializer
@@ -1891,7 +1888,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
     def get_serializer_class(self):
         if self.action in ['invoice_history']:
             self.serializer_class = InvoiceSerializer
-        elif self.action in ['invoice_all_report','top_food_items_by_date_range']:
+        elif self.action in ['invoice_all_report', 'top_food_items_by_date_range']:
             self.serializer_class = ReportByDateRangeSerializer
         return self.serializer_class
 
@@ -1913,18 +1910,18 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         openapi.Parameter("offset", openapi.IN_QUERY,
                           type=openapi.TYPE_INTEGER)
     ])
-    def invoice_all_report(self, request,restaurant, *args, **kwargs):
-        start_date = request.data.get('start_date',timezone.now().date())
-        end_date = request.data.get('end_date',timezone.now().date())
-        category_list = request.data.get("category",[])
-        item_list = request.data.get('item',[])
+    def invoice_all_report(self, request, restaurant, *args, **kwargs):
+        start_date = request.data.get('start_date', timezone.now().date())
+        end_date = request.data.get('end_date', timezone.now().date())
+        category_list = request.data.get("category", [])
+        item_list = request.data.get('item', [])
         # start_date = datetime.strptime(start_date, '%Y-%m-%d')
         if request.data.get('end_date'):
             end_date = datetime.strptime(end_date, '%Y-%m-%d')
         end_date += timedelta(days=1)
         if item_list:
-            food_items_date_range_qs = Invoice.objects.filter(Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list),restaurant_id= restaurant,
-                created_at__gte=start_date, created_at__lte=end_date)
+            food_items_date_range_qs = Invoice.objects.filter(Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list), restaurant_id=restaurant,
+                                                              created_at__gte=start_date, created_at__lte=end_date)
         elif category_list:
             food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
                                                               created_at__gte=start_date, created_at__lte=end_date,
@@ -1947,7 +1944,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         paginated_data = self.get_paginated_response(serializer.data)
         order_details = dict(self.get_paginated_response(serializer.data).data)
 
-        order_details['total_amaount'] = round(total_amaount,2)
+        order_details['total_amaount'] = round(total_amaount, 2)
         order_details['total_order'] = total_order
 
         # page_qs = self.paginate_queryset(order_details)
@@ -1972,8 +1969,8 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         #                                                   payment_status='1_PAID')
         #
         if item_list:
-            food_items_date_range_qs = Invoice.objects.filter(Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list),restaurant_id= restaurant_id,
-                created_at__gte=start_date, created_at__lte=end_date)
+            food_items_date_range_qs = Invoice.objects.filter(Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list), restaurant_id=restaurant_id,
+                                                              created_at__gte=start_date, created_at__lte=end_date)
         elif category_list:
             food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant_id,
                                                               created_at__gte=start_date, created_at__lte=end_date,
@@ -2057,9 +2054,12 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
             if item.get('food_option', {}):
                 item['food_option'] = item.get('food_option', {}).values()
-
-        #food_dict.order_by('quantity')
-        return ResponseWrapper(data=food_dict.values(), msg='success')
+        response_data_list = food_dict.values()
+        # res = dict(sorted(food_dict.items(), key=lambda x: x[1]['quantity'],reverse=True))
+        response_data_desc_sorted = sorted(response_data_list,
+                   key=lambda i: i['quantity'], reverse=True)
+        # print(res)
+        return ResponseWrapper(data=response_data_desc_sorted, msg='success')
 
     def invoice_history(self, request, restaurant, *args, **kwargs):
         invoice_qs = Invoice.objects.filter(
