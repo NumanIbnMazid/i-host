@@ -34,7 +34,7 @@ from utils.response_wrapper import ResponseWrapper
 from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodExtraType, FoodOption, FoodOptionType,
                                FoodOrder, Invoice, OrderedItem, PaymentType, PopUp,
-                               Restaurant, Table, Slider, Subscription, Review, RestaurantMessages,VersionUpdate)
+                               Restaurant, Table, Slider, Subscription, Review, RestaurantMessages, VersionUpdate)
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
@@ -863,7 +863,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
             else:
-                if order_qs.status in ['3_IN_TABLE','4_CREATE_INVOICE', '5_PAID']:
+                if order_qs.status in ['3_IN_TABLE', '4_CREATE_INVOICE', '5_PAID']:
                     order_qs.status = '2_ORDER_CONFIRMED'
                     order_qs.save()
                 serializer = FoodOrderByTableSerializer(instance=order_qs)
@@ -1857,9 +1857,6 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         monthly_wise_income_list = list()
         monthly_wise_order_list = list()
 
-
-
-
         for month in range(months):
             # start_of_month = today + timedelta(days=month + (today.weekday() - 1))
             month_qs = (this_month + 1) % 12
@@ -1892,7 +1889,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         return self.serializer_class
 
     def get_pagination_class(self):
-        if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice', 'invoice_all_report','top_food_items_by_date_range']:
+        if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice', 'invoice_all_report', 'top_food_items_by_date_range']:
             return CustomLimitPagination
 
     queryset = Invoice.objects.all()
@@ -2057,13 +2054,13 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         response_data_list = food_dict.values()
 
         response_data_desc_sorted = sorted(response_data_list,
-                   key=lambda i: i['quantity'], reverse=True)
+                                           key=lambda i: i['quantity'], reverse=True)
 
         page_qs = self.paginate_queryset(response_data_desc_sorted)
 
         paginated_data = self.get_paginated_response(page_qs)
         return ResponseWrapper(paginated_data.data)
-    
+
         # return ResponseWrapper(data=response_data_desc_sorted, msg='success')
 
     def invoice_history(self, request, restaurant, *args, **kwargs):
@@ -2449,7 +2446,6 @@ class PaymentTypeViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data)
 
 
-
 class VersionUpdateViewSet(LoggingMixin, CustomViewSet):
     queryset = VersionUpdate.objects.all()
     lookup_field = 'pk'
@@ -2481,7 +2477,8 @@ class VersionUpdateViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_code=400, error_msg=serializer.errors, msg='failed to create Version')
 
-    def list(self, request, *args, **kwargs):
+    def version_update_list(self, request, *args, **kwargs):
         qs = VersionUpdate.objects.all()
+        #serializer = VersionUpdateSerializer(instance=qs, many=True)
         serializer = VersionUpdateSerializer(instance=qs, many=True)
-        return VersionUpdateSerializer(data=serializer.data)
+        return ResponseWrapper(data=serializer.data, msg='success')
