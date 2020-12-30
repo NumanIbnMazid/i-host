@@ -1050,10 +1050,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                     order_qs, payment_status="0_UNPAID")
 
                 serializer = InvoiceSerializer(instance=invoice_qs)
-                order_done_signal.send(
-                    sender=self.__class__.create,
-                    restaurant_id=order_qs.restaurant_id,
-                )
+                # order_done_signal.send(
+                #     sender=self.__class__.create,
+                #     restaurant_id=order_qs.restaurant_id,
+                # )
                 order_done_signal.send(
                     sender=self.__class__.create,
                     restaurant_id=order_qs.restaurant_id,
@@ -1290,7 +1290,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
 
             qs = serializer.save()
 
-            restaurant_id = food_order_qs.table.restaurant_id
+            restaurant_id = food_order_qs.restaurant_id
 
             if is_staff_order:
                 order_pk_list = list()
@@ -1578,15 +1578,10 @@ class FoodOrderViewSet(CustomViewSet):
 class ReportingViewset(LoggingMixin, viewsets.ViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
-    # def get_serializer_class(self):
-    #     if self.action in ['report_by_date_range']:
-    #         self.serializer_class = ReportDateRangeSerializer
-    #     elif self.action in ['food_report_by_date_range']:
-    #         self.serializer_class = ReportDateRangeSerializer
-    #     elif self.action in ['invoice_all_report']:
-    #         self.serializer_class = ReportByDateRangeSerializer
-    #
-    #     return self.serializer_class
+    def get_serializer_class(self):
+        if self.action in ['report_by_date_range']:
+            self.serializer_class = ReportDateRangeSerializer
+        return self.serializer_class
 
     def get_permissions(self):
         permission_classes = []
@@ -1636,9 +1631,9 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         return order_date_range_qs
     """
 
-    @swagger_auto_schema(
-        request_body=ReportDateRangeSerializer
-    )
+    # @swagger_auto_schema(
+    #     request_body=ReportDateRangeSerializer
+    # )
     def report_by_date_range(self, request, *args, **kwargs):
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
@@ -1655,15 +1650,17 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
         return ResponseWrapper(data=response, msg='success')
 
+
+
     @swagger_auto_schema(
         request_body=ReportDateRangeSerializer
     )
-    def food_report_by_date_range(self, request, *args, **kwargs):
 
+
+    def food_report_by_date_range(self, request, *args, **kwargs):
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
         restaurant_id = request.data.get('restaurant_id')
-
         food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant_id,
                                                           created_at__gte=start_date, created_at__lte=end_date, payment_status='1_PAID')
 
@@ -1855,6 +1852,33 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                      'this_month_total_amaount': this_month_total_amaount,
                                      }, msg="success")
 
+    def month_wise_total_report(self, request, restaurant_id, *args, **kwargs):
+        today = timezone.datetime.now()
+        this_month = timezone.datetime.now().month
+
+        month = 12
+        monthly_wise_income_list = list()
+        monthly_wise_order_list = list()
+
+        for month in range(month):
+
+            # start_of_month = today + timedelta(days=month + (today.weekday() - 1))
+            month_qs = (this_month + 1) % 12
+            start_of_month = today - timezone.timedelta(month_qs-month)
+
+            invoice_qs = Invoice.objects.filter(
+                created_at__contains=start_of_month.date(), payment_status='1_PAID', restaurant_id=restaurant_id)
+            total_list = invoice_qs.values_list('payable_amount', flat=True)
+            this_month_total_order = FoodOrder.objects.filter(
+                created_at__contains=start_of_month.date(), status='5_PAID', restaurant_id=restaurant_id).count()
+
+            this_month_total = sum(total_list)
+            monthly_wise_income_list.append(this_month_total)
+            monthly_wise_order_list.append(monthly_wise_order_list)
+
+        return ResponseWrapper(data={'total_restaurant': monthly_wise_income_list,
+                                             'total_order': this_month_total_order,
+                                             }, msg="success")
 
 class InvoiceViewSet(LoggingMixin, CustomViewSet):
     serializer_class = InvoiceSerializer
@@ -1863,7 +1887,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
     def get_serializer_class(self):
         if self.action in ['invoice_history']:
             self.serializer_class = InvoiceSerializer
-        if self.action in ['invoice_all_report']:
+        elif self.action in ['invoice_all_report','top_food_items_by_date_range']:
             self.serializer_class = ReportByDateRangeSerializer
         return self.serializer_class
 
@@ -1895,8 +1919,8 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
             end_date = datetime.strptime(end_date, '%Y-%m-%d')
         end_date += timedelta(days=1)
         if item_list:
-            food_items_date_range_qs = Invoice.objects.filter(restaurant_id= restaurant,
-                created_at__gte=start_date, created_at__lte=end_date,order__ordered_items__food_option__food_id__in=item_list)
+            food_items_date_range_qs = Invoice.objects.filter(Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list),restaurant_id= restaurant,
+                created_at__gte=start_date, created_at__lte=end_date)
         elif category_list:
             food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
                                                               created_at__gte=start_date, created_at__lte=end_date,
@@ -1928,6 +1952,110 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         # paginated_data = self.get_paginated_response(page_qs.data)
 
         return ResponseWrapper(data=order_details)
+
+    def top_food_items_by_date_range(self, request, restaurant_id, *args, **kwargs):
+        start_date = request.data.get('start_date')
+        end_date = request.data.get('end_date')
+        category_list = request.data.get("category", [])
+        item_list = request.data.get('item', [])
+
+        if request.data.get('end_date'):
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        end_date += timedelta(days=1)
+
+        # food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant_id,
+        #                                                   created_at__gte=start_date, created_at__lte=end_date,
+        #                                                   payment_status='1_PAID')
+        #
+        if item_list:
+            food_items_date_range_qs = Invoice.objects.filter(Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list),restaurant_id= restaurant_id,
+                created_at__gte=start_date, created_at__lte=end_date)
+        elif category_list:
+            food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant_id,
+                                                              created_at__gte=start_date, created_at__lte=end_date,
+                                                              order__ordered_items__food_option__food__category_id__in=category_list
+                                                              )
+        else:
+            food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant_id,
+                                                              created_at__gte=start_date, created_at__lte=end_date
+                                                              )
+
+        order_items_list = food_items_date_range_qs.values_list(
+            'order_info__ordered_items', flat=True)
+        food_dict = {}
+        food_report_list = []
+        food_option_report = {}
+        food_extra_report = {}
+
+        for items_per_invoice in order_items_list:
+            for item in items_per_invoice:
+
+                food_id = item.get("food_option", {}).get("food")
+                if (not food_id) or (not item.get('status') == "3_IN_TABLE"):
+                    continue
+
+                name = item.get('food_name')
+                price = item.get('price', 0)
+                quantity = item.get('quantity', 0)
+
+                if not food_dict.get(food_id):
+                    food_dict[food_id] = {}
+
+                if not food_dict.get(food_id, {}).get(name):
+                    food_dict[food_id]['name'] = name
+
+                if not food_dict.get(food_id, {}).get(price):
+                    food_dict[food_id]['price'] = price
+                else:
+                    food_dict[food_id]['price'] += price
+
+                if not food_dict.get(food_id, {}).get(quantity):
+                    food_dict[food_id]['quantity'] = quantity
+                else:
+                    food_dict[food_id]['quantity'] += quantity
+                # food_option_report[food_id]['food_option_report'] = food_option
+                # food_option_report[food_id]['food_extra'] = food_extra_name
+
+                # calculation of food option
+
+                food_option_name = item.get("food_option", {}).get("name")
+                food_option_id = item.get("food_option", {}).get("id")
+
+                if food_option_id and food_option_name:
+                    if not food_dict.get(food_id, {}).get('food_option'):
+                        food_dict[food_id]['food_option'] = {}
+                    if not food_dict.get(food_id, {}).get('food_option', {}).get(food_option_id):
+                        food_dict[food_id]['food_option'][food_option_id] = {
+                            'name': food_option_name, 'quantity': quantity}
+                    else:
+                        food_dict[food_id]['food_option'][food_option_id]['quantity'] += quantity
+
+                # calculation of food extra
+
+                food_extra_list = item.get('food_extra', [])
+
+                for food_extra in food_extra_list:
+                    food_extra_name = food_extra.get("name")
+                    food_extra_id = food_extra.get("id")
+
+                    if food_extra_id and food_extra_name:
+                        if not food_dict.get(food_id, {}).get('food_extra'):
+                            food_dict[food_id]['food_extra'] = {}
+                        if not food_dict.get(food_id, {}).get("food_extra", {}).get(food_extra_id):
+                            food_dict[food_id]["food_extra"][food_extra_id] = {
+                                'name': food_extra_name, 'quantity': quantity}
+                        else:
+                            food_dict[food_id]["food_extra"][food_extra_id]['quantity'] += quantity
+
+        for item in food_dict.values():
+            if item.get('food_extra', {}):
+                item['food_extra'] = item.get('food_extra', {}).values()
+
+            if item.get('food_option', {}):
+                item['food_option'] = item.get('food_option', {}).values()
+
+        #food_dict.order_by('quantity')
+        return ResponseWrapper(data=food_dict.values(), msg='success')
 
     def invoice_history(self, request, restaurant, *args, **kwargs):
         invoice_qs = Invoice.objects.filter(
