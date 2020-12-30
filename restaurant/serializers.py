@@ -869,3 +869,8 @@ class FcmNotificationStaffSerializer(serializers.ModelSerializer):
     class Meta:
         model = FcmNotificationStaff
         fields = '__all__'
+
+class VersionUpdateSerializer(serializers.ModelSerializer):
+    class Meta: 
+        model = VersionUpdate
+        fields = '__all__'

@@ -30,8 +30,8 @@ router = DefaultRouter()
 # router.register('food', FoodViewSet,
 #                 basename="food")
 
-# router.register('discount', DiscountViewSet,
-#               basename="discount")
+# router.register('version_update', VersionUpdateViewSet,
+               #  basename="version_update")
 apps_fake = [
     path('', include(router.urls)),
     #     path('foods/<int:restaurant>/',
@@ -230,6 +230,13 @@ apps_fake = [
          
     path('order_id_by/<int:table_id>/',
          TableViewSet.as_view({'get': 'order_id_by_table', }), name='order_id_by_table'),
+
+    path('version_update',
+         VersionUpdateViewSet.as_view({'get': 'list', }), name='version_update'),
+
+    path('version_update',
+         VersionUpdateViewSet.as_view({'post': 'create', }), name='create'),
+
 
 ]
 

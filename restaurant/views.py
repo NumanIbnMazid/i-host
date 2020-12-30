@@ -34,7 +34,7 @@ from utils.response_wrapper import ResponseWrapper
 from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodExtraType, FoodOption, FoodOptionType,
                                FoodOrder, Invoice, OrderedItem, PaymentType, PopUp,
-                               Restaurant, Table, Slider, Subscription, Review, RestaurantMessages)
+                               Restaurant, Table, Slider, Subscription, Review, RestaurantMessages,VersionUpdate)
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
@@ -66,7 +66,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,
 
                           SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer, FoodPostSerializer,
-                          ReportByDateRangeSerializer)
+                          ReportByDateRangeSerializer, VersionUpdateSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -2441,3 +2441,41 @@ class PaymentTypeViewSet(LoggingMixin, CustomViewSet):
         qs = restaurant.payment_type.all()
         serializer = PaymentTypeSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
+
+
+
+class VersionUpdateViewSet(LoggingMixin, CustomViewSet):
+    queryset = VersionUpdate.objects.all()
+    lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['create', 'list']:
+            permission_classes = [
+                permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            self.serializer_class = VersionUpdateSerializer
+        elif self.action == 'list':
+            self.serializer_class = VersionUpdateSerializer
+        else:
+            self.serializer_class = VersionUpdateSerializer
+
+        return self.serializer_class
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            qs = serializer.save()
+            serializer = VersionUpdateSerializer(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_code=400, error_msg=serializer.errors, msg='failed to create Version')
+
+    def list(self, request, *args, **kwargs):
+        qs = VersionUpdate.objects.all()
+        serializer = VersionUpdateSerializer(instance=qs, many=True)
+        return VersionUpdateSerializer(data=serializer.data)
