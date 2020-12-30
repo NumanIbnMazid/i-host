@@ -34,8 +34,10 @@ def order_item_list(restaurant_id):
                 'ordered_items': []
             }
         )
+
     serializer = FoodOrderByTableSerializer(instance=qs, many=True)
-    return serializer.data+empty_table_data
+    response_data = serializer.data+empty_table_data
+    return response_data if response_data else ['from signal order_item_list']
 
 
 @receiver(order_done_signal)
