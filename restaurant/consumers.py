@@ -58,7 +58,10 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         # )
         """
         if text_data:
-            data = await self.order_item_list(restaurant_id=int(text_data))
+            # data = await self.order_item_list(restaurant_id=int(text_data))
+            data = async_to_sync(self.order_item_list(
+                restaurant_id=int(text_data)))
+
         else:
             data = {'error': ['restaurant id invalid']}
         await self.channel_layer.group_send(
@@ -69,7 +72,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             }
         )
 
-    @database_sync_to_async
+    # @database_sync_to_async
     def order_item_list(self, restaurant_id):
 
         qs = FoodOrder.objects.filter(table__restaurant=restaurant_id).exclude(
@@ -107,7 +110,9 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         response_data = {}
         # print('---------------response to listener--------------')
         state = event.get('state')
-        response_data = await self.order_item_list(restaurant_id=int(restaurant_id))
+        # response_data = await self.order_item_list(restaurant_id=int(restaurant_id))
+        response_data = async_to_sync(
+            self.order_item_list(restaurant_id=int(restaurant_id)))
 
         # UNCOMMENT IN FUTURE
         # if state in ['data_only']:
