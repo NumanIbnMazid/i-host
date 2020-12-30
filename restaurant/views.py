@@ -1861,8 +1861,6 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
 
         for month in range(months):
-
-
             # start_of_month = today + timedelta(days=month + (today.weekday() - 1))
             month_qs = (this_month + 1) % 12
             start_of_month = this_month - timezone.timedelta(month_qs-month)
@@ -1922,16 +1920,16 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         end_date += timedelta(days=1)
         if item_list:
             food_items_date_range_qs = Invoice.objects.filter(Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list), restaurant_id=restaurant,
-                                                              created_at__gte=start_date, created_at__lte=end_date)
+                                                              created_at__gte=start_date, created_at__lte=end_date).distinct()
         elif category_list:
             food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
                                                               created_at__gte=start_date, created_at__lte=end_date,
                                                               order__ordered_items__food_option__food__category_id__in=category_list
-                                                              )
+                                                              ).distinct()
         else:
             food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
                                                               created_at__gte=start_date, created_at__lte=end_date
-                                                              )
+                                                              ).distinct()
 
         total_order = food_items_date_range_qs.count()
         total_payable_amount = food_items_date_range_qs.values_list(
@@ -1971,16 +1969,16 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         #
         if item_list:
             food_items_date_range_qs = Invoice.objects.filter(Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list), restaurant_id=restaurant_id,
-                                                              created_at__gte=start_date, created_at__lte=end_date)
+                                                              created_at__gte=start_date, created_at__lte=end_date).distinct()
         elif category_list:
             food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant_id,
                                                               created_at__gte=start_date, created_at__lte=end_date,
                                                               order__ordered_items__food_option__food__category_id__in=category_list
-                                                              )
+                                                              ).distinct()
         else:
             food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant_id,
                                                               created_at__gte=start_date, created_at__lte=end_date
-                                                              )
+                                                              ).distinct()
 
         order_items_list = food_items_date_range_qs.values_list(
             'order_info__ordered_items', flat=True)

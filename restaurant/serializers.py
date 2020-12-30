@@ -676,7 +676,7 @@ class TableStaffSerializer(serializers.ModelSerializer):
             total_items += order_qs.ordered_items.count()
 
             if order_qs:
-                total_served_items += order_qs.ordered_items.count()
+                total_served_items += order_qs.ordered_items.filter(status='3_IN_TABLE').count()
             serializer = FoodOrderForStaffSerializer(order_qs)
             temp_data_dict = serializer.data
             price = temp_data_dict.pop('price', {})
