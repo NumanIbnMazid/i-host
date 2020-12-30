@@ -201,3 +201,13 @@ class FcmNotificationStaff(models.Model):
         to=StaffFcmDevice, null=True, on_delete=models.SET_NULL)
     data = JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class FcmNotificationCustomer(models.Model):
+    customer_device = models.ForeignKey(
+        to=CustomerFcmDevice, null=True, on_delete=models.SET_NULL)
+    title = models.TextField(null=True,blank=True)
+    body = models.TextField(null=True, blank=True)
+    image = models.ImageField(null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    restaurant = models.ForeignKey(to='restaurant.Restaurant',on_delete=models.CASCADE)
