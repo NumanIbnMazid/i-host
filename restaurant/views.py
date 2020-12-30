@@ -1275,10 +1275,11 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
                 food_order = request.data[0].get('food_order')
                 food_order_qs = FoodOrder.objects.filter(pk=food_order)
                 restaurant_id = food_order_qs.first().table.restaurant_id
-
-                if HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True) | Q(is_waiter=True), user=request.user.pk, restaurant_id=restaurant_id):
-                    food_order_qs = food_order_qs.first()
-                    is_staff_order = True
+                is_staff = request.path.__contains__('/waiter_order/')
+                if is_staff:
+                    if HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True) | Q(is_waiter=True), user=request.user.pk, restaurant_id=restaurant_id):
+                        food_order_qs = food_order_qs.first()
+                        is_staff_order = True
 
                 else:
                     food_order_qs = food_order_qs.exclude(
