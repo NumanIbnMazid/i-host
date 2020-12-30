@@ -16,7 +16,7 @@ order_done_signal = Signal(
     providing_args=["qs", "data", "state"])
 
 
-def order_item_list(restaurant_id=1):
+def order_item_list(restaurant_id):
     qs = FoodOrder.objects.filter(table__restaurant=restaurant_id).exclude(
         status__in=['5_PAID', '6_CANCELLED']).order_by('table_id')
     ordered_table_set = set(qs.values_list('table_id', flat=True))
@@ -34,8 +34,10 @@ def order_item_list(restaurant_id=1):
                 'ordered_items': []
             }
         )
+
     serializer = FoodOrderByTableSerializer(instance=qs, many=True)
-    return serializer.data+empty_table_data
+    response_data = serializer.data+empty_table_data
+    return response_data if response_data else ['from signal order_item_list']
 
 
 @receiver(order_done_signal)
@@ -56,14 +58,14 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, qs=None, d
     """
     if settings.TURN_OFF_SIGNAL:
         return
-    print('---------------------------------------------------------------------------------------------------------------')
-    print("FIRING Signals")
-    print('---------------------------------------------------------------------------------------------------------------')
+    # print('---------------------------------------------------------------------------------------------------------------')
+    # print("FIRING Signals")
+    # print('---------------------------------------------------------------------------------------------------------------')
     response_data = {}
-    if state in ['data_only']:
-        if not data:
-            data = order_item_list(restaurant_id)
-        response_data = data
+    # if state in ['data_only']:
+    #     if not data:
+    #         data = order_item_list(restaurant_id)
+    #     response_data = data
 
     layer = channels.layers.get_channel_layer()
     try:
@@ -75,7 +77,7 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, qs=None, d
 
         # })
         async_to_sync(layer.group_send)(
-            group_name, {'type': 'response_to_listener', 'data': response_data})
+            group_name, {'type': 'response_to_listener', 'data': response_data, "restaurant_id": restaurant_id, "state": state, 'qs': qs})
 
         # layer.group_send(
         #     str(res_id),
@@ -84,7 +86,7 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, qs=None, d
         #         'message': message,
         #     }
         # )
-        print('done')
+        # print('done')
     except:
         pass
     # print('signal got a call', order_qs, table_qs, state)
