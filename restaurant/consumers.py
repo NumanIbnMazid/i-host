@@ -9,7 +9,7 @@ from channels.db import database_sync_to_async
 
 class DashboardConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        print('-----------------connect----------------')
+        # print('-----------------connect----------------')
         self.restaurant_id = int(self.scope.get(
             'url_route', {}).get('kwargs', {}).get('restaurant_id'))
         self.group_name = 'restaurant_%s' % self.restaurant_id
@@ -70,7 +70,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
         )
 
     @database_sync_to_async
-    def order_item_list(self, restaurant_id=1):
+    def order_item_list(self, restaurant_id=17):
 
         qs = FoodOrder.objects.filter(table__restaurant=restaurant_id).exclude(
             status__in=['5_PAID', '6_CANCELLED']).order_by('table_id')
@@ -101,11 +101,21 @@ class DashboardConsumer(AsyncWebsocketConsumer):
     #     }))
 
     async def response_to_listener(self, event):
-        data = event['data']
-        print('---------------response to listener--------------')
+        data = event.get('data')
+        restaurant_id = event.get('restaurant_id',17)
+        response_data = {}
+        # print('---------------response to listener--------------')
+        state = event.get('state')
+        response_data = await self.order_item_list(restaurant_id=restaurant_id)
 
+        # UNCOMMENT IN FUTURE
+        # if state in ['data_only']:
+        #     if not data:
+        #         response_data = await self.order_item_list(restaurant_id=restaurant_id)
+        #     else:
+        #         response_data = data
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
-            'data': data
+            'data': response_data
             # 'test': 'test success',
         }))
