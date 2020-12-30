@@ -863,7 +863,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
             else:
-                if order_qs.status in ['4_CREATE_INVOICE', '5_PAID']:
+                if order_qs.status in ['3_IN_TABLE','4_CREATE_INVOICE', '5_PAID']:
                     order_qs.status = '2_ORDER_CONFIRMED'
                     order_qs.save()
                 serializer = FoodOrderByTableSerializer(instance=order_qs)
@@ -1856,15 +1856,19 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         today = timezone.datetime.now()
         this_month = timezone.datetime.now().month
 
-        month = 12
+        months = 12
         monthly_wise_income_list = list()
         monthly_wise_order_list = list()
 
-        for month in range(month):
+
+
+
+        for month in range(months):
+
 
             # start_of_month = today + timedelta(days=month + (today.weekday() - 1))
             month_qs = (this_month + 1) % 12
-            start_of_month = today - timezone.timedelta(month_qs-year)
+            start_of_month = this_month - timezone.timedelta(month_qs-month)
 
             invoice_qs = Invoice.objects.filter(
                 created_at__contains=start_of_month.date(), payment_status='1_PAID', restaurant_id=restaurant_id)
