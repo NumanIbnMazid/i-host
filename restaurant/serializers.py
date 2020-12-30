@@ -209,6 +209,7 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
     food_option = FoodOptionSerializer(read_only=True)
     food_name = serializers.CharField(
         source="food_option.food.name", read_only=True)
+    category_name = serializers.SerializerMethodField(read_only=True)
     food_image = serializers.ImageField(
         source="food_option.food.image", read_only=True)
     # food_image = serializers.SerializerMethodField(read_only=True)
@@ -226,12 +227,19 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
             "food_option",
             "food_extra",
             "price",
+            "category_name",
 
         ]
         ordering = ['id']
 
     def get_price(self, obj):
         return calculate_item_price_with_discount(ordered_item_qs=obj)
+
+    def get_category_name(self, obj):
+        try:
+            return obj.food_option.food.category.name
+        except:
+            return None
 
     # def get_food_image(self,obj):
     #   if obj.food_options.food.image:
@@ -323,6 +331,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField()
     ordered_items = OrderedItemGetDetailsSerializer(many=True, read_only=True)
     restaurant_info = serializers.SerializerMethodField(read_only=True)
+    customer = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = FoodOrder
@@ -339,6 +348,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   'restaurant_info',
                   'created_at',
                   'updated_at',
+                  'customer',
                   #   'grand_total_price',
                   #   "total_price",
                   #   "discount_amount",
@@ -351,6 +361,12 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
 
     def get_price(self, obj):
         return calculate_price(food_order_obj=obj)
+
+    def get_customer(self, obj):
+        if obj.customer:
+            return {'id': obj.customer.pk, 'name': obj.customer.name}
+        else:
+            return None
 
     def get_waiter(self, obj):
         if obj.table:
@@ -676,7 +692,8 @@ class TableStaffSerializer(serializers.ModelSerializer):
             total_items += order_qs.ordered_items.count()
 
             if order_qs:
-                total_served_items += order_qs.ordered_items.filter(status='3_IN_TABLE').count()
+                total_served_items += order_qs.ordered_items.filter(
+                    status='3_IN_TABLE').count()
             serializer = FoodOrderForStaffSerializer(order_qs)
             temp_data_dict = serializer.data
             price = temp_data_dict.pop('price', {})
@@ -769,11 +786,13 @@ class ReportDateRangeSerializer(serializers.Serializer):
     end_date = serializers.DateField(required=False)
     restaurant_id = serializers.IntegerField(required=True)
 
+
 class ReportByDateRangeSerializer(serializers.Serializer):
     start_date = serializers.DateField(required=False)
     end_date = serializers.DateField(required=False)
     category = serializers.ListSerializer(child=serializers.IntegerField())
     item = serializers.ListSerializer(child=serializers.IntegerField())
+
 
 class StaffFcmSerializer(serializers.Serializer):
     table_id = serializers.IntegerField()

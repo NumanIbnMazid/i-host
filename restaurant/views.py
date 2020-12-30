@@ -1892,7 +1892,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         return self.serializer_class
 
     def get_pagination_class(self):
-        if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice', 'invoice_all_report']:
+        if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice', 'invoice_all_report','top_food_items_by_date_range']:
             return CustomLimitPagination
 
     queryset = Invoice.objects.all()
@@ -1946,13 +1946,14 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         order_details['total_amaount'] = round(total_amaount, 2)
         order_details['total_order'] = total_order
 
-        # page_qs = self.paginate_queryset(order_details)
-        #
-        # #serializer = InvoiceSerializer(instance=page_qs, many=True)
-        # paginated_data = self.get_paginated_response(page_qs.data)
-
         return ResponseWrapper(data=order_details)
 
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter("limit", openapi.IN_QUERY,
+                          type=openapi.TYPE_INTEGER),
+        openapi.Parameter("offset", openapi.IN_QUERY,
+                          type=openapi.TYPE_INTEGER)
+    ])
     def top_food_items_by_date_range(self, request, restaurant_id, *args, **kwargs):
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
@@ -2057,8 +2058,13 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
         response_data_desc_sorted = sorted(response_data_list,
                    key=lambda i: i['quantity'], reverse=True)
+
+        page_qs = self.paginate_queryset(response_data_desc_sorted)
+
+        paginated_data = self.get_paginated_response(page_qs)
+        return ResponseWrapper(paginated_data.data)
     
-        return ResponseWrapper(data=response_data_desc_sorted, msg='success')
+        # return ResponseWrapper(data=response_data_desc_sorted, msg='success')
 
     def invoice_history(self, request, restaurant, *args, **kwargs):
         invoice_qs = Invoice.objects.filter(
