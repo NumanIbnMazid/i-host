@@ -1864,7 +1864,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
             # start_of_month = today + timedelta(days=month + (today.weekday() - 1))
             month_qs = (this_month + 1) % 12
-            start_of_month = today - timezone.timedelta(month_qs-month)
+            start_of_month = today - timezone.timedelta(month_qs-year)
 
             invoice_qs = Invoice.objects.filter(
                 created_at__contains=start_of_month.date(), payment_status='1_PAID', restaurant_id=restaurant_id)
