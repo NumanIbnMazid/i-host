@@ -863,7 +863,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
             else:
-                if order_qs.status in ['4_CREATE_INVOICE', '5_PAID']:
+                if order_qs.status in ['3_IN_TABLE','4_CREATE_INVOICE', '5_PAID']:
                     order_qs.status = '2_ORDER_CONFIRMED'
                     order_qs.save()
                 serializer = FoodOrderByTableSerializer(instance=order_qs)
@@ -1275,10 +1275,11 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
                 food_order = request.data[0].get('food_order')
                 food_order_qs = FoodOrder.objects.filter(pk=food_order)
                 restaurant_id = food_order_qs.first().table.restaurant_id
-
-                if HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True) | Q(is_waiter=True), user=request.user.pk, restaurant_id=restaurant_id):
-                    food_order_qs = food_order_qs.first()
-                    is_staff_order = True
+                is_staff = request.path.__contains__('/waiter_order/')
+                if is_staff:
+                    if HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True) | Q(is_waiter=True), user=request.user.pk, restaurant_id=restaurant_id):
+                        food_order_qs = food_order_qs.first()
+                        is_staff_order = True
 
                 else:
                     food_order_qs = food_order_qs.exclude(
@@ -1852,15 +1853,17 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         today = timezone.datetime.now()
         this_month = timezone.datetime.now().month
 
-        month = 12
+        months = 12
         monthly_wise_income_list = list()
         monthly_wise_order_list = list()
 
-        for month in range(month):
 
+
+
+        for month in range(months):
             # start_of_month = today + timedelta(days=month + (today.weekday() - 1))
             month_qs = (this_month + 1) % 12
-            start_of_month = today - timezone.timedelta(month_qs-year)
+            start_of_month = this_month - timezone.timedelta(month_qs-month)
 
             invoice_qs = Invoice.objects.filter(
                 created_at__contains=start_of_month.date(), payment_status='1_PAID', restaurant_id=restaurant_id)
@@ -1917,16 +1920,16 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         end_date += timedelta(days=1)
         if item_list:
             food_items_date_range_qs = Invoice.objects.filter(Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list), restaurant_id=restaurant,
-                                                              created_at__gte=start_date, created_at__lte=end_date)
+                                                              created_at__gte=start_date, created_at__lte=end_date).distinct()
         elif category_list:
             food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
                                                               created_at__gte=start_date, created_at__lte=end_date,
                                                               order__ordered_items__food_option__food__category_id__in=category_list
-                                                              )
+                                                              ).distinct()
         else:
             food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
                                                               created_at__gte=start_date, created_at__lte=end_date
-                                                              )
+                                                              ).distinct()
 
         total_order = food_items_date_range_qs.count()
         total_payable_amount = food_items_date_range_qs.values_list(
@@ -1966,16 +1969,16 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         #
         if item_list:
             food_items_date_range_qs = Invoice.objects.filter(Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list), restaurant_id=restaurant_id,
-                                                              created_at__gte=start_date, created_at__lte=end_date)
+                                                              created_at__gte=start_date, created_at__lte=end_date).distinct()
         elif category_list:
             food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant_id,
                                                               created_at__gte=start_date, created_at__lte=end_date,
                                                               order__ordered_items__food_option__food__category_id__in=category_list
-                                                              )
+                                                              ).distinct()
         else:
             food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant_id,
                                                               created_at__gte=start_date, created_at__lte=end_date
-                                                              )
+                                                              ).distinct()
 
         order_items_list = food_items_date_range_qs.values_list(
             'order_info__ordered_items', flat=True)
@@ -2051,10 +2054,10 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
             if item.get('food_option', {}):
                 item['food_option'] = item.get('food_option', {}).values()
         response_data_list = food_dict.values()
-        # res = dict(sorted(food_dict.items(), key=lambda x: x[1]['quantity'],reverse=True))
+
         response_data_desc_sorted = sorted(response_data_list,
                    key=lambda i: i['quantity'], reverse=True)
-        # print(res)
+    
         return ResponseWrapper(data=response_data_desc_sorted, msg='success')
 
     def invoice_history(self, request, restaurant, *args, **kwargs):

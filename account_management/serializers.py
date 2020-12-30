@@ -7,7 +7,7 @@ from rest_framework import fields
 from rest_framework.serializers import Serializer
 
 from rest_framework import serializers
-from .models import CustomerFcmDevice, CustomerInfo, HotelStaffInformation, StaffFcmDevice, UserAccount, models
+from .models import CustomerFcmDevice, CustomerInfo, HotelStaffInformation, StaffFcmDevice, UserAccount, FcmNotificationCustomer, models
 # from restaurant import serializers as restaurant_serializer
 
 from drf_extra_fields.fields import Base64ImageField
@@ -215,3 +215,21 @@ class CustomerFcmDeviceSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerFcmDevice
         fields = "__all__"
+
+class CustomerNotificationSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+    class Meta:
+        model = FcmNotificationCustomer
+        fields = [
+            "id",
+            "title",
+            "body",
+            "image",
+            "restaurant"
+        ]
+    
+    def create(self, validated_data):
+        image = validated_data.pop('image', None)
+        if image:
+            return FcmNotificationCustomer.objects.create(image=image, **validated_data)
+        return FcmNotificationCustomer.objects.create(**validated_data)

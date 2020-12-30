@@ -10,6 +10,8 @@ router.register('customer_info', CustomerInfoViewset,
 router.register('apps/staff_fcm_device', StaffFcmDeviceViewset, basename='fcm')
 router.register('apps/user_fcm_device',
                 UserFcmDeviceViewset, basename='fcm_user')
+router.register('customer_notification',
+                CustomerNotificationViewSet, basename='customer_notification')
 
 
 user_account_get_post_patch_delete = UserAccountManagerViewSet.as_view(
@@ -58,7 +60,11 @@ restaurant_account_management = [
     }), name="manager_info"),
     path("restaurant/<int:restaurant_id>/hotel_staff_logger", HotelStaffLogViewSet.as_view({
         "get": "hotel_staff_logger"
-    }), name="hotel_staff_logger")
+    }), name="hotel_staff_logger"),
+
+    path('customer_notification_by_restaurant/<int:restaurant>/',
+         CustomerNotificationViewSet.as_view({'get': 'customer_notification_by_restaurant'}), name='customer_notification_by_restaurant'),
+
 ]
 
 auth_urlpatterns = [

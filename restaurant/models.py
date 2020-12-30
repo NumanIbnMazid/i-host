@@ -344,3 +344,13 @@ class PaymentType(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class VersionUpdate(models.Model):
+    version_id = models.FloatField(null=True, blank=True)
+    force_update = models.BooleanField(default=False)
+    is_customer = models.BooleanField(default=False)
+    is_waiter = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.version_id
