@@ -209,6 +209,7 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
     food_option = FoodOptionSerializer(read_only=True)
     food_name = serializers.CharField(
         source="food_option.food.name", read_only=True)
+    category_name = serializers.SerializerMethodField()
     food_image = serializers.ImageField(
         source="food_option.food.image", read_only=True)
     # food_image = serializers.SerializerMethodField(read_only=True)
@@ -226,12 +227,19 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
             "food_option",
             "food_extra",
             "price",
+            "category_name",
 
         ]
         ordering = ['id']
 
     def get_price(self, obj):
         return calculate_item_price_with_discount(ordered_item_qs=obj)
+
+    def get_category_name(self, obj):
+        try:
+            return obj.food_option.food.category.name
+        except:
+            return None
 
     # def get_food_image(self,obj):
     #   if obj.food_options.food.image:
@@ -769,11 +777,13 @@ class ReportDateRangeSerializer(serializers.Serializer):
     end_date = serializers.DateField(required=False)
     restaurant_id = serializers.IntegerField(required=True)
 
+
 class ReportByDateRangeSerializer(serializers.Serializer):
     start_date = serializers.DateField(required=False)
     end_date = serializers.DateField(required=False)
     category = serializers.ListSerializer(child=serializers.IntegerField())
     item = serializers.ListSerializer(child=serializers.IntegerField())
+
 
 class StaffFcmSerializer(serializers.Serializer):
     table_id = serializers.IntegerField()
