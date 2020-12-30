@@ -2051,10 +2051,10 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
             if item.get('food_option', {}):
                 item['food_option'] = item.get('food_option', {}).values()
         response_data_list = food_dict.values()
-        # res = dict(sorted(food_dict.items(), key=lambda x: x[1]['quantity'],reverse=True))
+
         response_data_desc_sorted = sorted(response_data_list,
                    key=lambda i: i['quantity'], reverse=True)
-        # print(res)
+    
         return ResponseWrapper(data=response_data_desc_sorted, msg='success')
 
     def invoice_history(self, request, restaurant, *args, **kwargs):

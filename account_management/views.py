@@ -33,7 +33,7 @@ from restaurant.models import Restaurant
 from utils.response_wrapper import ResponseWrapper
 from django.conf import settings
 
-from account_management.models import CustomerFcmDevice, CustomerInfo, OtpUser, StaffFcmDevice, HotelStaffInformation
+from account_management.models import CustomerFcmDevice, CustomerInfo, OtpUser, StaffFcmDevice, HotelStaffInformation, FcmNotificationCustomer
 from account_management.models import UserAccount
 from account_management.models import UserAccount as User
 from account_management.serializers import (CustomerFcmDeviceSerializer, CustomerInfoSerializer, StaffFcmDeviceSerializer, OtpLoginSerializer,
@@ -41,7 +41,7 @@ from account_management.serializers import (CustomerFcmDeviceSerializer, Custome
                                             StaffLoginInfoGetSerializer,
                                             UserAccountPatchSerializer,
                                             UserAccountSerializer,
-                                            UserSignupSerializer, LogSerializerGet, LogSerializerPost)
+                                            UserSignupSerializer, LogSerializerGet, LogSerializerPost, CustomerNotificationSerializer)
 
 from rest_framework_tracking.mixins import LoggingMixin
 
@@ -555,7 +555,6 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
             return ResponseWrapper(msg='otp sent', data={'name': None, 'id': None, 'phone': phone}, status=200)
         else:
             return ResponseWrapper(error_msg='otp sending failed')
-            
 
 
 class CustomerInfoViewset(LoggingMixin, viewsets.ModelViewSet):
@@ -625,3 +624,27 @@ class HotelStaffLogViewSet(CustomViewSet):
         # return ResponseWrapper(serializer.data)
 
         # return ResponseWrapper(data=waiter_qs.data,status=200)
+
+
+class CustomerNotificationViewSet(LoggingMixin, CustomViewSet):
+    queryset = FcmNotificationCustomer.objects.all()
+    lookup_field = 'pk'
+    serializer_class = CustomerNotificationSerializer
+    logging_methods = ['DELETE', 'POST', 'PATCH', 'GET']
+
+    # def get_permissions(self):
+    #     permission_classes = []
+    #     if self.action in ["customer_notification_by_restaurant"]:
+    #         permission_classes = [
+    #             custom_permissions.IsRestaurantManagementOrAdmin]
+    #     # else:
+    #         # permission_classes = [
+    #         # custom_permissions.IsRestaurantManagementOrAdmin]
+
+    #     return [permission() for permission in permission_classes]
+
+    def customer_notification_by_restaurant(self, request, restaurant, *args, **kwargs):
+        notification_qs = FcmNotificationCustomer.objects.filter(restaurant_id=restaurant)
+        serializer = CustomerNotificationSerializer(
+            instance=notification_qs, many=True)
+        return ResponseWrapper(data=serializer.data)
