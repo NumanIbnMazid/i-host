@@ -1975,7 +1975,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         return self.serializer_class
 
     def get_pagination_class(self):
-        if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice', 'invoice_all_report', 'top_food_items_by_date_range']:
+        if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice', 'invoice_all_report', 'top_food_items_by_date_range','waiter_report_by_date_range']:
             return CustomLimitPagination
 
     queryset = Invoice.objects.all()
@@ -1986,6 +1986,12 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
     # @swagger_auto_schema(
     #     request_body=ReportByDateRangeSerializer
     # )
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter("limit", openapi.IN_QUERY,
+                          type=openapi.TYPE_INTEGER),
+        openapi.Parameter("offset", openapi.IN_QUERY,
+                          type=openapi.TYPE_INTEGER)
+    ])
     def waiter_report_by_date_range(self, request,restaurant, *args, **kwargs):
         start_date = request.data.get('start_date', timezone.now().date())
         end_date = request.data.get('end_date', timezone.now().date())
@@ -2018,11 +2024,18 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         staff_report_desc_sorted = sorted(staff_report_list,
                                            key=lambda i: i['total_served_order'], reverse=True)
 
-        return ResponseWrapper(data = {'total_waiter' :total_waiter,
-                                       'total_amount':total_amount,
-                                       # 'staff_info':staff_report_list,
-                                       'staff_info':staff_report_desc_sorted,
-                                       },   msg= 'success')
+        # response = {'total_waiter':total_waiter,
+        #             'total_amount':total_amount,
+        #             'staff_info':staff_report_desc_sorted,
+        #             }
+
+        page_qs = self.paginate_queryset(staff_report_desc_sorted)
+        # paginated_data = self.get_paginated_response(page_qs)
+        staff_report_details = dict(self.get_paginated_response(page_qs).data)
+        staff_report_details['total_waiter'] = total_waiter
+        staff_report_details['total_amaount'] = total_amount
+
+        return ResponseWrapper(data=staff_report_details)
 
     @swagger_auto_schema(manual_parameters=[
         openapi.Parameter("limit", openapi.IN_QUERY,
