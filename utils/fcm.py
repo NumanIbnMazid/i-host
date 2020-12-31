@@ -46,6 +46,7 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
         },
         'CallStaff': {
             'notification': {'title': 'Calling Waiter',
+                             #  'image': "http://manager.i-host.com.bd/logo.png",
                              'body': f'Customer from table no {str(table_no)} is looking for you'},
             'data': {'title': '7', 'body': str(datetime.datetime.now())}
         },
