@@ -8,6 +8,9 @@ class SubscriptionAdmin(admin.ModelAdmin):
 class InvoiceAdmin(admin.ModelAdmin):
     list_display = ['id', 'created_at', 'updated_at', 'restaurant']
 
+class FoodOrderLogAdmin(admin.ModelAdmin):
+    list_display = ['id', 'order', 'staff', 'order_status']
+
 class DiscountAdmin(admin.ModelAdmin):
     list_display = ['id', 'name','restaurant']
 
@@ -48,6 +51,7 @@ class RestaurantMessagesAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Restaurant)
+admin.site.register(FoodOrderLog,FoodOrderLogAdmin)
 admin.site.register(Subscription, SubscriptionAdmin)
 admin.site.register(RestaurantContactPerson)
 admin.site.register(RestaurantPromoCategory)
