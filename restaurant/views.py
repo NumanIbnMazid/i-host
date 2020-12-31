@@ -1813,6 +1813,9 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
         all_months_upto_this_month = self.first_date_of_months_up_to_current_month_of_current_year()
         yearly_sales_report = {}
+        month_wise_income = []
+        month_wise_order = []
+
         for first_date in all_months_upto_this_month.values():
             month_name = first_date.strftime("%B")
             invoice_qs = Invoice.objects.filter(
@@ -1825,6 +1828,13 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
             yearly_sales_report[month_name] = {
                 'total_payable_amount': monthly_total_payable, 'order_count': order_count}
+            month_wise_income.append(monthly_total_payable)
+            month_wise_order.append(order_count)
+        if month_wise_order.__len__() < 12:
+            remaining_month_count = 12-month_wise_order.__len__()
+            for i in range(remaining_month_count):
+                month_wise_income.append(0)
+                month_wise_order.append(0)
 
         this_month_payable_amount_list = this_month_invoice_qs.values_list(
             'payable_amount', flat=True)
@@ -1838,9 +1848,9 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                      'current_month_total_order': this_month_order_qs,
                                      'last_month_total_sell': round(last_month_total, 2),
                                      'last_month_total_order': last_month_total_order,
-                                     "day_wise_income": weekly_day_wise_income_list,
-                                     "day_wise_order": weekly_day_wise_order_list,
-                                     "yearly_sales_report": yearly_sales_report,
+                                     'week_data': {"day_wise_income": weekly_day_wise_income_list, "day_wise_order": weekly_day_wise_order_list},
+                                     #  "yearly_sales_report": yearly_sales_report,
+                                     "month_data": {"month_wise_income": month_wise_income, "month_wise_order": month_wise_order}
                                      }, msg="success")
 
     def admin_all_report(self, request, *args, **kwargs):
