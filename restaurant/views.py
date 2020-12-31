@@ -12,7 +12,7 @@ from account_management import models, serializers
 from account_management.models import (CustomerInfo, FcmNotificationStaff, HotelStaffInformation,
                                        StaffFcmDevice, UserAccount)
 from account_management.serializers import (ListOfIdSerializer,
-                                            StaffInfoSerializer)
+                                            StaffInfoSerializer, StaffInfoGetSerializer)
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Count, Min, Q, query_utils
 from django.db.models.aggregates import Sum
@@ -34,7 +34,7 @@ from utils.response_wrapper import ResponseWrapper
 from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodExtraType, FoodOption, FoodOptionType,
                                FoodOrder, Invoice, OrderedItem, PaymentType, PopUp,
-                               Restaurant, Table, Slider, Subscription, Review, RestaurantMessages, VersionUpdate)
+                               Restaurant, Table, Slider, Subscription, Review, RestaurantMessages, VersionUpdate, FoodOrderLog)
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
@@ -66,7 +66,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,
 
                           SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer, FoodPostSerializer,
-                          ReportByDateRangeSerializer, VersionUpdateSerializer)
+                          ReportByDateRangeSerializer, VersionUpdateSerializer, HotelStaffInformationSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -644,6 +644,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         if self.action in ['create_take_away_order']:
             permission_classes = [
                 custom_permissions.IsRestaurantManagementOrAdmin]
+        if self.action in ['payment']:
+            permission_classes = [
+                custom_permissions.IsRestaurantStaff
+            ]
         # elif self.action == "retrieve" or self.action == "update":
         #     permission_classes = [permissions.AllowAny]
         # else:
@@ -1145,6 +1149,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
                 invoice_qs = self.invoice_generator(
                     order_qs, payment_status='1_PAID')
+                waiter_qs = HotelStaffInformation.objects.filter( user = request.user.pk).first()
+                if waiter_qs.is_waiter:
+                    food_order_log = FoodOrderLog.objects.create(order = order_qs, staff =waiter_qs ,order_status = order_qs.status)
 
                 serializer = InvoiceSerializer(instance=invoice_qs)
                 order_done_signal.send(
@@ -1582,6 +1589,10 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
     def get_serializer_class(self):
         if self.action in ['report_by_date_range']:
             self.serializer_class = ReportDateRangeSerializer
+
+        # if self.action in ['waiter_report_by_date_range']:
+        #     self.serializer_class = ReportDateRangeSerializer
+
         return self.serializer_class
 
     def get_permissions(self):
@@ -1632,9 +1643,42 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         return order_date_range_qs
     """
 
-    # @swagger_auto_schema(
-    #     request_body=ReportDateRangeSerializer
-    # )
+    @swagger_auto_schema(
+        request_body=ReportDateRangeSerializer
+    )
+
+    def waiter_report_by_date_range(self, request,restaurant, *args, **kwargs):
+        start_date = request.data.get('start_date', timezone.now().date())
+        end_date = request.data.get('end_date', timezone.now().date())
+        if request.data.get('end_date'):
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        end_date += timedelta(days=1)
+        order_log_qs = FoodOrderLog.objects.filter(order__restaurant_id=restaurant,
+                                                          created_at__gte=start_date, created_at__lte=end_date
+                                                          ).distinct()
+        total_waiter = order_log_qs.values_list('staff').distinct().count()
+        order_qs = order_log_qs.values_list('order__payable_amount', flat=True)
+        total_amount = round(sum(order_qs), 2)
+        staff_list = order_log_qs.values_list('staff',flat=True).distinct()
+        staff_report_list = list()
+        staff_list.values_list('staff__user__first_name')
+        for staff in staff_list:
+            temp_order_log_qs = order_log_qs.filter(staff_id=staff)
+
+            payment_amount_list = temp_order_log_qs.values_list('order__payable_amount',flat=True)
+            total_payment_amount = round(sum(payment_amount_list),2)
+            staff_qs = HotelStaffInformation.objects.filter(pk=staff).first()
+            staff_serializer = StaffInfoGetSerializer(instance=staff_qs)
+            staff_report_dict = {
+                'total_payment_amount':total_payment_amount,
+                'staff_info': staff_serializer.data,
+                'total_served_order':temp_order_log_qs.count(),
+            }
+
+        return ResponseWrapper(data =staff_report_dict,   msg= 'success')
+
+
+
     def report_by_date_range(self, request, *args, **kwargs):
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
