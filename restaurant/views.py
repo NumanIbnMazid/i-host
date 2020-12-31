@@ -1766,7 +1766,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         # response = {'food_report': food_dict.values(), }
         return ResponseWrapper(data=food_dict.values(), msg='success')
 
-    def first_date_of_months_up_to_next_month_of_current_year():
+    def first_date_of_months_up_to_current_month_of_current_year(self):
         first_day = timezone.now().date().replace(day=1)
         next_month = first_day + relativedelta(month=1)
         first_day_of_all_month = {}
@@ -1774,7 +1774,6 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             first_day_of_all_month[month_flag] = (
                 first_day - relativedelta(months=(first_day.month-(month_flag+1))))
 
-        first_day_of_all_month[max(first_day_of_all_month.keys())+1]
         return first_day_of_all_month
 
     def dashboard_total_report(self, request, restaurant_id, *args, **kwargs):
@@ -1798,19 +1797,34 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             this_day_total_order = FoodOrder.objects.filter(
                 created_at__contains=start_of_week.date(), status='5_PAID', restaurant_id=restaurant_id).count()
 
-            this_day_total = sum(total_list)
+            this_day_total = round(sum(total_list), 2)
             weekly_day_wise_income_list.append(this_day_total)
             weekly_day_wise_order_list.append(this_day_total_order)
 
         this_month_invoice_qs = Invoice.objects.filter(
-            created_at__gte=this_month, created_at__lt=next_month, payment_status='1_PAID', restaurant_id=restaurant_id)
+            created_at__year=timezone.now().year, created_at__month=timezone.now().month, payment_status='1_PAID', restaurant_id=restaurant_id)
         this_month_order_qs = FoodOrder.objects.filter(
-            created_at__gte=this_month, created_at__lt=next_month, status='5_PAID', restaurant_id=restaurant_id).count()
+            created_at__year=timezone.now().year, created_at__month=timezone.now().month, status='5_PAID', restaurant_id=restaurant_id).count()
 
         last_month_invoice_qs = Invoice.objects.filter(
-            created_at__contains=last_month, payment_status='1_PAID', restaurant_id=restaurant_id)
+            created_at__year=last_month.year, created_at__month=last_month.month, payment_status='1_PAID', restaurant_id=restaurant_id)
         last_month_total_order = FoodOrder.objects.filter(
-            created_at__contains=last_month, status='5_PAID', restaurant_id=restaurant_id).count()
+            created_at__year=last_month.year, created_at__month=last_month.month, status='5_PAID', restaurant_id=restaurant_id).count()
+
+        all_months_upto_this_month = self.first_date_of_months_up_to_current_month_of_current_year()
+        yearly_sales_report = {}
+        for first_date in all_months_upto_this_month.values():
+            month_name = first_date.strftime("%B")
+            invoice_qs = Invoice.objects.filter(
+                created_at__year=first_date.year, created_at__month=first_date.month, payment_status='1_PAID', restaurant_id=restaurant_id)
+            payable_amount_list = invoice_qs.values_list(
+                'payable_amount', flat=True)
+            monthly_total_payable = round(sum(payable_amount_list), 2)
+            order_count = FoodOrder.objects.filter(
+                created_at__year=first_date.year, created_at__month=first_date.month, status='5_PAID', restaurant_id=restaurant_id).count()
+
+            yearly_sales_report[month_name] = {
+                'total_payable_amount': monthly_total_payable, 'order_count': order_count}
 
         this_month_payable_amount_list = this_month_invoice_qs.values_list(
             'payable_amount', flat=True)
@@ -1826,6 +1840,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                      'last_month_total_order': last_month_total_order,
                                      "day_wise_income": weekly_day_wise_income_list,
                                      "day_wise_order": weekly_day_wise_order_list,
+                                     "yearly_sales_report": yearly_sales_report,
                                      }, msg="success")
 
     def admin_all_report(self, request, *args, **kwargs):
