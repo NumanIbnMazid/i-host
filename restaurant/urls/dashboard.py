@@ -251,7 +251,7 @@ dashboard_urls = [
     #      ReportingViewset.as_view({'post': 'report_by_date_range'}), name='report_by_date_range'),
 
     path('waiter_report_by_date_range/<int:restaurant>/',
-             ReportingViewset.as_view({'post': 'waiter_report_by_date_range'}), name='waiter_report_by_date_range'),
+             InvoiceViewSet.as_view({'post': 'waiter_report_by_date_range'}), name='waiter_report_by_date_range'),
 
     path('month_wise_total_report/<int:restaurant_id>/',
          ReportingViewset.as_view({'get': 'month_wise_total_report'}), name='month_wise_total_report'),

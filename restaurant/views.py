@@ -1643,42 +1643,42 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         return order_date_range_qs
     """
 
-    @swagger_auto_schema(
-        request_body=ReportDateRangeSerializer
-    )
-
-    def waiter_report_by_date_range(self, request,restaurant, *args, **kwargs):
-        start_date = request.data.get('start_date', timezone.now().date())
-        end_date = request.data.get('end_date', timezone.now().date())
-        if request.data.get('end_date'):
-            end_date = datetime.strptime(end_date, '%Y-%m-%d')
-        end_date += timedelta(days=1)
-        order_log_qs = FoodOrderLog.objects.filter(order__restaurant_id=restaurant,
-                                                          created_at__gte=start_date, created_at__lte=end_date
-                                                          ).distinct()
-        total_waiter = order_log_qs.values_list('staff').distinct().count()
-        order_qs = order_log_qs.values_list('order__payable_amount', flat=True)
-        total_amount = round(sum(order_qs), 2)
-        staff_list = order_log_qs.values_list('staff',flat=True).distinct()
-        staff_report_list = list()
-        staff_list.values_list('staff__user__first_name')
-        for staff in staff_list:
-            temp_order_log_qs = order_log_qs.filter(staff_id=staff)
-
-            payment_amount_list = temp_order_log_qs.values_list('order__payable_amount',flat=True)
-            total_payment_amount = round(sum(payment_amount_list),2)
-            staff_qs = HotelStaffInformation.objects.filter(pk=staff).first()
-            staff_serializer = StaffInfoGetSerializer(instance=staff_qs)
-            staff_report_dict = {
-                'total_payment_amount':total_payment_amount,
-                'staff_info': staff_serializer.data,
-                'total_served_order':temp_order_log_qs.count(),
-            }
-
-        return ResponseWrapper(data = {'total_waiter' :total_waiter,
-                                       'total_amount':total_amount,
-                                       'staff info':staff_report_dict,
-                                       },   msg= 'success')
+    # @swagger_auto_schema(
+    #     request_body=ReportDateRangeSerializer
+    # )
+    #
+    # def waiter_report_by_date_range(self, request,restaurant, *args, **kwargs):
+    #     start_date = request.data.get('start_date', timezone.now().date())
+    #     end_date = request.data.get('end_date', timezone.now().date())
+    #     if request.data.get('end_date'):
+    #         end_date = datetime.strptime(end_date, '%Y-%m-%d')
+    #     end_date += timedelta(days=1)
+    #     order_log_qs = FoodOrderLog.objects.filter(order__restaurant_id=restaurant,
+    #                                                       created_at__gte=start_date, created_at__lte=end_date
+    #                                                       ).distinct()
+    #     total_waiter = order_log_qs.values_list('staff').distinct().count()
+    #     order_qs = order_log_qs.values_list('order__payable_amount', flat=True)
+    #     total_amount = round(sum(order_qs), 2)
+    #     staff_list = order_log_qs.values_list('staff',flat=True).distinct()
+    #     staff_report_list = list()
+    #     staff_list.values_list('staff__user__first_name')
+    #     for staff in staff_list:
+    #         temp_order_log_qs = order_log_qs.filter(staff_id=staff)
+    #
+    #         payment_amount_list = temp_order_log_qs.values_list('order__payable_amount',flat=True)
+    #         total_payment_amount = round(sum(payment_amount_list),2)
+    #         staff_qs = HotelStaffInformation.objects.filter(pk=staff).first()
+    #         staff_serializer = StaffInfoGetSerializer(instance=staff_qs)
+    #         staff_report_dict = {
+    #             'total_payment_amount':total_payment_amount,
+    #             'staff_info': staff_serializer.data,
+    #             'total_served_order':temp_order_log_qs.count(),
+    #         }
+    #
+    #     return ResponseWrapper(data = {'total_waiter' :total_waiter,
+    #                                    'total_amount':total_amount,
+    #                                    'staff info':staff_report_dict,
+    #                                    },   msg= 'success')
 
 
 
@@ -1970,6 +1970,8 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = InvoiceSerializer
         elif self.action in ['invoice_all_report', 'top_food_items_by_date_range']:
             self.serializer_class = ReportByDateRangeSerializer
+        elif self.action in ['waiter_report_by_date_range']:
+            self.serializer_class = ReportDateRangeSerializer
         return self.serializer_class
 
     def get_pagination_class(self):
@@ -1984,6 +1986,44 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
     # @swagger_auto_schema(
     #     request_body=ReportByDateRangeSerializer
     # )
+    def waiter_report_by_date_range(self, request,restaurant, *args, **kwargs):
+        start_date = request.data.get('start_date', timezone.now().date())
+        end_date = request.data.get('end_date', timezone.now().date())
+        if request.data.get('end_date'):
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        end_date += timedelta(days=1)
+        order_log_qs = FoodOrderLog.objects.filter(order__restaurant_id=restaurant,
+                                                          created_at__gte=start_date, created_at__lte=end_date
+                                                          ).distinct()
+        total_waiter = order_log_qs.values_list('staff').distinct().count()
+        order_qs = order_log_qs.values_list('order__payable_amount', flat=True)
+        total_amount = round(sum(order_qs), 2)
+        staff_list = order_log_qs.values_list('staff',flat=True).distinct()
+        staff_report_list = list()
+        staff_list.values_list('staff__user__first_name')
+        for staff in staff_list:
+            temp_order_log_qs = order_log_qs.filter(staff_id=staff)
+
+            payment_amount_list = temp_order_log_qs.values_list('order__payable_amount',flat=True)
+            total_payment_amount = round(sum(payment_amount_list),2)
+            staff_qs = HotelStaffInformation.objects.filter(pk=staff).first()
+            staff_serializer = StaffInfoGetSerializer(instance=staff_qs)
+            staff_report_dict = {
+                'total_payment_amount':total_payment_amount,
+                'staff_info': staff_serializer.data,
+                'total_served_order':temp_order_log_qs.count(),
+            }
+            staff_report_list.append(staff_report_dict)
+
+        staff_report_desc_sorted = sorted(staff_report_list,
+                                           key=lambda i: i['total_served_order'], reverse=True)
+
+        return ResponseWrapper(data = {'total_waiter' :total_waiter,
+                                       'total_amount':total_amount,
+                                       # 'staff_info':staff_report_list,
+                                       'staff_info':staff_report_desc_sorted,
+                                       },   msg= 'success')
+
     @swagger_auto_schema(manual_parameters=[
         openapi.Parameter("limit", openapi.IN_QUERY,
                           type=openapi.TYPE_INTEGER),
