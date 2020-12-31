@@ -218,6 +218,15 @@ class FoodOrder(SoftDeleteModel):
             return 'table null'
 
 
+class FoodOrderLog(SoftDeleteModel):
+    order = models.ForeignKey(
+        to=FoodOrder, on_delete=models.SET_NULL, null=True, related_name='food_order_logs')
+    staff = models.ForeignKey(
+        to="account_management.HotelStaffInformation", on_delete=models.SET_NULL, null=True, related_name='food_order_logs')
+    order_status = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
 class OrderedItem(models.Model):
     ITEM_STATUS = [
         ("0_ORDER_INITIALIZED", "Table Scanned"),
