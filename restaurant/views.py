@@ -1094,7 +1094,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         return invoice_qs
 
     def adjust_cart_for_unique_items(self, order_qs):
-        ordered_items_qs = order_qs.ordered_items.all()
+        ordered_items_qs = order_qs.ordered_items.all().exclude(status='4_CANCELLED')
         food_option_extra_tuple_list = ordered_items_qs.values_list(
             'food_option', 'food_extra')
 
