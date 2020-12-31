@@ -1449,7 +1449,7 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=["can't get food list,  please consult with manager or owner of the hotel"])
         """
         food_name_qs = Food.objects.filter(
-            name__icontains=food_name, restaurant_id=restaurant_id)
+            Q(name__icontains=food_name) | Q(category__name__icontains=food_name), restaurant_id=restaurant_id)
         if is_dashboard:
             serializer = FoodDetailSerializer(instance=food_name_qs, many=True)
         else:
