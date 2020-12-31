@@ -17,7 +17,7 @@ FCM_DJANGO_SETTINGS = {
 FCM_SERVER_KEY = FCM_DJANGO_SETTINGS.get('FCM_SERVER_KEY')
 
 
-def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff", table_no=0, msg='', staff_id_list: list = list()):
+def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff", table_no=0, msg='', staff_id_list: list = list(), qs=None):
     status_value = {
         "Received": {
             'notification': {'title': 'Received',
@@ -54,6 +54,14 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
             'notification': {'title': 'Calling Waiter for payment',
                              'body': f'Customer from table no {str(table_no)} is looking for you for {str(msg)} payment'},
             'data': {'title': '8', 'body': str(datetime.datetime.now())}
+        },
+
+        'SendCustomerAdvertisement': {
+            'notification': {'title': qs.title,
+                             'body': qs.body,
+                             'image': qs.image,
+                             },
+            'data': qs.data
         },
     }
     success = False
