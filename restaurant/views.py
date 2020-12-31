@@ -1675,7 +1675,10 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                 'total_served_order':temp_order_log_qs.count(),
             }
 
-        return ResponseWrapper(data =staff_report_dict,   msg= 'success')
+        return ResponseWrapper(data = {'total_waiter' :total_waiter,
+                                       'total_amount':total_amount,
+                                       'staff info':staff_report_dict,
+                                       },   msg= 'success')
 
 
 
