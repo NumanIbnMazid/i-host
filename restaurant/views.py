@@ -1812,7 +1812,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                      'current_month_total_order': this_month_order_qs,
                                      'last_month_total_sell': round(last_month_total, 2),
                                      'last_month_total_order': last_month_total_order,
-                                     "day_wise_income": weekly_day_wise_income_list,
+                                     "day_wise_income": round(weekly_day_wise_income_list,2),
                                      "day_wise_order": weekly_day_wise_order_list,
                                      }, msg="success")
 
