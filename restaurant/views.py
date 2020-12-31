@@ -34,7 +34,7 @@ from utils.response_wrapper import ResponseWrapper
 from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodExtraType, FoodOption, FoodOptionType,
                                FoodOrder, Invoice, OrderedItem, PaymentType, PopUp,
-                               Restaurant, Table, Slider, Subscription, Review, RestaurantMessages)
+                               Restaurant, Table, Slider, Subscription, Review, RestaurantMessages, VersionUpdate)
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
@@ -66,7 +66,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,
 
                           SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer, FoodPostSerializer,
-                          ReportByDateRangeSerializer)
+                          ReportByDateRangeSerializer, VersionUpdateSerializer)
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -863,7 +863,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
             else:
-                if order_qs.status in ['3_IN_TABLE','4_CREATE_INVOICE', '5_PAID']:
+                if order_qs.status in ['3_IN_TABLE', '4_CREATE_INVOICE', '5_PAID']:
                     order_qs.status = '2_ORDER_CONFIRMED'
                     order_qs.save()
                 serializer = FoodOrderByTableSerializer(instance=order_qs)
@@ -1857,9 +1857,6 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         monthly_wise_income_list = list()
         monthly_wise_order_list = list()
 
-
-
-
         for month in range(months):
             # start_of_month = today + timedelta(days=month + (today.weekday() - 1))
             month_qs = (this_month + 1) % 12
@@ -1892,7 +1889,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         return self.serializer_class
 
     def get_pagination_class(self):
-        if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice', 'invoice_all_report']:
+        if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice', 'invoice_all_report', 'top_food_items_by_date_range']:
             return CustomLimitPagination
 
     queryset = Invoice.objects.all()
@@ -1946,13 +1943,14 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         order_details['total_amaount'] = round(total_amaount, 2)
         order_details['total_order'] = total_order
 
-        # page_qs = self.paginate_queryset(order_details)
-        #
-        # #serializer = InvoiceSerializer(instance=page_qs, many=True)
-        # paginated_data = self.get_paginated_response(page_qs.data)
-
         return ResponseWrapper(data=order_details)
 
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter("limit", openapi.IN_QUERY,
+                          type=openapi.TYPE_INTEGER),
+        openapi.Parameter("offset", openapi.IN_QUERY,
+                          type=openapi.TYPE_INTEGER)
+    ])
     def top_food_items_by_date_range(self, request, restaurant_id, *args, **kwargs):
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
@@ -2056,9 +2054,14 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         response_data_list = food_dict.values()
 
         response_data_desc_sorted = sorted(response_data_list,
-                   key=lambda i: i['quantity'], reverse=True)
-    
-        return ResponseWrapper(data=response_data_desc_sorted, msg='success')
+                                           key=lambda i: i['quantity'], reverse=True)
+
+        page_qs = self.paginate_queryset(response_data_desc_sorted)
+
+        paginated_data = self.get_paginated_response(page_qs)
+        return ResponseWrapper(paginated_data.data)
+
+        # return ResponseWrapper(data=response_data_desc_sorted, msg='success')
 
     def invoice_history(self, request, restaurant, *args, **kwargs):
         invoice_qs = Invoice.objects.filter(
@@ -2441,3 +2444,41 @@ class PaymentTypeViewSet(LoggingMixin, CustomViewSet):
         qs = restaurant.payment_type.all()
         serializer = PaymentTypeSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
+
+
+class VersionUpdateViewSet(LoggingMixin, CustomViewSet):
+    queryset = VersionUpdate.objects.all()
+    lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['create', 'list']:
+            permission_classes = [
+                permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            self.serializer_class = VersionUpdateSerializer
+        elif self.action == 'list':
+            self.serializer_class = VersionUpdateSerializer
+        else:
+            self.serializer_class = VersionUpdateSerializer
+
+        return self.serializer_class
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            qs = serializer.save()
+            serializer = VersionUpdateSerializer(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_code=400, error_msg=serializer.errors, msg='failed to create Version')
+
+    def version_update_list(self, request, *args, **kwargs):
+        qs = VersionUpdate.objects.all()
+        #serializer = VersionUpdateSerializer(instance=qs, many=True)
+        serializer = VersionUpdateSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')

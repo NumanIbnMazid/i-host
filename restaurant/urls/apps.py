@@ -30,8 +30,8 @@ router = DefaultRouter()
 # router.register('food', FoodViewSet,
 #                 basename="food")
 
-# router.register('discount', DiscountViewSet,
-#               basename="discount")
+# router.register('version_update', VersionUpdateViewSet,
+#  basename="version_update")
 apps_fake = [
     path('', include(router.urls)),
     #     path('foods/<int:restaurant>/',
@@ -227,9 +227,16 @@ apps_fake = [
          RestaurantMessagesViewset.as_view({'get': 'restaurant_messages_list'}, name='restaurant_messages_list')),
     path('payment_type/<int:restaurant>/',
          PaymentTypeViewSet.as_view({'get': 'restaurant_payment_type'}, name='restaurant_payment_type')),
-         
+
     path('order_id_by/<int:table_id>/',
          TableViewSet.as_view({'get': 'order_id_by_table', }), name='order_id_by_table'),
+
+    path('version_update',
+         VersionUpdateViewSet.as_view({'get': 'version_update_list', }), name='version_update'),
+
+    path('version_create',
+         VersionUpdateViewSet.as_view({'post': 'create', }), name='create'),
+
 
 ]
 
