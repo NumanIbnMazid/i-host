@@ -2,7 +2,7 @@ from django.views.decorators.cache import cache_page
 import copy
 import decimal
 import json
-
+from dateutil.relativedelta import relativedelta
 from utils.pagination import CustomLimitPagination
 from .signals import order_done_signal
 
@@ -1766,10 +1766,22 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         # response = {'food_report': food_dict.values(), }
         return ResponseWrapper(data=food_dict.values(), msg='success')
 
+    def first_date_of_months_up_to_next_month_of_current_year():
+        first_day = timezone.now().date().replace(day=1)
+        next_month = first_day + relativedelta(month=1)
+        first_day_of_all_month = {}
+        for month_flag in range(first_day.month):
+            first_day_of_all_month[month_flag] = (
+                first_day - relativedelta(months=(first_day.month-(month_flag+1))))
+
+        first_day_of_all_month[max(first_day_of_all_month.keys())+1]
+        return first_day_of_all_month
+
     def dashboard_total_report(self, request, restaurant_id, *args, **kwargs):
         today = timezone.datetime.now()
-        this_month = timezone.datetime.now().month
-        last_month = today.month - 1 if today.month > 1 else 12
+        this_month = timezone.now().date().replace(day=1)
+        next_month = this_month + relativedelta(month=1)
+        last_month = this_month - relativedelta(month=1)
         week = 7
         weekly_day_wise_income_list = list()
         weekly_day_wise_order_list = list()
@@ -1777,8 +1789,8 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         for day in range(week):
 
             # start_of_week = today + timedelta(days=day + (today.weekday() - 1))
-            day_qs = (today.weekday() + 1) % 7
-            start_of_week = today - timezone.timedelta(day_qs-day)
+            day_int = (today.weekday() + 1) % 7
+            start_of_week = today - timezone.timedelta(day_int-day)
 
             invoice_qs = Invoice.objects.filter(
                 created_at__contains=start_of_week.date(), payment_status='1_PAID', restaurant_id=restaurant_id)
@@ -1791,9 +1803,9 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             weekly_day_wise_order_list.append(this_day_total_order)
 
         this_month_invoice_qs = Invoice.objects.filter(
-            created_at__contains=this_month, payment_status='1_PAID', restaurant_id=restaurant_id)
+            created_at__gte=this_month, created_at__lt=next_month, payment_status='1_PAID', restaurant_id=restaurant_id)
         this_month_order_qs = FoodOrder.objects.filter(
-            created_at__contains=this_month, status='5_PAID', restaurant_id=restaurant_id).count()
+            created_at__gte=this_month, created_at__lt=next_month, status='5_PAID', restaurant_id=restaurant_id).count()
 
         last_month_invoice_qs = Invoice.objects.filter(
             created_at__contains=last_month, payment_status='1_PAID', restaurant_id=restaurant_id)
