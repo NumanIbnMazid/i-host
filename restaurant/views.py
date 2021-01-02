@@ -195,9 +195,9 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
     def today_sell(self, request, pk, *args, **kwargs):
         today_date = timezone.now().date()
         qs = Invoice.objects.filter(
-            created_at__day=today_date, payment_status='1_PAID', restaurant_id=pk)
+            created_at__icontains=today_date, payment_status='1_PAID', restaurant_id=pk)
         order_qs = FoodOrder.objects.filter(
-            created_at__day=today_date, status='5_PAID', restaurant_id=pk).count()
+            created_at__icontains=today_date, status='5_PAID', restaurant_id=pk).count()
 
         payable_amount_list = qs.values_list('payable_amount', flat=True)
         total = sum(payable_amount_list)
