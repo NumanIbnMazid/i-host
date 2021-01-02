@@ -175,7 +175,7 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
                 }
             )
         is_apps = request.path.__contains__('/apps/')
-        serializer = FoodOrderByTableSerializer(instance=qs, many=True, context={'is_apps':is_apps})
+        serializer = FoodOrderByTableSerializer(instance=qs, many=True, context={'is_apps':is_apps,'user':request.user})
 
         return ResponseWrapper(data=serializer.data+empty_table_data, msg="success")
 
@@ -195,9 +195,9 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
     def today_sell(self, request, pk, *args, **kwargs):
         today_date = timezone.now().date()
         qs = Invoice.objects.filter(
-            created_at__contains=today_date, payment_status='1_PAID', restaurant_id=pk)
+            created_at__day=today_date, payment_status='1_PAID', restaurant_id=pk)
         order_qs = FoodOrder.objects.filter(
-            created_at__contains=today_date, status='5_PAID', restaurant_id=pk).count()
+            created_at__day=today_date, status='5_PAID', restaurant_id=pk).count()
 
         payable_amount_list = qs.values_list('payable_amount', flat=True)
         total = sum(payable_amount_list)
@@ -560,7 +560,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         # qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
         is_apps = request.path.__contains__('/apps/')
 
-        serializer = FoodOrderByTableSerializer(instance=qs, many=True, context={'is_apps':is_apps})
+        serializer = FoodOrderByTableSerializer(instance=qs, many=True, context={'is_apps':is_apps,'user':request.user})
         # serializer = self.get_serializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg="success")
 
@@ -571,7 +571,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         # qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
         is_apps = request.path.__contains__('/apps/')
 
-        serializer = FoodOrderByTableSerializer(instance=qs, many=False, context={'is_apps': is_apps})
+        serializer = FoodOrderByTableSerializer(instance=qs, many=False, context={'is_apps': is_apps,'user':request.user})
         # serializer = self.get_serializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg="success")
 
@@ -801,7 +801,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
         is_apps = request.path.__contains__('/apps/')
 
-        serializer = FoodOrderByTableSerializer(instance=order_qs, context={'is_apps':is_apps})
+
+        serializer = FoodOrderByTableSerializer(instance=order_qs, context={'is_apps':is_apps,'user':request.user})
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
@@ -831,7 +832,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
         is_apps = request.path.__contains__('/apps/')
 
-        serializer = FoodOrderByTableSerializer(instance=order_qs, context={'is_apps': is_apps})
+        serializer = FoodOrderByTableSerializer(instance=order_qs, context={'is_apps': is_apps,'user':request.user})
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
@@ -856,7 +857,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             # order_qs.status = '3_IN_TABLE'
             # order_qs.save()
             is_apps = request.path.__contains__('/apps/')
-            serializer = FoodOrderByTableSerializer(instance=order_qs, context={'is_apps': is_apps})
+            serializer = FoodOrderByTableSerializer(instance=order_qs, context={'is_apps': is_apps,'user':request.user})
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=order_qs.restaurant_id,
@@ -879,7 +880,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                     order_qs.status = '2_ORDER_CONFIRMED'
                     order_qs.save()
                 is_apps = request.path.__contains__('/apps/')
-                serializer = FoodOrderByTableSerializer(instance=order_qs, context={'is_apps':is_apps})
+                serializer = FoodOrderByTableSerializer(instance=order_qs, context={'is_apps':is_apps,'user':request.user})
                 order_done_signal.send(
                     sender=self.__class__.revert_back_to_in_table,
                     restaurant_id=order_qs.restaurant_id,
@@ -912,7 +913,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 order_qs.status = '1_ORDER_PLACED'
                 order_qs.save()
                 is_apps = request.path.__contains__('/apps/')
-                serializer = FoodOrderByTableSerializer(instance=order_qs,context={'is_apps': is_apps})
+                serializer = FoodOrderByTableSerializer(instance=order_qs,context={'is_apps': is_apps,'user':request.user})
                 order_done_signal.send(
                     sender=self.__class__.create,
                     restaurant_id=order_qs.restaurant_id,
@@ -950,7 +951,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         order_qs.save()
         is_apps = request.path.__contains__('/apps/')
 
-        serializer = FoodOrderByTableSerializer(instance=order_qs, context= {'is_apps':is_apps})
+        serializer = FoodOrderByTableSerializer(instance=order_qs, context= {'is_apps':is_apps,'user':request.user})
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
@@ -986,7 +987,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         order_qs.save()
         is_apps = request.path.__contains__('/apps/')
 
-        serializer = FoodOrderByTableSerializer(instance=order_qs, context={'is_apps':is_apps})
+        serializer = FoodOrderByTableSerializer(instance=order_qs, context={'is_apps':is_apps,'user':request.user})
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
@@ -1018,7 +1019,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             order_qs.save()
 
             is_apps = request.path.__contains__('/apps/')
-            serializer = FoodOrderByTableSerializer(instance=order_qs, context={'is_apps': is_apps})
+            serializer = FoodOrderByTableSerializer(instance=order_qs, context={'is_apps': is_apps,'user':request.user})
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=order_qs.restaurant_id,
@@ -1036,7 +1037,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
         is_apps = request.path.__contains__('/apps/')
 
-        serializer = FoodOrderByTableSerializer(instance=order_qs, context = {'is_apps':is_apps})
+        serializer = FoodOrderByTableSerializer(instance=order_qs, context = {'is_apps':is_apps,'user':request.user})
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
@@ -1201,7 +1202,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                                        food_order=reorder_qs)
         is_apps = request.path.__contains__('/apps/')
 
-        serializer = FoodOrderByTableSerializer(instance=reorder_qs, context={'is_apps':is_apps})
+        serializer = FoodOrderByTableSerializer(instance=reorder_qs, context={'is_apps':is_apps,'user':request.user})
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=reorder_qs.restaurant_id,
@@ -1225,7 +1226,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         food_order_qs.save()
 
         is_apps = request.path.__contains__('/apps/')
-        serializer = FoodOrderByTableSerializer(instance=food_order_qs, context={'is_apps':is_apps})
+        serializer = FoodOrderByTableSerializer(instance=food_order_qs, context={'is_apps':is_apps,'user':request.user})
         return ResponseWrapper(data=serializer.data, msg='Table Transfer')
 
     def customer_order_history(self, request, *args, **kwargs):
@@ -1276,7 +1277,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         item_qs.status = '4_CANCELLED'
         item_qs.save()
         is_apps = request.path.__contains__('/apps/')
-        serializer = FoodOrderByTableSerializer(instance=order_qs, context={'is_apps':is_apps})
+        serializer = FoodOrderByTableSerializer(instance=order_qs, context={'is_apps':is_apps,'user':request.user})
 
         return ResponseWrapper(data=serializer.data, msg='Served')
 
@@ -1337,7 +1338,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
 
             is_apps = request.path.__contains__('/apps/')
 
-            serializer = FoodOrderByTableSerializer(instance=food_order_qs, context={'is_appa':is_apps})
+            serializer = FoodOrderByTableSerializer(instance=food_order_qs, context={'is_appa':is_apps,'user':request.user})
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=restaurant_id,
@@ -1392,7 +1393,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         # food_order_qs = OrderedItem.objects.filter(food_order_id = re_order_item_qs.food_order_id)
         is_apps = request.path.__contains__('/apps/')
         serializer = FoodOrderByTableSerializer(
-            instance=re_order_item_qs.food_order, context={'is-apps':is_apps})
+            instance=re_order_item_qs.food_order, context={'is-apps':is_apps,'user':request.user})
 
         order_done_signal.send(
             sender=self.__class__.re_order_items,
@@ -1937,13 +1938,13 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             'payable_amount', flat=True)
         total_amaount = sum(total_payable_amount_list)
         this_month_total_restaurant = Restaurant.objects.filter(
-            created_at__contains=this_month).count()
+            created_at__month=this_month).count()
         this_month_total_order = FoodOrder.objects.filter(
-            status='5_PAID', created_at__contains=this_month).count()
+            status='5_PAID', created_at__month=this_month).count()
         this_month_cancel_order = FoodOrder.objects.filter(
-            status='6_CANCELLED', created_at__contains=this_month).count()
+            status='6_CANCELLED', created_at__month=this_month).count()
         this_month_total_invoice_qs = Invoice.objects.filter(
-            created_at__contains=this_month, payment_status='1_PAID')
+            created_at__month=this_month, payment_status='1_PAID')
         this_month_total_payable_amount_list = this_month_total_invoice_qs.values_list(
             'payable_amount', flat=True)
         this_month_total_amaount = sum(this_month_total_payable_amount_list)
