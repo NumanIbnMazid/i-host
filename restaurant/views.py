@@ -1840,7 +1840,6 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
     def first_date_of_months_up_to_current_month_of_current_year(self):
         first_day = timezone.now().date().replace(day=1)
-        next_month = first_day + relativedelta(month=1)
         first_day_of_all_month = {}
         for month_flag in range(first_day.month):
             first_day_of_all_month[month_flag] = (
@@ -1851,8 +1850,9 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
     def dashboard_total_report(self, request, restaurant_id, *args, **kwargs):
         today = timezone.datetime.now()
         this_month = timezone.now().date().replace(day=1)
-        next_month = this_month + relativedelta(month=1)
-        last_month = this_month - relativedelta(month=1)
+
+        last_month = (this_month - timedelta(days=1)).replace(day=1)
+
         week = 7
         weekly_day_wise_income_list = list()
         weekly_day_wise_order_list = list()
