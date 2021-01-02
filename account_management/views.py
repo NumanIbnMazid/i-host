@@ -648,6 +648,7 @@ class CustomerNotificationViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
+
     def customer_notification_by_restaurant(self, request, restaurant, *args, **kwargs):
         restaurant_qs = FcmNotificationCustomer.objects.filter(
             restaurant_id=restaurant)
