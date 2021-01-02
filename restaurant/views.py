@@ -1086,8 +1086,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         # adjust cart for unique items
         self.adjust_cart_for_unique_items(order_qs)
 
-        is_apps = request.path.__contains__('/apps/')
-        serializer = FoodOrderByTableSerializer(instance=order_qs, context={'is_apps':is_apps})
+        #is_apps = request.path.__contains__('/apps/')
+        serializer = FoodOrderByTableSerializer(instance=order_qs)
         grand_total = serializer.data.get(
             'price', {}).get('grand_total_price')
         payable_amount = serializer.data.get(
