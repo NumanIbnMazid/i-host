@@ -1,6 +1,7 @@
 from calendar import month
 from datetime import datetime
 import random
+from utils.fcm import send_fcm_push_notification_appointment
 from utils.sms import send_sms
 from re import error
 from utils.pagination import CustomLimitPagination
@@ -631,9 +632,25 @@ class CustomerNotificationViewSet(LoggingMixin, CustomViewSet):
     lookup_field = 'pk'
     serializer_class = CustomerNotificationSerializer
     logging_methods = ['DELETE', 'POST', 'PATCH', 'GET']
+    http_method_names = ('post', 'get')
+
+    def create(self, request):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+        if serializer.is_valid():
+            qs = serializer.save()
+            customer_qs = CustomerFcmDevice.objects.order_by('-pk')[:1000]
+            tokens = customer_qs.values_list('token', flat=True)
+            send_fcm_push_notification_appointment(
+                status="SendCustomerAdvertisement", qs=qs, tokens_list=tokens)
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def customer_notification_by_restaurant(self, request, restaurant, *args, **kwargs):
-        restaurant_qs = FcmNotificationCustomer.objects.filter(restaurant_id=restaurant)
+        restaurant_qs = FcmNotificationCustomer.objects.filter(
+            restaurant_id=restaurant)
         serializer = CustomerNotificationSerializer(
             instance=restaurant_qs, many=True)
         return ResponseWrapper(data=serializer.data)

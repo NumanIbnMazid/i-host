@@ -88,11 +88,19 @@ class FoodExtraTypeDetailSerializer(serializers.ModelSerializer):
 
 
 class FoodCategorySerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
     class Meta:
         model = FoodCategory
         # fields = '__all__'
         exclude = ['deleted_at']
+    
+    def create(self, validated_data):
+        image = validated_data.pop('image', None)
+        if image:
+            return FoodCategory.objects.create(image=image, **validated_data)
+        return FoodCategory.objects.create(**validated_data)
 
+    
 
 class FoodOptionSerializer(serializers.ModelSerializer):
     option_type = FoodOptionTypeSerializer(read_only=True)
@@ -329,7 +337,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
     # table_no = serializers.CharField(source="table.table_no")
     waiter = serializers.SerializerMethodField(read_only=True)
     price = serializers.SerializerMethodField()
-    ordered_items = OrderedItemGetDetailsSerializer(many=True, read_only=True)
+    ordered_items = serializers.SerializerMethodField(read_only=True)
     restaurant_info = serializers.SerializerMethodField(read_only=True)
     customer = serializers.SerializerMethodField(read_only=True)
 
@@ -358,6 +366,20 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   #   "payable_amount",
                   ]
         # ordering = ['table']
+
+    def get_ordered_items(self, obj):
+        is_apps = self.context.get('is_apps', False)
+        if is_apps:
+            qs = obj.ordered_items.exclude(
+                status__in=['4_CANCELLED', '0_ORDER_INITIALIZED'])
+            serializer = OrderedItemGetDetailsSerializer(
+                instance=qs, many=True)
+        else:
+            serializer = OrderedItemGetDetailsSerializer(
+                instance=obj.ordered_items, many=True)
+        return serializer.data
+
+        # OrderedItemGetDetailsSerializer(many=True, read_only=True)
 
     def get_price(self, obj):
         return calculate_price(food_order_obj=obj)
@@ -888,7 +910,8 @@ class FcmNotificationStaffSerializer(serializers.ModelSerializer):
         model = FcmNotificationStaff
         fields = '__all__'
 
+
 class VersionUpdateSerializer(serializers.ModelSerializer):
-    class Meta: 
+    class Meta:
         model = VersionUpdate
         fields = '__all__'
