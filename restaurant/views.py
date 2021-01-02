@@ -642,12 +642,12 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['customer_order_history']:
+        if self.action in ['apps_cancel_order','create_order','customer_order_history','add_items','cancel_order','placed_status','confirm_status','cancel_items','in_table_status','create_invoice']:
             permission_classes = [permissions.IsAuthenticated]
         if self.action in ['create_take_away_order']:
             permission_classes = [
                 custom_permissions.IsRestaurantManagementOrAdmin]
-        if self.action in ['payment']:
+        if self.action in ['payment','table_transfer','confirm_status_without_cancel','revert_back_to_in_table']:
             permission_classes = [
                 custom_permissions.IsRestaurantStaff
             ]
@@ -1238,6 +1238,12 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
         return ResponseWrapper(paginated_data.data)
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        is_apps = request.path.__contains__('/apps/')
+        serializer = self.get_serializer(instance,context={'is_apps':is_apps})
+        return ResponseWrapper(serializer.data)
+
 
 class OrderedItemViewSet(LoggingMixin, CustomViewSet):
     queryset = OrderedItem.objects.all()
@@ -1245,7 +1251,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def get_permissions(self):
-        if self.action in ['create', 'cart_create_from_dashboard']:
+        if self.action in ['create', 'cart_create_from_dashboard','destroy','update']:
             permission_classes = [permissions.IsAuthenticated]
         else:
             permission_classes = [permissions.AllowAny]
