@@ -813,6 +813,7 @@ class ReportByDateRangeSerializer(serializers.Serializer):
     end_date = serializers.DateField(required=False)
     category = serializers.ListSerializer(child=serializers.IntegerField())
     item = serializers.ListSerializer(child=serializers.IntegerField())
+    waiter = serializers.ListSerializer(child=serializers.IntegerField())
 
 
 class StaffFcmSerializer(serializers.Serializer):

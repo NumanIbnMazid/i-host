@@ -1840,7 +1840,6 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
     def first_date_of_months_up_to_current_month_of_current_year(self):
         first_day = timezone.now().date().replace(day=1)
-        next_month = first_day + relativedelta(month=1)
         first_day_of_all_month = {}
         for month_flag in range(first_day.month):
             first_day_of_all_month[month_flag] = (
@@ -1851,8 +1850,9 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
     def dashboard_total_report(self, request, restaurant_id, *args, **kwargs):
         today = timezone.datetime.now()
         this_month = timezone.now().date().replace(day=1)
-        next_month = this_month + relativedelta(month=1)
-        last_month = this_month - relativedelta(month=1)
+
+        last_month = (this_month - timedelta(days=1)).replace(day=1)
+
         week = 7
         weekly_day_wise_income_list = list()
         weekly_day_wise_order_list = list()
@@ -2073,6 +2073,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         end_date = request.data.get('end_date', timezone.now().date())
         category_list = request.data.get("category", [])
         item_list = request.data.get('item', [])
+        waiter_list = request.data.get('waiter', [])
         # start_date = datetime.strptime(start_date, '%Y-%m-%d')
         if request.data.get('end_date'):
             end_date = datetime.strptime(end_date, '%Y-%m-%d')
@@ -2084,6 +2085,10 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
             food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
                                                               created_at__gte=start_date, created_at__lte=end_date,
                                                               order__ordered_items__food_option__food__category_id__in=category_list
+                                                              ).distinct()
+        elif waiter_list:
+            food_items_date_range_qs = Invoice.objects.filter(order__restaurant_id =restaurant, created_at__gte=start_date, created_at__lte=end_date,
+                                                              order__food_order_logs__staff_id__in = waiter_list
                                                               ).distinct()
         else:
             food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
