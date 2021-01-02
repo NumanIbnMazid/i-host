@@ -88,19 +88,18 @@ class FoodExtraTypeDetailSerializer(serializers.ModelSerializer):
 
 
 class FoodCategorySerializer(serializers.ModelSerializer):
-    image = Base64FileField()
+    # image = Base64FileField()
     class Meta:
         model = FoodCategory
         # fields = '__all__'
         exclude = ['deleted_at']
-    
-    def create(self, validated_data):
-        image = validated_data.pop('image', None)
-        if image:
-            return FoodCategory.objects.create(image=image, **validated_data)
-        return FoodCategory.objects.create(**validated_data)
 
-    
+    # def create(self, validated_data):
+    #     image = validated_data.pop('image', None)
+    #     if image:
+    #         return FoodCategory.objects.create(image=image, **validated_data)
+    #     return FoodCategory.objects.create(**validated_data)
+
 
 class FoodOptionSerializer(serializers.ModelSerializer):
     option_type = FoodOptionTypeSerializer(read_only=True)
