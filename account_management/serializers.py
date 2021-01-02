@@ -10,13 +10,15 @@ from rest_framework import serializers
 from .models import CustomerFcmDevice, CustomerInfo, HotelStaffInformation, StaffFcmDevice, UserAccount, FcmNotificationCustomer, models
 # from restaurant import serializers as restaurant_serializer
 
-from drf_extra_fields.fields import Base64ImageField
+# from drf_extra_fields.fields import Base64ImageField
 from drf_extra_fields.fields import HybridImageField
 from django.core.files.base import ContentFile
+# from ..utils.base_64_image import Base64ImageField
+from utils.base_64_image import Base64ImageField
 import base64
 import six
 import uuid
-import imghdr
+# import imghdr
 
 
 class CustomerInfoSerializer(serializers.ModelSerializer):
@@ -216,8 +218,10 @@ class CustomerFcmDeviceSerializer(serializers.ModelSerializer):
         model = CustomerFcmDevice
         fields = "__all__"
 
+
 class CustomerNotificationSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
+
     class Meta:
         model = FcmNotificationCustomer
         fields = [
@@ -227,7 +231,7 @@ class CustomerNotificationSerializer(serializers.ModelSerializer):
             "image",
             "restaurant"
         ]
-    
+
     def create(self, validated_data):
         image = validated_data.pop('image', None)
         if image:
