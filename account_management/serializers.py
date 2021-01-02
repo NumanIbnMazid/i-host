@@ -13,11 +13,12 @@ from .models import CustomerFcmDevice, CustomerInfo, HotelStaffInformation, Staf
 # from drf_extra_fields.fields import Base64ImageField
 from drf_extra_fields.fields import HybridImageField
 from django.core.files.base import ContentFile
-from ..utils.base_64_image import Base64ImageField
+# from ..utils.base_64_image import Base64ImageField
+from utils.base_64_image import Base64ImageField
 import base64
 import six
 import uuid
-import imghdr
+# import imghdr
 
 
 class CustomerInfoSerializer(serializers.ModelSerializer):
