@@ -97,7 +97,7 @@ class RestaurantPromoCategory(models.Model):
 
 class FoodCategory(SoftDeleteModel):
     name = models.CharField(max_length=250)
-    image = models.ImageField(null=True, blank=True)
+    image = models.FileField(null=True, blank=True)
     # restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE,related_name='food_category')
 
     # def __str__(self):
