@@ -1,5 +1,5 @@
 from django.contrib.postgres import fields
-from drf_extra_fields.fields import Base64ImageField
+from drf_extra_fields.fields import Base64FileField, Base64ImageField
 import copy
 from account_management.models import FcmNotificationStaff, HotelStaffInformation
 from account_management.serializers import StaffInfoGetSerializer
@@ -88,7 +88,7 @@ class FoodExtraTypeDetailSerializer(serializers.ModelSerializer):
 
 
 class FoodCategorySerializer(serializers.ModelSerializer):
-    image = Base64ImageField()
+    image = Base64FileField()
     class Meta:
         model = FoodCategory
         # fields = '__all__'
