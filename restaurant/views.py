@@ -2073,6 +2073,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         end_date = request.data.get('end_date', timezone.now().date())
         category_list = request.data.get("category", [])
         item_list = request.data.get('item', [])
+        waiter_list = request.data.get('waiter', [])
         # start_date = datetime.strptime(start_date, '%Y-%m-%d')
         if request.data.get('end_date'):
             end_date = datetime.strptime(end_date, '%Y-%m-%d')
@@ -2084,6 +2085,10 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
             food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
                                                               created_at__gte=start_date, created_at__lte=end_date,
                                                               order__ordered_items__food_option__food__category_id__in=category_list
+                                                              ).distinct()
+        elif waiter_list:
+            food_items_date_range_qs = Invoice.objects.filter(order__restaurant_id =restaurant, created_at__gte=start_date, created_at__lte=end_date,
+                                                              order__food_order_logs__staff_id__in = waiter_list
                                                               ).distinct()
         else:
             food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
