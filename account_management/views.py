@@ -502,6 +502,8 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         password = request.data.pop("password", None)
         user_qs = User.objects.filter(pk=request.user.pk)
+        first_name = request.data.get('first_name')
+        customer_qs, created_customer = CustomerInfo.objects.get_or_create(user=user_qs.first())
 
         # if user_qs:
         if password:
@@ -509,6 +511,8 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
             updated = user_qs.update(password=password, **request.data)
         else:
             updated = user_qs.update(**request.data)
+        customer_qs.name = first_name
+        customer_qs.save()
 
         if not updated:
             return ResponseWrapper(error_code=status.HTTP_400_BAD_REQUEST, error_msg=['failed to update'])
