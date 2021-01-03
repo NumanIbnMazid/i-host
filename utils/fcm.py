@@ -56,15 +56,17 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
             'data': {'title': '8', 'body': str(datetime.datetime.now())}
         },
 
-        'SendCustomerAdvertisement': {
-            'notification': {'title': qs.title,
-                             'body': qs.body,
-                             'image': qs.image,
-                             },
-            'data': qs.data
-        },
+
     }
     success = False
+    if status == "SendCustomerAdvertisement":
+        status_value["SendCustomerAdvertisement"] = {
+            'notification': {'title': qs.title if qs else None,
+                             'body': qs.body if qs else None,
+                             'image': qs.image if qs else None,
+                             },
+            'data': qs.data if qs else None,
+        }
 
     try:
 
