@@ -294,33 +294,33 @@ class FoodOptionsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class FoodOrderSerializer(serializers.ModelSerializer):
-    status_detail = serializers.CharField(source='get_status_display')
-    price = serializers.SerializerMethodField()
-    ordered_items = OrderedItemGetDetailsSerializer(many=True, read_only=True)
-
-    # TODO: write a ordered item serializer where each foreign key details are also shown in response
-
-    class Meta:
-        model = FoodOrder
-        fields = ['id',
-                  "remarks",
-                  'status_detail',
-                  "table",
-                  "status",
-                  "price",
-                  'ordered_items',
-                  #   'grand_total_price',
-                  #   "total_price",
-                  #   "discount_amount",
-                  #   "tax_amount",
-                  #   "tax_percentage",
-                  #   "service_charge",
-                  #   "payable_amount",
-                  ]
-
-    def get_price(self, obj):
-        return calculate_price(food_order_obj=obj, include_initial_order=True)
+# class FoodOrderSerializer(serializers.ModelSerializer):
+#     status_detail = serializers.CharField(source='get_status_display')
+#     price = serializers.SerializerMethodField()
+#     ordered_items = OrderedItemGetDetailsSerializer(many=True, read_only=True)
+#
+#     # TODO: write a ordered item serializer where each foreign key details are also shown in response
+#
+#     class Meta:
+#         model = FoodOrder
+#         fields = ['id',
+#                   "remarks",
+#                   'status_detail',
+#                   "table",
+#                   "status",
+#                   "price",
+#                   'ordered_items',
+#                   #   'grand_total_price',
+#                   #   "total_price",
+#                   #   "discount_amount",
+#                   #   "tax_amount",
+#                   #   "tax_percentage",
+#                   #   "service_charge",
+#                   #   "payable_amount",
+#                   ]
+#
+#     def get_price(self, obj):
+#         return calculate_price(food_order_obj=obj, include_initial_order=True)
 
 
 class FreeTableSerializer(serializers.ModelSerializer):
@@ -439,6 +439,26 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
             return obj.table.table_no
         else:
             return None
+
+class FoodOrderSerializer(FoodOrderByTableSerializer):
+    status_detail = serializers.CharField(source='get_status_display')
+
+    # TODO: write a ordered item serializer where each foreign key details are also shown in response
+
+    class Meta(FoodOrderByTableSerializer.Meta):
+        FoodOrderByTableSerializer.Meta.fields = ['id',
+                  "remarks",
+                  'status_detail',
+                  "table",
+                  "status",
+                  "price",
+                  'ordered_items',
+
+                  ]
+
+    def get_price(self, obj):
+        return calculate_price(food_order_obj=obj, include_initial_order=True)
+
 
 
 class FoodOrderForStaffSerializer(serializers.ModelSerializer):
