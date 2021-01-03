@@ -289,6 +289,8 @@ class FoodOptionTypeViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def food_option_type_detail(self, request, pk, *args, **kwargs):
+    # def food_option_type_detail(self, request,pk, *args, **kwargs):
+
         qs = FoodOptionType.objects.filter(id=pk).first()
         serializer = self.serializer_class(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='success')
@@ -2005,6 +2007,8 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         elif self.action in ['waiter_report_by_date_range']:
             self.serializer_class = ReportDateRangeSerializer
         return self.serializer_class
+
+
 
     def get_pagination_class(self):
         if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice', 'invoice_all_report', 'top_food_items_by_date_range','waiter_report_by_date_range']:
