@@ -1419,7 +1419,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         # food_order_qs = OrderedItem.objects.filter(food_order_id = re_order_item_qs.food_order_id)
         is_apps = request.path.__contains__('/apps/')
         serializer = FoodOrderByTableSerializer(
-            instance=re_order_item_qs.food_order, context={'is-apps': is_apps, 'user': request.user})
+            instance=re_order_item_qs.food_order, context={'is-apps': is_apps, 'request': request})
 
         order_done_signal.send(
             sender=self.__class__.re_order_items,
