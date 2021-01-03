@@ -356,11 +356,10 @@ class PaymentType(models.Model):
 
 
 class VersionUpdate(models.Model):
-    customer_app_version_no = models.CharField(
-        max_length=50, null=True, blank=True)
-    waiter_app_version_no = models.CharField(
-        max_length=50, null=True, blank=True)
+    version_no = models.CharField(max_length=500, null=True, blank=True)
     force_update = models.BooleanField(default=False)
+    is_customer_app = models.BooleanField(default=False)
+    is_waiter_app = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

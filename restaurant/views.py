@@ -281,7 +281,7 @@ class FoodOptionTypeViewSet(LoggingMixin, CustomViewSet):
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
-    def list(self, request,*args, **kwargs):
+    def list(self, request, *args, **kwargs):
         qs = self.get_queryset().exclude(name='single_type')
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(instance=qs, many=True)
@@ -290,7 +290,7 @@ class FoodOptionTypeViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def food_option_type_detail(self, request, pk, *args, **kwargs):
-    # def food_option_type_detail(self, request,pk, *args, **kwargs):
+        # def food_option_type_detail(self, request,pk, *args, **kwargs):
 
         qs = FoodOptionType.objects.filter(id=pk).first()
         serializer = self.serializer_class(instance=qs)
@@ -647,12 +647,12 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['apps_cancel_order','create_order','customer_order_history','add_items','cancel_order','placed_status','confirm_status','cancel_items','in_table_status','create_invoice']:
+        if self.action in ['apps_cancel_order', 'create_order', 'customer_order_history', 'add_items', 'cancel_order', 'placed_status', 'confirm_status', 'cancel_items', 'in_table_status', 'create_invoice']:
             permission_classes = [permissions.IsAuthenticated]
         if self.action in ['create_take_away_order']:
             permission_classes = [
                 custom_permissions.IsRestaurantManagementOrAdmin]
-        if self.action in ['payment','table_transfer','confirm_status_without_cancel','revert_back_to_in_table']:
+        if self.action in ['payment', 'table_transfer', 'confirm_status_without_cancel', 'revert_back_to_in_table']:
             permission_classes = [
                 custom_permissions.IsRestaurantStaff
             ]
@@ -1258,7 +1258,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         is_apps = request.path.__contains__('/apps/')
-        serializer = self.get_serializer(instance,context={'is_apps':is_apps})
+        serializer = self.get_serializer(
+            instance, context={'is_apps': is_apps})
         return ResponseWrapper(serializer.data)
 
 
@@ -1268,7 +1269,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def get_permissions(self):
-        if self.action in ['create', 'cart_create_from_dashboard','destroy','update']:
+        if self.action in ['create', 'cart_create_from_dashboard', 'destroy', 'update']:
             permission_classes = [permissions.IsAuthenticated]
         else:
             permission_classes = [permissions.AllowAny]
@@ -1457,9 +1458,9 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
 
     def create(self, request):
         staff_qs = HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
-                                                      restaurant_id=request.data.get('restaurant'))
+                                                        restaurant_id=request.data.get('restaurant'))
         if not staff_qs:
-            return ResponseWrapper(msg = 'Your are not Valid Restaurant owner or manager', error_code=400)
+            return ResponseWrapper(msg='Your are not Valid Restaurant owner or manager', error_code=400)
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
@@ -1471,9 +1472,9 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
 
     def update(self, request, **kwargs):
         staff_qs = HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
-                                                      restaurant_id=request.data.get('restaurant'))
+                                                        restaurant_id=request.data.get('restaurant'))
         if not staff_qs:
-            return ResponseWrapper(msg = 'Your are not Valid Restaurant owner or manager', error_code=400)
+            return ResponseWrapper(msg='Your are not Valid Restaurant owner or manager', error_code=400)
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data, partial=True)
         if serializer.is_valid():
@@ -1483,7 +1484,6 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
-
 
     def food_details(self, request, pk, *args,  **kwargs):
         qs = Food.objects.filter(pk=pk).last()
@@ -1891,7 +1891,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         # response = {'food_report': food_dict.values(), }
         return ResponseWrapper(data=food_dict.values(), msg='success')
 
-    def first_date_of_months_up_to_current_month_of_current_year(self,*args, **kwargs):
+    def first_date_of_months_up_to_current_month_of_current_year(self, *args, **kwargs):
         first_day = timezone.now().date().replace(day=1)
         first_day_of_all_month = {}
         for month_flag in range(first_day.month):
@@ -2051,8 +2051,6 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         elif self.action in ['waiter_report_by_date_range']:
             self.serializer_class = ReportDateRangeSerializer
         return self.serializer_class
-
-
 
     def get_pagination_class(self):
         if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice', 'invoice_all_report', 'top_food_items_by_date_range', 'waiter_report_by_date_range']:
@@ -2460,7 +2458,7 @@ class FcmCommunication(viewsets.GenericViewSet):
 
         return self.serializer_class
 
-    def call_waiter(self, request,*args, **kwargs):
+    def call_waiter(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
         if not serializer.is_valid():
@@ -2486,7 +2484,7 @@ class FcmCommunication(viewsets.GenericViewSet):
         else:
             return ResponseWrapper(error_msg="failed to notify")
 
-    def collect_payment(self, request,*args, **kwargs):
+    def collect_payment(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
         if not serializer.is_valid():
@@ -2515,7 +2513,7 @@ class FcmCommunication(viewsets.GenericViewSet):
         else:
             return ResponseWrapper(error_msg="failed to notify")
 
-    def fcm_notification_history_for_staff(self, request, staff_id,*args, **kwargs):
+    def fcm_notification_history_for_staff(self, request, staff_id, *args, **kwargs):
         qs = FcmNotificationStaff.objects.filter(
             staff_device__hotel_staff_id=staff_id, created_at__gte=timezone.now().date()).order_by('-created_at')
         serializer = FcmNotificationStaffSerializer(instance=qs, many=True)
@@ -2537,7 +2535,7 @@ class PopUpViewset(LoggingMixin, CustomViewSet):
                 custom_permissions.IsRestaurantManagementOrAdmin]
         return [permission() for permission in permission_classes]
 
-    def pop_up_list_by_restaurant(self, request, restaurant_id,*args, **kwargs):
+    def pop_up_list_by_restaurant(self, request, restaurant_id, *args, **kwargs):
         popup_qs = PopUp.objects.filter(
             restaurant=restaurant_id).order_by('serial_no')
         serializer = PopUpSerializer(instance=popup_qs, many=True)
@@ -2559,7 +2557,7 @@ class SliderViewset(LoggingMixin, CustomViewSet):
                 custom_permissions.IsRestaurantManagementOrAdmin]
         return [permission() for permission in permission_classes]
 
-    def slider_list_by_restaurant(self, request, restaurant_id,*args, **kwargs):
+    def slider_list_by_restaurant(self, request, restaurant_id, *args, **kwargs):
         slider_qs = Slider.objects.filter(
             restaurant=restaurant_id).order_by('serial_no')
         serializer = SliderSerializer(instance=slider_qs, many=True)
@@ -2700,9 +2698,17 @@ class VersionUpdateViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_code=400, error_msg=serializer.errors, msg='failed to create Version')
 
-    def version_requirement(self, request, *args, **kwargs):
+    def app_version_requirement(self, request, *args, **kwargs):
         qs = VersionUpdate.objects.filter(
-            force_update=True).order_by('-updated_at').first()
+            is_customer_app=True).order_by('-updated_at').first()
+
+        #serializer = VersionUpdateSerializer(instance=qs, many=True)
+        serializer = VersionUpdateSerializer(instance=qs)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
+    def waiter_version_requirement(self, request, *args, **kwargs):
+        qs = VersionUpdate.objects.filter(
+            is_waiter_app=True).order_by('-updated_at').first()
 
         #serializer = VersionUpdateSerializer(instance=qs, many=True)
         serializer = VersionUpdateSerializer(instance=qs)
