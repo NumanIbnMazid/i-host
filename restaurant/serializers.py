@@ -403,10 +403,15 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
             return None
 
     def get_waiter(self, obj):
-        if obj.table:
-            qs = obj.table.staff_assigned.filter(is_waiter=True).first()
-            if qs:
-                return {"name": qs.user.first_name, 'id': qs.pk}
+        food_order_log_qs = obj.food_order_logs.filter(
+            order_status="5_PAID").order_by('-created_at').first()
+        # if obj.table:
+        #     qs = obj.table.staff_assigned.filter(is_waiter=True).first()
+        #     if qs:
+        #         return {"name": qs.user.first_name, 'id': qs.pk}
+        if food_order_log_qs:
+            if food_order_log_qs.staff:
+                return {'name': food_order_log_qs.staff.name, 'staff_id': food_order_log_qs.staff_id}
         return {}
 
     def get_restaurant_info(self, obj):
@@ -442,6 +447,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
         else:
             return None
 
+
 class FoodOrderSerializer(FoodOrderByTableSerializer):
     status_detail = serializers.CharField(source='get_status_display')
 
@@ -449,18 +455,17 @@ class FoodOrderSerializer(FoodOrderByTableSerializer):
 
     class Meta(FoodOrderByTableSerializer.Meta):
         FoodOrderByTableSerializer.Meta.fields = ['id',
-                  "remarks",
-                  'status_detail',
-                  "table",
-                  "status",
-                  "price",
-                  'ordered_items',
+                                                  "remarks",
+                                                  'status_detail',
+                                                  "table",
+                                                  "status",
+                                                  "price",
+                                                  'ordered_items',
 
-                  ]
+                                                  ]
 
     def get_price(self, obj):
         return calculate_price(food_order_obj=obj, include_initial_order=True)
-
 
 
 class FoodOrderForStaffSerializer(serializers.ModelSerializer):
