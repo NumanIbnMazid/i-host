@@ -1,4 +1,5 @@
 from django.contrib.postgres import fields
+from django.http import request
 from drf_extra_fields.fields import Base64FileField, Base64ImageField
 import copy
 from account_management.models import FcmNotificationStaff, HotelStaffInformation
@@ -368,14 +369,24 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
 
     def get_ordered_items(self, obj):
         is_apps = self.context.get('is_apps', False)
+        request = self.context.get('request')
         if is_apps:
-            qs = obj.ordered_items.exclude(
-                status__in=['4_CANCELLED', '0_ORDER_INITIALIZED'])
-            serializer = OrderedItemGetDetailsSerializer(
-                instance=qs, many=True)
+
+            is_waiter_app = request.path.__contains__('/apps/waiter/')
+            is_user_app = request.path.__contains__('/apps/user/')
+            if is_user_app:
+                qs = obj.ordered_items.exclude(
+                    status__in=['4_CANCELLED'])
+            else:
+                qs = obj.ordered_items.exclude(
+                    status__in=['4_CANCELLED', '0_ORDER_INITIALIZED'])
+
         else:
-            serializer = OrderedItemGetDetailsSerializer(
-                instance=obj.ordered_items, many=True)
+            qs = obj.ordered_items
+
+        serializer = OrderedItemGetDetailsSerializer(
+            instance=qs, many=True)
+
         return serializer.data
 
         # OrderedItemGetDetailsSerializer(many=True, read_only=True)
@@ -914,4 +925,4 @@ class FcmNotificationStaffSerializer(serializers.ModelSerializer):
 class VersionUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = VersionUpdate
-        exclude = ['created_at','updated_at']
+        exclude = ['created_at', 'updated_at']
