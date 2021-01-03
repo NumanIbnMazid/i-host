@@ -304,6 +304,14 @@ class FoodOrderedViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        is_apps = request.path.__contains__('/apps/')
+        serializer = self.get_serializer(instance,context={'is_apps':is_apps,'request':request})
+        return ResponseWrapper(serializer.data)
+
+
+
     # def ordered_item_list(self, request, ordered_id, *args, **kwargs):
     #     qs = FoodOrder.objects.filter(pk=ordered_id)
     #     # qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')

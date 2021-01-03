@@ -454,18 +454,14 @@ class FoodOrderSerializer(FoodOrderByTableSerializer):
     # TODO: write a ordered item serializer where each foreign key details are also shown in response
 
     class Meta(FoodOrderByTableSerializer.Meta):
-        FoodOrderByTableSerializer.Meta.fields = ['id',
-                                                  "remarks",
-                                                  'status_detail',
-                                                  "table",
-                                                  "status",
-                                                  "price",
-                                                  'ordered_items',
-
-                                                  ]
-
-    def get_price(self, obj):
-        return calculate_price(food_order_obj=obj, include_initial_order=True)
+        fields = ['id',
+                  "remarks",
+                  'status_detail',
+                  "table",
+                  "status",
+                  "price",
+                  'ordered_items'
+                  ]
 
 
 class FoodOrderForStaffSerializer(serializers.ModelSerializer):
