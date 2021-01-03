@@ -79,7 +79,7 @@ class StaffFcmDeviceViewset(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     http_method_names = ('post',)
 
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
@@ -92,7 +92,7 @@ class StaffFcmDeviceViewset(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def update(self, request, **kwargs):
+    def update(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data, partial=True)
         if serializer.is_valid():
@@ -113,7 +113,7 @@ class UserFcmDeviceViewset(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     http_method_names = ('post',)
 
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
@@ -126,7 +126,7 @@ class UserFcmDeviceViewset(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def update(self, request, **kwargs):
+    def update(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data, partial=True)
         if serializer.is_valid():
@@ -410,7 +410,7 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
         serializer = StaffInfoGetSerializer(instance=manager_qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
-    def update(self, request, **kwargs):
+    def update(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data, partial=True)
         if serializer.is_valid():
@@ -548,7 +548,7 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
                 return ResponseWrapper(data=user_serializer.data, status=200)
         return ResponseWrapper(data="Active account not found", status=400)
 
-    def get_otp(self, request, phone, **kwargs):
+    def get_otp(self, request, phone, *args, **kwargs):
         otp = random.randint(1000, 9999)
         otp_qs, _ = OtpUser.objects.get_or_create(phone=str(phone))
         if request.user.pk:
@@ -636,9 +636,11 @@ class CustomerNotificationViewSet(LoggingMixin, CustomViewSet):
     lookup_field = 'pk'
     serializer_class = CustomerNotificationSerializer
     logging_methods = ['DELETE', 'POST', 'PATCH', 'GET']
+    permission_classes = [permissions.IsAuthenticated,
+                          custom_permissions.IsRestaurantManagementOrAdmin]
     http_method_names = ('post', 'get')
 
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
@@ -651,7 +653,6 @@ class CustomerNotificationViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
-
 
     def customer_notification_by_restaurant(self, request, restaurant, *args, **kwargs):
         restaurant_qs = FcmNotificationCustomer.objects.filter(

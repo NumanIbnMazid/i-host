@@ -280,7 +280,7 @@ class FoodOptionTypeViewSet(LoggingMixin, CustomViewSet):
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
-    def list(self, request):
+    def list(self, request,*args, **kwargs):
         qs = self.get_queryset().exclude(name='single_type')
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(instance=qs, many=True)
@@ -361,7 +361,7 @@ class FoodExtraViewSet(LoggingMixin, CustomViewSet):
         serializer = FoodDetailSerializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='success')
 
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
@@ -371,7 +371,7 @@ class FoodExtraViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def update(self, request, **kwargs):
+    def update(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data, partial=True)
         if serializer.is_valid():
@@ -406,7 +406,7 @@ class FoodOptionViewSet(LoggingMixin, CustomViewSet):
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
@@ -426,7 +426,7 @@ class FoodOptionViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def update(self, request, **kwargs):
+    def update(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data, partial=True)
         if serializer.is_valid():
@@ -484,7 +484,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
 
     # pagination_class = property(get_pagination_class)
 
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         res_qs = Restaurant.objects.filter(id=request.data.get(
@@ -577,7 +577,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         # serializer = self.get_serializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg="success")
 
-    def destroy(self, request, **kwargs):
+    def destroy(self, request, *args, **kwargs):
         qs = self.queryset.filter(**kwargs).first()
         if qs:
             if qs.food_orders.count() == qs.food_orders.filter(status__in=['5_PAID', '6_CANCELLED']).count():
@@ -683,7 +683,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
     #     else:
     #         return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def create_order(self, request):
+    def create_order(self, request, *args, **kwargs):
         # serializer_class = self.get_serializer_class()
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -710,7 +710,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         openapi.Parameter("is_waiter", openapi.IN_QUERY,
                           type=openapi.TYPE_BOOLEAN)
     ])
-    def create_order_apps(self, request):
+    def create_order_apps(self, request, *args, **kwargs):
         # serializer_class = self.get_serializer_class()
         serializer = self.get_serializer(data=request.data)
 
@@ -736,7 +736,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def save_customer_info(self, request, qs):
+    def save_customer_info(self, request, qs, *args, **kwargs):
         # if request.data.get('table'):
         #     staff_account = qs.table.restaurant.hotel_staff.filter(
         #         user_id=request.user.pk
@@ -753,7 +753,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             except:
                 pass
 
-    def create_take_away_order(self, request):
+    def create_take_away_order(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -773,7 +773,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         )
         return ResponseWrapper(data=serializer.data, msg='created')
 
-    def add_items(self, request):
+    def add_items(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -1085,7 +1085,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def invoice_generator(self, order_qs, payment_status):
+    def invoice_generator(self, order_qs, payment_status, *args, **kwargs):
         # adjust cart for unique items
         self.adjust_cart_for_unique_items(order_qs)
 
@@ -1117,7 +1117,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             )
         return invoice_qs
 
-    def adjust_cart_for_unique_items(self, order_qs):
+    def adjust_cart_for_unique_items(self, order_qs, *args, **kwargs):
         ordered_items_qs = order_qs.ordered_items.all().exclude(status='4_CANCELLED')
         food_option_extra_tuple_list = ordered_items_qs.values_list(
             'food_option', 'food_extra')
@@ -1273,7 +1273,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
 
         return self.serializer_class
 
-    def destroy(self, request, **kwargs):
+    def destroy(self, request, *args, **kwargs):
         item_qs = OrderedItem.objects.filter(
             **kwargs).exclude(status__in=["4_CANCELLED"], food_order__status__in=['5_PAID', '6_CANCELLED']).last()
         if not item_qs:
@@ -1289,7 +1289,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
 
         return ResponseWrapper(data=serializer.data, msg='Served')
 
-    def update(self, request, **kwargs):
+    def update(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data, partial=True)
         if serializer.is_valid():
@@ -1303,7 +1303,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=True)
 
         if serializer.is_valid():
@@ -1355,7 +1355,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def cart_create_from_dashboard(self, request):
+    def cart_create_from_dashboard(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=True)
         if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -1383,7 +1383,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         )
         return ResponseWrapper(data=serializer.data, msg='created')
 
-    def re_order_items(self, request):
+    def re_order_items(self, request, *args, **kwargs):
         # serializer = self.get_serializer(data=request.data, many = True)
         new_quantity = request.data.get('quantity')
         re_order_item_qs = OrderedItem.objects.filter(
@@ -1877,7 +1877,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         # response = {'food_report': food_dict.values(), }
         return ResponseWrapper(data=food_dict.values(), msg='success')
 
-    def first_date_of_months_up_to_current_month_of_current_year(self):
+    def first_date_of_months_up_to_current_month_of_current_year(self,*args, **kwargs):
         first_day = timezone.now().date().replace(day=1)
         first_day_of_all_month = {}
         for month_flag in range(first_day.month):
@@ -2362,7 +2362,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         serializer = DiscountSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
-    def create_discount(self, request):
+    def create_discount(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -2445,7 +2445,7 @@ class FcmCommunication(viewsets.GenericViewSet):
 
         return self.serializer_class
 
-    def call_waiter(self, request):
+    def call_waiter(self, request,*args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
         if not serializer.is_valid():
@@ -2471,7 +2471,7 @@ class FcmCommunication(viewsets.GenericViewSet):
         else:
             return ResponseWrapper(error_msg="failed to notify")
 
-    def collect_payment(self, request):
+    def collect_payment(self, request,*args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
         if not serializer.is_valid():
@@ -2500,7 +2500,7 @@ class FcmCommunication(viewsets.GenericViewSet):
         else:
             return ResponseWrapper(error_msg="failed to notify")
 
-    def fcm_notification_history_for_staff(self, request, staff_id):
+    def fcm_notification_history_for_staff(self, request, staff_id,*args, **kwargs):
         qs = FcmNotificationStaff.objects.filter(
             staff_device__hotel_staff_id=staff_id, created_at__gte=timezone.now().date()).order_by('-created_at')
         serializer = FcmNotificationStaffSerializer(instance=qs, many=True)
@@ -2522,7 +2522,7 @@ class PopUpViewset(LoggingMixin, CustomViewSet):
                 custom_permissions.IsRestaurantManagementOrAdmin]
         return [permission() for permission in permission_classes]
 
-    def pop_up_list_by_restaurant(self, request, restaurant_id):
+    def pop_up_list_by_restaurant(self, request, restaurant_id,*args, **kwargs):
         popup_qs = PopUp.objects.filter(
             restaurant=restaurant_id).order_by('serial_no')
         serializer = PopUpSerializer(instance=popup_qs, many=True)
@@ -2544,7 +2544,7 @@ class SliderViewset(LoggingMixin, CustomViewSet):
                 custom_permissions.IsRestaurantManagementOrAdmin]
         return [permission() for permission in permission_classes]
 
-    def slider_list_by_restaurant(self, request, restaurant_id):
+    def slider_list_by_restaurant(self, request, restaurant_id,*args, **kwargs):
         slider_qs = Slider.objects.filter(
             restaurant=restaurant_id).order_by('serial_no')
         serializer = SliderSerializer(instance=slider_qs, many=True)
@@ -2593,7 +2593,7 @@ class ReviewViewset(LoggingMixin, CustomViewSet):
         serializer = ReviewSerializer(instance=restaurant_qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
