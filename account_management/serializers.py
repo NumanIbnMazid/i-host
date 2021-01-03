@@ -229,7 +229,8 @@ class CustomerNotificationSerializer(serializers.ModelSerializer):
             "title",
             "body",
             "image",
-            "restaurant"
+            "restaurant",
+            "data"
         ]
 
     def create(self, validated_data):
