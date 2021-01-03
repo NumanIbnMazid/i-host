@@ -288,8 +288,8 @@ class FoodOptionTypeViewSet(LoggingMixin, CustomViewSet):
         # serializer.is_valid()
         return ResponseWrapper(data=serializer.data, msg='success')
 
-    # def food_option_type_detail(self, request, pk, *args, **kwargs):
-    def food_option_type_detail(self, request, *args, **kwargs):
+    def food_option_type_detail(self, request, pk, *args, **kwargs):
+    # def food_option_type_detail(self, request,pk, *args, **kwargs):
 
         qs = FoodOptionType.objects.filter(id=pk).first()
         serializer = self.serializer_class(instance=qs)
