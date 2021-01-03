@@ -231,8 +231,8 @@ apps_fake = [
     path('order_id_by/<int:table_id>/',
          TableViewSet.as_view({'get': 'order_id_by_table', }), name='order_id_by_table'),
 
-    path('version_update',
-         VersionUpdateViewSet.as_view({'get': 'version_update_list', }), name='version_update'),
+    path('version_requirement',
+         VersionUpdateViewSet.as_view({'get': 'version_requirement', }), name='version_update'),
 
     path('version_create',
          VersionUpdateViewSet.as_view({'post': 'create', }), name='create'),

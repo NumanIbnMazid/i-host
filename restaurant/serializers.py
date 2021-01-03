@@ -914,4 +914,4 @@ class FcmNotificationStaffSerializer(serializers.ModelSerializer):
 class VersionUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = VersionUpdate
-        fields = '__all__'
+        exclude = ['created_at','updated_at']
