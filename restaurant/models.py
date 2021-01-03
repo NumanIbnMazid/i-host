@@ -176,6 +176,11 @@ class Table(SoftDeleteModel):
     # def __str__(self):
     #     return self.name
     #            #+'' + self.id.__str__()
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['restaurant', 'table_no'], name='restaurant and table no constrains'),
+        ]
 
 
 class FoodOrder(SoftDeleteModel):
