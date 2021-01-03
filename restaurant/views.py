@@ -1258,8 +1258,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         is_apps = request.path.__contains__('/apps/')
-        serializer = self.get_serializer(
-            instance, context={'is_apps': is_apps, 'request': request})
+        serializer = self.get_serializer(instance,context={'is_apps':is_apps,'request':request})
         return ResponseWrapper(serializer.data)
 
 
@@ -1314,7 +1313,9 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             ), validated_data=serializer.validated_data)
             order_qs = qs.food_order
 
-            serializer = FoodOrderSerializer(instance=order_qs)
+            is_apps = request.path.__contains__('/apps/')
+
+            serializer = FoodOrderSerializer(instance=order_qs,context={'is_apps': is_apps, 'request': request})
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
