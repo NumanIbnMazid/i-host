@@ -1310,6 +1310,11 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         is_apps = request.path.__contains__('/apps/')
         serializer = FoodOrderByTableSerializer(
             instance=order_qs, context={'is_apps': is_apps, 'request': request})
+        restaurant_id = order_qs.restaurant_id
+        order_done_signal.send(
+            sender=self.__class__.create,
+            restaurant_id=restaurant_id,
+        )
 
         return ResponseWrapper(data=serializer.data, msg='Served')
 
@@ -1324,6 +1329,12 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             is_apps = request.path.__contains__('/apps/')
 
             serializer = FoodOrderSerializer(instance=order_qs,context={'is_apps': is_apps, 'request': request})
+
+            restaurant_id = order_qs.restaurant_id
+            order_done_signal.send(
+                sender=self.__class__.create,
+                restaurant_id=restaurant_id,
+            )
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
