@@ -404,7 +404,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
 
     def get_waiter(self, obj):
         food_order_log_qs = obj.food_order_logs.filter(
-            order_status="5_PAID").order_by('-created_at').first()
+            order_status__in=["5_PAID", "4_CREATE_INVOICE"]).order_by('-created_at').first()
         # if obj.table:
         #     qs = obj.table.staff_assigned.filter(is_waiter=True).first()
         #     if qs:
