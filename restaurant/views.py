@@ -1439,6 +1439,36 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     # http_method_names = ['post', 'patch', 'get', 'delete']
 
+    def create(self, request):
+        staff_qs = HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
+                                                      restaurant_id=request.data.get('restaurant'))
+        if not staff_qs:
+            return ResponseWrapper(msg = 'Your are not Valid Restaurant owner or manager', error_code=400)
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+        if serializer.is_valid():
+            qs = serializer.save()
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def update(self, request, **kwargs):
+        staff_qs = HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
+                                                      restaurant_id=request.data.get('restaurant'))
+        if not staff_qs:
+            return ResponseWrapper(msg = 'Your are not Valid Restaurant owner or manager', error_code=400)
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data, partial=True)
+        if serializer.is_valid():
+            qs = serializer.update(instance=self.get_object(
+            ), validated_data=serializer.validated_data)
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+
     def food_details(self, request, pk, *args,  **kwargs):
         qs = Food.objects.filter(pk=pk).last()
         serializer = FoodDetailSerializer(instance=qs)
