@@ -1243,7 +1243,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         is_apps = request.path.__contains__('/apps/')
-        serializer = self.get_serializer(instance,context={'is_apps':is_apps})
+        serializer = self.get_serializer(instance,context={'is_apps':is_apps,'user':request.user})
         return ResponseWrapper(serializer.data)
 
 
