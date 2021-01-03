@@ -744,7 +744,7 @@ class TableStaffSerializer(serializers.ModelSerializer):
             if not order_qs:
                 return {}
 
-            total_items += order_qs.ordered_items.count()
+            total_items += order_qs.ordered_items.exclude(status='4_CANCELLED').count()
 
             if order_qs:
                 total_served_items += order_qs.ordered_items.filter(
