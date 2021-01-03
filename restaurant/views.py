@@ -2698,7 +2698,7 @@ class VersionUpdateViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_code=400, error_msg=serializer.errors, msg='failed to create Version')
 
-    def app_version_requirement(self, request, *args, **kwargs):
+    def user_version_requirement(self, request, *args, **kwargs):
         qs = VersionUpdate.objects.filter(
             is_customer_app=True).order_by('-updated_at').first()
 

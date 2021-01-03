@@ -231,8 +231,6 @@ apps_fake = [
     path('order_id_by/<int:table_id>/',
          TableViewSet.as_view({'get': 'order_id_by_table', }), name='order_id_by_table'),
 
-    path('app_version_requirement',
-         VersionUpdateViewSet.as_view({'get': 'app_version_requirement', }), name='version_update'),
 
     path('version_create',
          VersionUpdateViewSet.as_view({'post': 'create', }), name='create'),
@@ -251,4 +249,8 @@ apps_url = [
          FcmCommunication.as_view({"get": "fcm_notification_history_for_staff"})),
     path('order/order_info_price_details/<int:pk>/',
          FoodOrderViewSet.as_view({'get': 'apps_order_info_price_details'}, name='apps_order_info_price_details')),
+    path('user_version_requirement',
+         VersionUpdateViewSet.as_view({'get': 'user_version_requirement', }), name='user_version_requirement'),
+    path('waiter_version_requirement',
+         VersionUpdateViewSet.as_view({'get': 'waiter_version_requirement', }), name='waiter_version_requirement'),
 ]+apps_fake
