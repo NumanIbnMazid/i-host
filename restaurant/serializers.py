@@ -371,16 +371,18 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
         is_apps = self.context.get('is_apps', False)
         request = self.context.get('request')
         if is_apps:
-
-            is_waiter_app = request.path.__contains__('/apps/waiter/')
-            is_customer_app = request.path.__contains__('/apps/customer/')
-            if is_customer_app:
-                qs = obj.ordered_items.exclude(
-                    status__in=['4_CANCELLED'])
+            if request:
+                is_waiter_app = request.path.__contains__('/apps/waiter/')
+                is_customer_app = request.path.__contains__('/apps/customer/')
+                if is_customer_app:
+                    qs = obj.ordered_items.exclude(
+                        status__in=['4_CANCELLED'])
+                else:
+                    qs = obj.ordered_items.exclude(
+                        status__in=['4_CANCELLED', '0_ORDER_INITIALIZED'])
             else:
                 qs = obj.ordered_items.exclude(
                     status__in=['4_CANCELLED', '0_ORDER_INITIALIZED'])
-
         else:
             qs = obj.ordered_items
 
