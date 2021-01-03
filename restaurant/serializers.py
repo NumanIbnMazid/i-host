@@ -377,12 +377,15 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                 if is_customer_app:
                     qs = obj.ordered_items.exclude(
                         status__in=['4_CANCELLED'])
-                else:
+                elif is_waiter_app:
                     qs = obj.ordered_items.exclude(
                         status__in=['4_CANCELLED', '0_ORDER_INITIALIZED'])
+                else:
+                    qs = obj.ordered_items.exclude(
+                        status__in=['4_CANCELLED'])
             else:
                 qs = obj.ordered_items.exclude(
-                    status__in=['4_CANCELLED', '0_ORDER_INITIALIZED'])
+                    status__in=['4_CANCELLED'])
         else:
             qs = obj.ordered_items
 
@@ -744,7 +747,8 @@ class TableStaffSerializer(serializers.ModelSerializer):
             if not order_qs:
                 return {}
 
-            total_items += order_qs.ordered_items.exclude(status='4_CANCELLED').count()
+            total_items += order_qs.ordered_items.exclude(
+                status='4_CANCELLED').count()
 
             if order_qs:
                 total_served_items += order_qs.ordered_items.filter(
