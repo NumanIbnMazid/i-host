@@ -33,6 +33,7 @@ from rest_framework.response import Response
 from restaurant.models import Restaurant
 from utils.response_wrapper import ResponseWrapper
 from django.conf import settings
+from django.db.models import Count, Min, Q, query_utils
 
 from account_management.models import CustomerFcmDevice, CustomerInfo, OtpUser, StaffFcmDevice, HotelStaffInformation, FcmNotificationCustomer
 from account_management.models import UserAccount
@@ -641,6 +642,12 @@ class CustomerNotificationViewSet(LoggingMixin, CustomViewSet):
     http_method_names = ('post', 'get')
 
     def create(self, request, *args, **kwargs):
+        # if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
+        #                                             restaurant_id=request.data.get('restaurant')):
+        #     return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['user is not manager or owner'])
+        restaurant_id = request.data.get('restaurant')
+        self.check_object_permissions(request, obj=restaurant_id)
+
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():

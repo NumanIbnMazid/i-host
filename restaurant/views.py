@@ -367,7 +367,7 @@ class FoodExtraViewSet(LoggingMixin, CustomViewSet):
 
     def food_extra_details(self, request, pk, *args, **kwargs):
         qs = FoodExtra.objects.filter(pk=pk).last()
-        serializer = FoodDetailSerializer(instance=qs)
+        serializer = FoodExtraSerializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def create(self, request, *args, **kwargs):
@@ -427,8 +427,20 @@ class FoodOptionViewSet(LoggingMixin, CustomViewSet):
                 if default_option_type_qs.pk == option_type_id:
                     food_option_qs = FoodOption.objects.filter(
                         food_id=food_id, option_type_id=option_type_id)
-                    if food_option_qs:
-                        return ResponseWrapper(msg="not created already exist")
+                    if food_option_qs.count()>1:
+                        for temp_qs in food_option_qs[:(food_option_qs.count()-1)]:
+                            temp_qs.delete()
+                    qs = food_option_qs.last()
+
+                    temp_food_option_qs = FoodOption.objects.filter(food_id=food_id).exclude(option_type__name='single_type')
+                    if temp_food_option_qs:
+                        temp_food_option_qs.delete()
+                    if qs:
+                        qs.price = request.data.get('price',qs.price)
+                        qs.save()
+                        serializer = FoodOptionSerializer(instance=qs)
+                        return ResponseWrapper(data=serializer.data, msg='created')
+
             qs = serializer.save()
             serializer = FoodOptionSerializer(instance=qs)
             return ResponseWrapper(data=serializer.data, msg='created')
@@ -812,14 +824,15 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs.is_occupied = False
                 table_qs.save()
 
-        is_apps = request.path.__contains__('/apps/')
 
-        serializer = FoodOrderByTableSerializer(
-            instance=order_qs, context={'is_apps': is_apps, 'request': request})
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
         )
+        is_apps = request.path.__contains__('/apps/')
+
+        serializer = FoodOrderByTableSerializer(
+            instance=order_qs, context={'is_apps': is_apps, 'request': request})
         #  FoodOrderUserPostSerializer
         return ResponseWrapper(data=serializer.data, msg='Cancel')
 
@@ -843,14 +856,15 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs.is_occupied = False
                 table_qs.save()
 
-        is_apps = request.path.__contains__('/apps/')
 
-        serializer = FoodOrderByTableSerializer(
-            instance=order_qs, context={'is_apps': is_apps, 'request': request})
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
         )
+        is_apps = request.path.__contains__('/apps/')
+
+        serializer = FoodOrderByTableSerializer(
+            instance=order_qs, context={'is_apps': is_apps, 'request': request})
         #  FoodOrderUserPostSerializer
         return ResponseWrapper(data=serializer.data, msg='Cancel')
 
@@ -870,13 +884,14 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
             # order_qs.status = '3_IN_TABLE'
             # order_qs.save()
-            is_apps = request.path.__contains__('/apps/')
-            serializer = FoodOrderByTableSerializer(
-                instance=order_qs, context={'is_apps': is_apps, 'request': request})
+
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=order_qs.restaurant_id,
             )
+            is_apps = request.path.__contains__('/apps/')
+            serializer = FoodOrderByTableSerializer(
+                instance=order_qs, context={'is_apps': is_apps, 'request': request})
 
             return ResponseWrapper(data=serializer.data, msg='Served')
         else:
@@ -894,13 +909,14 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 if order_qs.status in ['3_IN_TABLE', '4_CREATE_INVOICE', '5_PAID']:
                     order_qs.status = '2_ORDER_CONFIRMED'
                     order_qs.save()
-                is_apps = request.path.__contains__('/apps/')
-                serializer = FoodOrderByTableSerializer(
-                    instance=order_qs, context={'is_apps': is_apps, 'request': request})
+
                 order_done_signal.send(
                     sender=self.__class__.revert_back_to_in_table,
                     restaurant_id=order_qs.restaurant_id,
                 )
+                is_apps = request.path.__contains__('/apps/')
+                serializer = FoodOrderByTableSerializer(
+                    instance=order_qs, context={'is_apps': is_apps, 'request': request})
                 return ResponseWrapper(data=serializer.data, msg='Placed')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -928,13 +944,14 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 # if order_qs.status in ['0_ORDER_INITIALIZED']:
                 order_qs.status = '1_ORDER_PLACED'
                 order_qs.save()
-                is_apps = request.path.__contains__('/apps/')
-                serializer = FoodOrderByTableSerializer(
-                    instance=order_qs, context={'is_apps': is_apps, 'request': request})
+
                 order_done_signal.send(
                     sender=self.__class__.create,
                     restaurant_id=order_qs.restaurant_id,
                 )
+                is_apps = request.path.__contains__('/apps/')
+                serializer = FoodOrderByTableSerializer(
+                    instance=order_qs, context={'is_apps': is_apps, 'request': request})
 
                 return ResponseWrapper(data=serializer.data, msg='Placed')
         else:
@@ -966,14 +983,15 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         # if order_qs.status in ["0_ORDER_INITIALIZED", "1_ORDER_PLACED"]:
         order_qs.status = '2_ORDER_CONFIRMED'
         order_qs.save()
-        is_apps = request.path.__contains__('/apps/')
 
-        serializer = FoodOrderByTableSerializer(
-            instance=order_qs, context={'is_apps': is_apps, 'request': request})
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
         )
+        is_apps = request.path.__contains__('/apps/')
+
+        serializer = FoodOrderByTableSerializer(
+            instance=order_qs, context={'is_apps': is_apps, 'request': request})
 
         return ResponseWrapper(data=serializer.data, msg='Confirmed')
 
@@ -1003,14 +1021,15 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         # if order_qs.status in ["0_ORDER_INITIALIZED", "1_ORDER_PLACED"]:
         order_qs.status = '2_ORDER_CONFIRMED'
         order_qs.save()
-        is_apps = request.path.__contains__('/apps/')
 
-        serializer = FoodOrderByTableSerializer(
-            instance=order_qs, context={'is_apps': is_apps, 'request': request})
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
         )
+        is_apps = request.path.__contains__('/apps/')
+
+        serializer = FoodOrderByTableSerializer(
+            instance=order_qs, context={'is_apps': is_apps, 'request': request})
 
         return ResponseWrapper(data=serializer.data, msg='Confirmed')
 
@@ -1037,13 +1056,14 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 order_qs.status = all_items_qs.first().status
             order_qs.save()
 
-            is_apps = request.path.__contains__('/apps/')
-            serializer = FoodOrderByTableSerializer(
-                instance=order_qs, context={'is_apps': is_apps, 'request': request})
+
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=order_qs.restaurant_id,
             )
+            is_apps = request.path.__contains__('/apps/')
+            serializer = FoodOrderByTableSerializer(
+                instance=order_qs, context={'is_apps': is_apps, 'request': request})
 
             return ResponseWrapper(data=serializer.data, msg='Served')
         else:
@@ -1055,14 +1075,15 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         if not order_qs:
             return ResponseWrapper(error_msg=['invalid order'], error_code=400)
 
-        is_apps = request.path.__contains__('/apps/')
 
-        serializer = FoodOrderByTableSerializer(
-            instance=order_qs, context={'is_apps': is_apps, 'request': request})
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
         )
+        is_apps = request.path.__contains__('/apps/')
+
+        serializer = FoodOrderByTableSerializer(
+            instance=order_qs, context={'is_apps': is_apps, 'request': request})
 
         return ResponseWrapper(data=serializer.data, msg='order payment info')
 
@@ -1223,14 +1244,15 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         for item in order_qs:
             OrderedItem.objects.create(quantity=item.quantity, food_option=item.food_option,
                                        food_order=reorder_qs)
-        is_apps = request.path.__contains__('/apps/')
 
-        serializer = FoodOrderByTableSerializer(instance=reorder_qs, context={
-                                                'is_apps': is_apps, 'request': request})
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=reorder_qs.restaurant_id,
         )
+        is_apps = request.path.__contains__('/apps/')
+
+        serializer = FoodOrderByTableSerializer(instance=reorder_qs, context={
+                                                'is_apps': is_apps, 'request': request})
         return ResponseWrapper(data=serializer.data, msg='Success')
 
     def table_transfer(self, request,  *args, **kwargs):
@@ -1307,14 +1329,15 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
 
         item_qs.status = '4_CANCELLED'
         item_qs.save()
-        is_apps = request.path.__contains__('/apps/')
-        serializer = FoodOrderByTableSerializer(
-            instance=order_qs, context={'is_apps': is_apps, 'request': request})
+
         restaurant_id = order_qs.restaurant_id
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=restaurant_id,
         )
+        is_apps = request.path.__contains__('/apps/')
+        serializer = FoodOrderByTableSerializer(
+            instance=order_qs, context={'is_apps': is_apps, 'request': request})
 
         return ResponseWrapper(data=serializer.data, msg='Served')
 
@@ -1326,15 +1349,17 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             ), validated_data=serializer.validated_data)
             order_qs = qs.food_order
 
-            is_apps = request.path.__contains__('/apps/')
 
-            serializer = FoodOrderSerializer(instance=order_qs,context={'is_apps': is_apps, 'request': request})
 
             restaurant_id = order_qs.restaurant_id
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=restaurant_id,
             )
+            is_apps = request.path.__contains__('/apps/')
+
+            serializer = FoodOrderSerializer(instance=order_qs, context={
+                                             'is_apps': is_apps, 'request': request})
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -1380,14 +1405,15 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             # if order_order_qs:
             #     order_order_qs.update(status='0_ORDER_INITIALIZED')
 
-            is_apps = request.path.__contains__('/apps/')
 
-            serializer = FoodOrderByTableSerializer(instance=food_order_qs, context={
-                                                    'is_apps': is_apps, 'request': request})
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=restaurant_id,
             )
+            is_apps = request.path.__contains__('/apps/')
+
+            serializer = FoodOrderByTableSerializer(instance=food_order_qs, context={
+                                                    'is_apps': is_apps, 'request': request})
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -1436,14 +1462,15 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             re_order_item_qs.save()
 
         # food_order_qs = OrderedItem.objects.filter(food_order_id = re_order_item_qs.food_order_id)
-        is_apps = request.path.__contains__('/apps/')
-        serializer = FoodOrderByTableSerializer(
-            instance=re_order_item_qs.food_order, context={'is-apps': is_apps, 'request': request})
+
 
         order_done_signal.send(
             sender=self.__class__.re_order_items,
             restaurant_id=re_order_item_qs.food_order.restaurant_id,
         )
+        is_apps = request.path.__contains__('/apps/')
+        serializer = FoodOrderByTableSerializer(
+            instance=re_order_item_qs.food_order, context={'is_apps': is_apps, 'request': request})
         return ResponseWrapper(data=serializer.data, msg='Success')
 
 
@@ -2596,6 +2623,17 @@ class SubscriptionViewset(LoggingMixin, CustomViewSet):
             permission_classes = [
                 permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
+    #partial=True
+    def update(self, request, **kwargs):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data, partial=True)
+        if serializer.is_valid():
+            qs = serializer.update(instance=self.get_object(
+            ), validated_data=serializer.validated_data)
+            serializer = self.serializer_class(instance=qs,partial=True)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def subscription_by_restaurant(self, request, restaurant_id, *args, **kwargs):
         restaurant_qs = Restaurant.objects.filter(pk=restaurant_id).first()
