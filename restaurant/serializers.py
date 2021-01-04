@@ -130,6 +130,9 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = '__all__'
+        # extra_kwargs = {
+        #     'code': {'read_only': False}
+        # }
 
 
 class PaymentTypeSerializer(serializers.ModelSerializer):
