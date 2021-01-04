@@ -100,6 +100,8 @@ class HotelStaffInformation(SoftDeleteModel):
     is_manager = models.BooleanField(default=False)
     is_owner = models.BooleanField(default=False)
     is_waiter = models.BooleanField(default=False)
+    is_chef = models.BooleanField(default=False)
+
     shift_start = models.TimeField(null=True, blank=True)
     shift_end = models.TimeField(null=True, blank=True)
     nid = models.CharField(max_length=50, null=True, blank=True)
