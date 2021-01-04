@@ -367,7 +367,7 @@ class FoodExtraViewSet(LoggingMixin, CustomViewSet):
 
     def food_extra_details(self, request, pk, *args, **kwargs):
         qs = FoodExtra.objects.filter(pk=pk).last()
-        serializer = FoodDetailSerializer(instance=qs)
+        serializer = FoodExtraSerializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def create(self, request, *args, **kwargs):
