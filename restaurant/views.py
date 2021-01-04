@@ -2623,7 +2623,7 @@ class SubscriptionViewset(LoggingMixin, CustomViewSet):
             permission_classes = [
                 permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
-    #partial=True
+
     def update(self, request, **kwargs):
 
         instance = self.get_object()

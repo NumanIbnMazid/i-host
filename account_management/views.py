@@ -258,6 +258,11 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
     lookup_field = 'pk'
 
     def create_owner(self, request, *args, **kwargs):
+        staff_qs = HotelStaffInformation.objects.filter(restaurant_id=request.data.get('restaurant_id'),
+                                                      user__phone=request.data.get('phone')).first()
+        if staff_qs:
+            staff_serializer = StaffInfoGetSerializer(instance=staff_qs)
+            return ResponseWrapper(error_msg=['User is already a staff, staff id is ' + str(staff_qs.pk)],data = staff_serializer.data)
         return self.create_staff(request, is_owner=True)
 
     def create_manager(self, request, *args, **kwargs):
@@ -277,6 +282,13 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
                 error_msg=["Your Manager Limit is " +
                            str(manager_limit_qs) + ', Please Update Your Subscription '],
                 error_code=400)
+
+
+        staff_qs = res_qs.filter(user__phone=request.data.get('phone'))
+        if staff_qs:
+            staff_serializer = StaffInfoGetSerializer(instance=staff_qs)
+            return ResponseWrapper(error_msg=['User is already a staff, staff id is ' + str(staff_qs.pk)],data = staff_serializer.data)
+
         # email = request.data.pop("email")
         # self.check_object_permissions(request, obj=RestaurantUserSignUpSerializer)
         return self.create_staff(request, is_manager=True)
@@ -297,7 +309,13 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
                            str(waiter_limit) + ', Please Update Your Subscription '],
                 error_code=400)
 
+        staff_qs = res_qs.filter(user__phone=request.data.get('phone'))
+        if staff_qs:
+            staff_serializer = StaffInfoGetSerializer(instance=staff_qs)
+            return ResponseWrapper(error_msg=['User is already a staff, staff id is ' + str(staff_qs.pk)],data = staff_serializer.data)
+
         # email = request.data.pop("email")
+
         return self.create_staff(request, is_waiter=True)
 
     def create_staff(self, request, is_owner=False, is_manager=False, is_waiter=False):
