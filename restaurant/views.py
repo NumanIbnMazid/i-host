@@ -2625,15 +2625,11 @@ class SubscriptionViewset(LoggingMixin, CustomViewSet):
         return [permission() for permission in permission_classes]
     #partial=True
     def update(self, request, **kwargs):
-        serializer_class = self.get_serializer_class()
-        serializer = serializer_class(data=request.data, partial=True)
-        if serializer.is_valid():
-            qs = serializer.update(instance=self.get_object(
-            ), validated_data=serializer.validated_data)
-            serializer = self.serializer_class(instance=qs,partial=True)
-            return ResponseWrapper(data=serializer.data)
-        else:
-            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+        instance = self.get_object()
+        if instance.code == request.data.get('code'):
+            request.data.pop('code',None)
+        return super(SubscriptionViewset,self).update(request,**kwargs)
 
     def subscription_by_restaurant(self, request, restaurant_id, *args, **kwargs):
         restaurant_qs = Restaurant.objects.filter(pk=restaurant_id).first()
