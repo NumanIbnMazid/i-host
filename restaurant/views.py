@@ -427,8 +427,20 @@ class FoodOptionViewSet(LoggingMixin, CustomViewSet):
                 if default_option_type_qs.pk == option_type_id:
                     food_option_qs = FoodOption.objects.filter(
                         food_id=food_id, option_type_id=option_type_id)
-                    if food_option_qs:
-                        return ResponseWrapper(msg="not created already exist")
+                    if food_option_qs.count()>1:
+                        for temp_qs in food_option_qs[:(food_option_qs.count()-1)]:
+                            temp_qs.delete()
+                    qs = food_option_qs.last()
+
+                    temp_food_option_qs = FoodOption.objects.filter(food_id=food_id).exclude(option_type__name='single_type')
+                    if temp_food_option_qs:
+                        temp_food_option_qs.delete()
+                    if qs:
+                        qs.price = request.data.get('price',qs.price)
+                        qs.save()
+                        serializer = FoodOptionSerializer(instance=qs)
+                        return ResponseWrapper(data=serializer.data, msg='created')
+
             qs = serializer.save()
             serializer = FoodOptionSerializer(instance=qs)
             return ResponseWrapper(data=serializer.data, msg='created')
@@ -1436,14 +1448,16 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             re_order_item_qs.save()
 
         # food_order_qs = OrderedItem.objects.filter(food_order_id = re_order_item_qs.food_order_id)
-        is_apps = request.path.__contains__('/apps/')
-        serializer = FoodOrderByTableSerializer(
-            instance=re_order_item_qs.food_order, context={'is-apps': is_apps, 'request': request})
 
         order_done_signal.send(
             sender=self.__class__.re_order_items,
             restaurant_id=re_order_item_qs.food_order.restaurant_id,
         )
+        is_apps = request.path.__contains__('/apps/')
+        serializer = FoodOrderByTableSerializer(
+            instance=re_order_item_qs.food_order, context={
+                'is_apps': is_apps, 'request': request})
+
         return ResponseWrapper(data=serializer.data, msg='Success')
 
 
