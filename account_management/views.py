@@ -177,14 +177,14 @@ class OtpSignUpView(KnoxLoginView):
     def post(self, request, format=None):
         phone = request.data.get('phone')
         otp_qs = OtpUser.objects.filter(phone=phone).last()
-        if not settings.DEBUG:
-            if otp_qs.updated_at < (timezone.now() - timezone.timedelta(minutes=5)):
-                return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp timeout'])
-            if request.data.get('otp') != otp_qs.otp_code:
-                return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp mismatched'])
-        else:
-            if request.data.get('otp') != 1234:
-                return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp mismatched'])
+        # if not settings.DEBUG:
+        if otp_qs.updated_at < (timezone.now() - timezone.timedelta(minutes=5)):
+            return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp timeout'])
+        if request.data.get('otp') != otp_qs.otp_code:
+            return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp mismatched'])
+        # else:
+        #     if request.data.get('otp') != 1234:
+        #         return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp mismatched'])
 
         token_limit_per_user = self.get_token_limit_per_user()
         user_qs = User.objects.filter(phone=request.data.get('phone')).first()
@@ -522,7 +522,8 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
         password = request.data.pop("password", None)
         user_qs = User.objects.filter(pk=request.user.pk)
         first_name = request.data.get('first_name')
-        customer_qs, created_customer = CustomerInfo.objects.get_or_create(user=user_qs.first())
+        customer_qs, created_customer = CustomerInfo.objects.get_or_create(
+            user=user_qs.first())
 
         # if user_qs:
         if password:
