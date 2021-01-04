@@ -127,12 +127,18 @@ class FoodOptionTypeSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
     class Meta:
         model = Subscription
         fields = '__all__'
         # extra_kwargs = {
         #     'code': {'read_only': False}
         # }
+    def create(self, validated_data):
+        image = validated_data.pop('image', None)
+        if image:
+            return Subscription.objects.create(image=image, **validated_data)
+        return Subscription.objects.create(**validated_data)
 
 
 class PaymentTypeSerializer(serializers.ModelSerializer):
