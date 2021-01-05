@@ -85,7 +85,8 @@ class FoodExtraTypeDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FoodExtra
-        fields = '__all__'
+        # fields = '__all__'
+        exclude = ['deleted_at']
 
 
 class FoodCategorySerializer(serializers.ModelSerializer):
