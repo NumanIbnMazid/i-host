@@ -88,10 +88,14 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         return self.serializer_class
 
     def get_permissions(self):
-        if self.action in ["create", 'destroy', 'list']:
+        permission_classes = []
+        if self.action in ["create", 'delete_restaurant', 'list']:
             permission_classes = [permissions.IsAdminUser]
-        if self.action in ['update', 'restaurant_under_owner', 'user_order_history']:
+        elif self.action in ['update', 'restaurant_under_owner', 'user_order_history']:
             permission_classes = [permissions.IsAuthenticated]
+        elif self.action in ['today_sell']:
+            permission_classes = [
+                custom_permissions.IsRestaurantStaff]
         else:
             permission_classes = [permissions.AllowAny]
         return [permission() for permission in permission_classes]
@@ -181,8 +185,9 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data+empty_table_data, msg="success")
 
     def delete_restaurant(self, request, pk, *args, **kwargs):
+        self.check_object_permissions(request, obj=pk)
+        #return ResponseWrapper(error_msg=['You are not authorized person'])
         qs = self.queryset.filter(pk=pk).first()
-
         if qs:
             qs.deleted_at = timezone.now()
             qs.save()
@@ -194,6 +199,8 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_msg="failed to delete", error_code=400)
 
     def today_sell(self, request, pk, *args, **kwargs):
+        if not self.check_object_permissions(request, obj=pk):
+            return ResponseWrapper(error_msg=['You are not restaurant staff'])
         today_date = timezone.now().date()
         qs = Invoice.objects.filter(
             created_at__icontains=today_date, payment_status='1_PAID', restaurant_id=pk)
@@ -258,6 +265,8 @@ class FoodCategoryViewSet(LoggingMixin, CustomViewSet):
         if self.action in ['create', 'destroy', 'patch']:
             permission_classes = [
                 permissions.IsAdminUser]
+        # else:
+        #     permission_classes = permissions.IsAuthenticated
         return [permission() for permission in permission_classes]
 
     def category_details(self, request, pk, *args, **kwargs):
@@ -1451,15 +1460,20 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         new_quantity = request.data.get('quantity')
         re_order_item_qs = OrderedItem.objects.filter(
             id=request.data.get("order_item_id")).first()
+        if re_order_item_qs.food_order.status == '5_PAID':
+            return ResponseWrapper(error_msg=['Order is already paid'])
 
-        if not re_order_item_qs.status in ['1_ORDER_PLACED', '0_ORDER_INITIALIZED']:
+        if re_order_item_qs.status in ['2_ORDER_CONFIRMED', '3_IN_TABLE']:
             # for item in re_order_item_qs:
             re_order_item_qs = OrderedItem.objects.create(quantity=new_quantity, food_option=re_order_item_qs.food_option,
                                                           food_order=re_order_item_qs.food_order, status='1_ORDER_PLACED')
-        else:
+
+        elif re_order_item_qs.status in ['0_ORDER_INITIALIZED','1_ORDER_PLACED']:
             update_quantity = re_order_item_qs.quantity + new_quantity
             re_order_item_qs.quantity = update_quantity
             re_order_item_qs.save()
+        else:
+            return ResponseWrapper(error_msg=['Order Item is already Cancelled'])
 
         # food_order_qs = OrderedItem.objects.filter(food_order_id = re_order_item_qs.food_order_id)
 
