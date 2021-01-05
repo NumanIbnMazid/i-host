@@ -1,0 +1,198 @@
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta charset="UTF-8" />
+    <title>POS</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      #invoice-POS {
+        box-shadow: 0 0 1in -0.25in rgba(0, 0, 0, 0.5);
+        padding: 2mm;
+        margin: 0 auto;
+        width: 76mm;
+        background: #fff;
+      }
+
+      #invoice-POS ::selection {
+        background: #f31544;
+        color: #000;
+      }
+
+      #invoice-POS ::moz-selection {
+        background: #f31544;
+        color: #000;
+      }
+
+      #invoice-POS h1 {
+        font-size: 1.5em;
+        color: #222;
+      }
+
+      #invoice-POS h2 {
+        font-size: 0.9em;
+      }
+
+      #invoice-POS h3 {
+        font-size: 1.2em;
+        font-weight: 300;
+        line-height: 2em;
+      }
+
+      #invoice-POS p {
+        font-size: 0.7em;
+        color: #000;
+        line-height: 1.2em;
+      }
+
+      #invoice-POS #top,
+      #invoice-POS #mid,
+      #invoice-POS #bot {
+        /* Targets all id with 'col-' */
+        border-bottom: 1px solid #000;
+      }
+
+      #invoice-POS #top {
+        min-height: 100px;
+      }
+      /* #invoice-POS #mid {
+            min-height: 80px;
+        } */
+
+      #invoice-POS #bot {
+        min-height: 50px;
+      }
+
+      #invoice-POS #top .logo {
+        height: 60px;
+        width: 60px;
+      }
+
+      #invoice-POS .info {
+        display: block;
+        margin-left: 0;
+      }
+
+      #invoice-POS .title {
+        float: right;
+      }
+
+      #invoice-POS .title p {
+        text-align: right;
+      }
+
+      #invoice-POS table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      #invoice-POS .tabletitle {
+        font-size: 0.7em;
+        background: #eee;
+      }
+
+      #invoice-POS .service {
+        border-bottom: 1px solid #eee;
+      }
+
+      #invoice-POS .item {
+        width: 24mm;
+      }
+
+      #invoice-POS .itemtext {
+        font-size: 0.7em;
+      }
+
+      #invoice-POS #legalcopy {
+        margin-top: 5mm;
+      }
+
+      .qty > p,
+      .qty > h2 {
+        float: right;
+        margin-right: 10px;
+      }
+    </style>
+  </head>
+  <body data-new-gr-c-s-check-loaded="8.867.0">
+    <!-- partial:index.partial.html -->
+    <div id="invoice-POS">
+      <div id="mid">
+        <div class="info">
+          <center>
+            <h2>Minus Kitchen</h2>
+            <h2>Order # 251</h2>
+            <h2>Table No: 8</h2>
+            <h2>Waiter: Rakib Hasan</h2>
+            <h2>Time: 05/01/2021, 1:15pm</h2>
+            <br />
+          </center>
+        </div>
+      </div>
+      <!--End Invoice Mid-->
+      <div id="bot">
+        <div id="table">
+          <table>
+            <tbody>
+              <tr class="tabletitle">
+                <td class="item">
+                  <h2>Item</h2>
+                </td>
+                <td>-</td>
+                <td class="Hours qty">
+                  <h2>Qty</h2>
+                </td>
+              </tr>
+              <tr class="service">
+                <td class="tableitem">
+                  <p class="itemtext">Fish Cake</p>
+                </td>
+                <td>-</td>
+                <td class="tableitem qty">
+                  <p class="itemtext">4</p>
+                </td>
+              </tr>
+              <tr class="service">
+                <td class="tableitem">
+                  <p class="itemtext">mutton-do-piaza</p>
+                </td>
+                <td>-</td>
+                <td class="tableitem qty">
+                  <p class="itemtext">3</p>
+                </td>
+              </tr>
+              <tr class="service">
+                <td class="tableitem">
+                  <p class="itemtext">Pasta</p>
+                </td>
+                <td>-</td>
+                <td class="tableitem qty">
+                  <p class="itemtext">3</p>
+                </td>
+              </tr>
+              <tr class="service">
+                <td class="tableitem">
+                  <p class="itemtext">Fried Rice</p>
+                  Mashrum
+                </td>
+                <td>-</td>
+                <td class="tableitem qty">
+                  <p class="itemtext">3</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <br />
+    </div>
+  </body>
+</html>

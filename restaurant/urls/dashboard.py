@@ -25,7 +25,7 @@ router = DefaultRouter()
 
 # router.register('food', FoodViewSet,
 #                 basename="food")
-
+router.register('test_print', PrintOrder)
 router.register('restaurant_messages', RestaurantMessagesViewset,
                 basename="restaurant_messages")
 router.register('payment_type', PaymentTypeViewSet, basename='payment_type')
@@ -42,7 +42,7 @@ fake_dashboard_urls = [
     path('food_extra/',
          FoodExtraViewSet.as_view({'post': 'create'}, name='create')),
     path('food_extra/<int:pk>/',
-         FoodExtraViewSet.as_view({'patch': 'update', 'delete':'destroy', 'get':'food_extra_details'}, name='food_extra')),
+         FoodExtraViewSet.as_view({'patch': 'update', 'delete': 'destroy', 'get': 'food_extra_details'}, name='food_extra')),
 
     path('table/<int:table_id>/add_staff/',
          TableViewSet.as_view({'post': 'add_staff'}), name='add_staff'),
@@ -52,7 +52,7 @@ fake_dashboard_urls = [
          TableViewSet.as_view({'patch': 'update', 'delete': 'destroy'}), name='table'),
     path('table/<int:table_id>/staff_remove/',
          TableViewSet.as_view({'post': 'remove_staff', }), name='remove_staff'),
-    
+
     # New Add
     #     path('table/<int:table_id>/quantity_list/',
     #          TableViewSet.as_view({'get': 'quantity_list', }), name='quantity_list'),
@@ -70,26 +70,26 @@ fake_dashboard_urls = [
          RestaurantViewSet.as_view({'get': 'today_sell'}), name='today_sell'),
 
     path('food_option_type/',
-         FoodOptionTypeViewSet.as_view({'get':'list','post': 'create'}, name='create')),
+         FoodOptionTypeViewSet.as_view({'get': 'list', 'post': 'create'}, name='create')),
     path('food_option_type/<int:pk>/',
-         FoodOptionTypeViewSet.as_view({'patch': 'update', 'delete':'destroy','get':'food_option_type_detail'}, name='food_option')),
+         FoodOptionTypeViewSet.as_view({'patch': 'update', 'delete': 'destroy', 'get': 'food_option_type_detail'}, name='food_option')),
 
     path('food_option/',
          FoodOptionViewSet.as_view({'post': 'create'}, name='create')),
     path('food_option/<int:pk>/',
-         FoodOptionViewSet.as_view({'patch': 'update', 'delete':'destroy','get':'food_option_detail'}, name='food_option')),
+         FoodOptionViewSet.as_view({'patch': 'update', 'delete': 'destroy', 'get': 'food_option_detail'}, name='food_option')),
 
     path('food_extra_type/',
-         FoodExtraTypeViewSet.as_view({'get':'list','post': 'create'}, name='create')),
+         FoodExtraTypeViewSet.as_view({'get': 'list', 'post': 'create'}, name='create')),
     path('food_extra_type/<int:pk>/',
-         FoodExtraTypeViewSet.as_view({'patch': 'update', 'delete':'destroy','get':'food_extra_type_detail'}, name='food_extra_type')),
+         FoodExtraTypeViewSet.as_view({'patch': 'update', 'delete': 'destroy', 'get': 'food_extra_type_detail'}, name='food_extra_type')),
 
 
 
     path("food_category/",
-         FoodCategoryViewSet.as_view({'get': 'list',"post": "create"})),
+         FoodCategoryViewSet.as_view({'get': 'list', "post": "create"})),
     path("food_category/<int:pk>/",
-         FoodCategoryViewSet.as_view({"patch": "update", "delete": "destroy","get": "category_details"})),
+         FoodCategoryViewSet.as_view({"patch": "update", "delete": "destroy", "get": "category_details"})),
 
     path('restaurant/<int:restaurant>/tables/',
          TableViewSet.as_view({'get': 'table_list'}), name='tables'),
@@ -182,7 +182,7 @@ fake_dashboard_urls = [
          FoodViewSet.as_view({'post': 'create'}, name='create')),
 
     path('food/<int:pk>/',
-         FoodViewSet.as_view({'get': 'food_details','patch': 'update','delete': 'destroy'}, name='food')),
+         FoodViewSet.as_view({'get': 'food_details', 'patch': 'update', 'delete': 'destroy'}, name='food')),
 
     path('food_extra_by_food/<int:pk>/',
          FoodViewSet.as_view({'get': 'food_extra_by_food'}, name='food_extra_by_food')),
@@ -214,7 +214,7 @@ fake_dashboard_urls = [
     path('restaurant/<int:restaurant_id>/slider/',
          SliderViewset.as_view({'get': 'slider_list_by_restaurant'}), name='slider_list_by_restaurant'),
     path('restaurant_messages_list/<int:restaurant>/',
-         RestaurantMessagesViewset.as_view({'get':'restaurant_messages_list'}, name='restaurant_messages_list')),
+         RestaurantMessagesViewset.as_view({'get': 'restaurant_messages_list'}, name='restaurant_messages_list')),
 
 
 ]
@@ -251,7 +251,7 @@ dashboard_urls = [
     #      ReportingViewset.as_view({'post': 'report_by_date_range'}), name='report_by_date_range'),
 
     path('waiter_report_by_date_range/<int:restaurant>/',
-             InvoiceViewSet.as_view({'post': 'waiter_report_by_date_range'}), name='waiter_report_by_date_range'),
+         InvoiceViewSet.as_view({'post': 'waiter_report_by_date_range'}), name='waiter_report_by_date_range'),
 
     path('month_wise_total_report/<int:restaurant_id>/',
          ReportingViewset.as_view({'get': 'month_wise_total_report'}), name='month_wise_total_report'),
@@ -271,16 +271,16 @@ dashboard_urls = [
     path('dashboard_total_report/<int:restaurant_id>',
          ReportingViewset.as_view({'get': 'dashboard_total_report'}), name='dashboard_total_report'),
     path('subscription/',
-         SubscriptionViewset.as_view({'get': 'list','post':'create'}), name ='subscription_list'),
+         SubscriptionViewset.as_view({'get': 'list', 'post': 'create'}), name='subscription_list'),
     path('subscription_by_restaurant/<int:restaurant_id>/',
-         SubscriptionViewset.as_view({'get': 'subscription_by_restaurant'}), name ='subscription_by_restaurant'),
+         SubscriptionViewset.as_view({'get': 'subscription_by_restaurant'}), name='subscription_by_restaurant'),
 
     path('subscription/<int:pk>',
-         SubscriptionViewset.as_view({'get': 'retrieve','patch':'update','delete':'destroy'}),name='subscription'),
+         SubscriptionViewset.as_view({'get': 'retrieve', 'patch': 'update', 'delete': 'destroy'}), name='subscription'),
     path('review/<int:pk>/',
          ReviewViewset.as_view({'delete': 'destroy'}, name='destroy')),
 
     path('review_list/<int:restaurant>/',
          ReviewViewset.as_view({'get': 'review_list'}, name='review_list')),
 
-    ] + fake_dashboard_urls
+] + fake_dashboard_urls

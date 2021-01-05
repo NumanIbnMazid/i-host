@@ -1,3 +1,4 @@
+from utils.print_node import print_node
 from django.views.decorators.cache import cache_page
 import copy
 import decimal
@@ -307,10 +308,9 @@ class FoodOrderedViewSet(LoggingMixin, CustomViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         is_apps = request.path.__contains__('/apps/')
-        serializer = self.get_serializer(instance,context={'is_apps':is_apps,'request':request})
+        serializer = self.get_serializer(
+            instance, context={'is_apps': is_apps, 'request': request})
         return ResponseWrapper(serializer.data)
-
-
 
     # def ordered_item_list(self, request, ordered_id, *args, **kwargs):
     #     qs = FoodOrder.objects.filter(pk=ordered_id)
@@ -427,16 +427,17 @@ class FoodOptionViewSet(LoggingMixin, CustomViewSet):
                 if default_option_type_qs.pk == option_type_id:
                     food_option_qs = FoodOption.objects.filter(
                         food_id=food_id, option_type_id=option_type_id)
-                    if food_option_qs.count()>1:
+                    if food_option_qs.count() > 1:
                         for temp_qs in food_option_qs[:(food_option_qs.count()-1)]:
                             temp_qs.delete()
                     qs = food_option_qs.last()
 
-                    temp_food_option_qs = FoodOption.objects.filter(food_id=food_id).exclude(option_type__name='single_type')
+                    temp_food_option_qs = FoodOption.objects.filter(
+                        food_id=food_id).exclude(option_type__name='single_type')
                     if temp_food_option_qs:
                         temp_food_option_qs.delete()
                     if qs:
-                        qs.price = request.data.get('price',qs.price)
+                        qs.price = request.data.get('price', qs.price)
                         qs.save()
                         serializer = FoodOptionSerializer(instance=qs)
                         return ResponseWrapper(data=serializer.data, msg='created')
@@ -824,7 +825,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs.is_occupied = False
                 table_qs.save()
 
-
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
@@ -855,7 +855,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             if table_qs.is_occupied:
                 table_qs.is_occupied = False
                 table_qs.save()
-
 
         order_done_signal.send(
             sender=self.__class__.create,
@@ -1056,7 +1055,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 order_qs.status = all_items_qs.first().status
             order_qs.save()
 
-
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=order_qs.restaurant_id,
@@ -1074,7 +1072,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             pk=pk).last()
         if not order_qs:
             return ResponseWrapper(error_msg=['invalid order'], error_code=400)
-
 
         order_done_signal.send(
             sender=self.__class__.create,
@@ -1288,7 +1285,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         is_apps = request.path.__contains__('/apps/')
-        serializer = self.get_serializer(instance,context={'is_apps':is_apps,'request':request})
+        serializer = self.get_serializer(
+            instance, context={'is_apps': is_apps, 'request': request})
         return ResponseWrapper(serializer.data)
 
 
@@ -1349,8 +1347,6 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             ), validated_data=serializer.validated_data)
             order_qs = qs.food_order
 
-
-
             restaurant_id = order_qs.restaurant_id
             order_done_signal.send(
                 sender=self.__class__.create,
@@ -1404,7 +1400,6 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             # order_order_qs= FoodOrder.objects.filter(status = '0_ORDER_INITIALIZED',pk=request.data.get('id'))
             # if order_order_qs:
             #     order_order_qs.update(status='0_ORDER_INITIALIZED')
-
 
             order_done_signal.send(
                 sender=self.__class__.create,
@@ -1462,7 +1457,6 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             re_order_item_qs.save()
 
         # food_order_qs = OrderedItem.objects.filter(food_order_id = re_order_item_qs.food_order_id)
-
 
         order_done_signal.send(
             sender=self.__class__.re_order_items,
@@ -2623,13 +2617,14 @@ class SubscriptionViewset(LoggingMixin, CustomViewSet):
             permission_classes = [
                 permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
-    #partial=True
+    # partial=True
+
     def update(self, request, **kwargs):
 
         instance = self.get_object()
         if instance.code == request.data.get('code'):
-            request.data.pop('code',None)
-        return super(SubscriptionViewset,self).update(request,**kwargs)
+            request.data.pop('code', None)
+        return super(SubscriptionViewset, self).update(request, **kwargs)
 
     def subscription_by_restaurant(self, request, restaurant_id, *args, **kwargs):
         restaurant_qs = Restaurant.objects.filter(pk=restaurant_id).first()
@@ -2767,3 +2762,26 @@ class VersionUpdateViewSet(LoggingMixin, CustomViewSet):
         #serializer = VersionUpdateSerializer(instance=qs, many=True)
         serializer = VersionUpdateSerializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='success')
+
+
+class PrintOrder(CustomViewSet):
+    queryset = OrderedItem.objects.exclude(
+        status__in=["0_ORDER_INITIALIZED", "4_CANCELLED"])
+    lookup_field = 'food_order'
+    serializer_class = OrderedItemSerializer
+    http_method_names = ['get']
+
+    def list(self, request, *args, **kwargs):
+        from weasyprint import HTML, CSS
+        from django.template.loader import render_to_string
+        import base64
+        html_string = render_to_string('invoice.html', {'people': "people"})
+        # @page { size: Letter; margin: 0cm }
+        css = CSS(string='@page { size: 80mm; margin: 0mm }')
+        pdf_byte_code = HTML(string=html_string).write_pdf(
+            stylesheets=[css], zoom=1
+        )
+        pdf_obj_encoded = base64.b64encode(pdf_byte_code)
+        pdf_obj_encoded = pdf_obj_encoded.decode('utf-8')
+        print_node(pdf_obj=pdf_obj_encoded)
+        return ResponseWrapper()
