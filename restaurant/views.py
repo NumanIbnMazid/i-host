@@ -360,7 +360,6 @@ class FoodExtraViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = FoodExtraPostPatchSerializer
         else:
             self.serializer_class = FoodExtraSerializer
-
         return self.serializer_class
 
     def get_permissions(self):

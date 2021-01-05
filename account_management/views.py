@@ -71,7 +71,7 @@ def login_related_info(user):
     return customer_info, staff_info, user_serializer
 
 
-class StaffFcmDeviceViewset(LoggingMixin, CustomViewSet):
+class StaffFcmDeviceViewSet(LoggingMixin, CustomViewSet):
     queryset = StaffFcmDevice.objects.all()
     lookup_field = 'hotel_staff'
     serializer_class = StaffFcmDeviceSerializer
@@ -80,13 +80,6 @@ class StaffFcmDeviceViewset(LoggingMixin, CustomViewSet):
         if self.action in ['check_fcm']:
             self.serializer_class = CheckFcmSerializer
         return self.serializer_class
-
-
-    def get_serializer_class(self):
-        if self.action in ['check_fcm']:
-            self.serializer_class = CheckFcmSerializer
-        else:
-            self.serializer_class = StaffFcmDeviceSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
@@ -116,18 +109,16 @@ class StaffFcmDeviceViewset(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    # @swagger_auto_schema(
-    #     request_body=CheckFcmSerializer
-    # )
-
     def check_fcm(self, request, * args, **kwargs):
-        #token = request.data.get('token')
+        token = request.data.get('token')
         token_qs = StaffFcmDevice.objects.filter(
             token=request.data.get('token'), hotel_staff__user=request.user)
         if token_qs:
             return ResponseWrapper(data={"exists": True})
         else:
             return ResponseWrapper(data={"exists": False})
+
+
 
 
 class UserFcmDeviceViewset(LoggingMixin, CustomViewSet):

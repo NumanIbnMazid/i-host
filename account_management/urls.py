@@ -7,7 +7,7 @@ router = DefaultRouter()
 
 router.register('customer_info', CustomerInfoViewset,
                 basename="customer_info")
-router.register('apps/staff_fcm_device', StaffFcmDeviceViewset, basename='fcm')
+router.register('apps/staff_fcm_device', StaffFcmDeviceViewSet, basename='fcm')
 router.register('apps/user_fcm_device',
                 UserFcmDeviceViewset, basename='fcm_user')
 router.register('customer_notification',
@@ -65,9 +65,9 @@ restaurant_account_management = [
     path('customer_notification_by_restaurant/<int:restaurant>/',
          CustomerNotificationViewSet.as_view({'get': 'customer_notification_by_restaurant'}), name='customer_notification_by_restaurant'),
 
-    path('check_fcm', StaffFcmDeviceViewset.as_view({
-        "post": "check_fcm"
-    }), name="check_fcm"),
+    path('check_fcm/',
+             StaffFcmDeviceViewSet.as_view({'post': 'check_fcm'}), name='check_fcm'),
+
 
 ]
 
