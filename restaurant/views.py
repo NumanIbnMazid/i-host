@@ -1451,15 +1451,20 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         new_quantity = request.data.get('quantity')
         re_order_item_qs = OrderedItem.objects.filter(
             id=request.data.get("order_item_id")).first()
+        if re_order_item_qs.food_order.status == '5_PAID':
+            return ResponseWrapper(error_msg=['Order is already paid'])
 
-        if not re_order_item_qs.status in ['1_ORDER_PLACED', '0_ORDER_INITIALIZED']:
+        if re_order_item_qs.status in ['2_ORDER_CONFIRMED', '3_IN_TABLE']:
             # for item in re_order_item_qs:
             re_order_item_qs = OrderedItem.objects.create(quantity=new_quantity, food_option=re_order_item_qs.food_option,
                                                           food_order=re_order_item_qs.food_order, status='1_ORDER_PLACED')
-        else:
+
+        elif re_order_item_qs.status in ['0_ORDER_INITIALIZED','1_ORDER_PLACED']:
             update_quantity = re_order_item_qs.quantity + new_quantity
             re_order_item_qs.quantity = update_quantity
             re_order_item_qs.save()
+        else:
+            return ResponseWrapper(error_msg=['Order Item is already Canceled'])
 
         # food_order_qs = OrderedItem.objects.filter(food_order_id = re_order_item_qs.food_order_id)
 
