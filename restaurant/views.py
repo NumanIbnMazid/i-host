@@ -1464,7 +1464,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             re_order_item_qs.quantity = update_quantity
             re_order_item_qs.save()
         else:
-            return ResponseWrapper(error_msg=['Order Item is already Canceled'])
+            return ResponseWrapper(error_msg=['Order Item is already Cancelled'])
 
         # food_order_qs = OrderedItem.objects.filter(food_order_id = re_order_item_qs.food_order_id)
 
