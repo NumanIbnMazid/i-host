@@ -88,10 +88,14 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         return self.serializer_class
 
     def get_permissions(self):
-        if self.action in ["create", 'destroy', 'list']:
+        permission_classes = []
+        if self.action in ["create", 'delete_restaurant', 'list']:
             permission_classes = [permissions.IsAdminUser]
-        if self.action in ['update', 'restaurant_under_owner', 'user_order_history']:
+        elif self.action in ['update', 'restaurant_under_owner', 'user_order_history']:
             permission_classes = [permissions.IsAuthenticated]
+        elif self.action in ['today_sell']:
+            permission_classes = [
+                custom_permissions.IsRestaurantStaff]
         else:
             permission_classes = [permissions.AllowAny]
         return [permission() for permission in permission_classes]
@@ -181,8 +185,9 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data+empty_table_data, msg="success")
 
     def delete_restaurant(self, request, pk, *args, **kwargs):
+        self.check_object_permissions(request, obj=pk)
+        #return ResponseWrapper(error_msg=['You are not authorized person'])
         qs = self.queryset.filter(pk=pk).first()
-
         if qs:
             qs.deleted_at = timezone.now()
             qs.save()
@@ -194,6 +199,8 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_msg="failed to delete", error_code=400)
 
     def today_sell(self, request, pk, *args, **kwargs):
+        if not self.check_object_permissions(request, obj=pk):
+            return ResponseWrapper(error_msg=['You are not restaurant staff'])
         today_date = timezone.now().date()
         qs = Invoice.objects.filter(
             created_at__icontains=today_date, payment_status='1_PAID', restaurant_id=pk)
@@ -258,6 +265,8 @@ class FoodCategoryViewSet(LoggingMixin, CustomViewSet):
         if self.action in ['create', 'destroy', 'patch']:
             permission_classes = [
                 permissions.IsAdminUser]
+        # else:
+        #     permission_classes = permissions.IsAuthenticated
         return [permission() for permission in permission_classes]
 
     def category_details(self, request, pk, *args, **kwargs):
