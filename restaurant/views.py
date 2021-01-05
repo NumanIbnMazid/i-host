@@ -376,10 +376,13 @@ class FoodExtraViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def create(self, request, *args, **kwargs):
-        # print('hi')
-        # self.check_object_permissions(request)
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
+        food_qs = Food.objects.filter(id = request.data.get('food')).first()
+        if not food_qs:
+            return ResponseWrapper(error_msg=['Food id is not valid'])
+        restaurant_id = food_qs.restaurant_id
+        self.check_object_permissions(request, obj = restaurant_id)
         if serializer.is_valid():
             qs = serializer.save()
             serializer = FoodExtraTypeDetailSerializer(instance=qs)
@@ -390,6 +393,11 @@ class FoodExtraViewSet(LoggingMixin, CustomViewSet):
     def update(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data, partial=True)
+        food_qs = Food.objects.filter(id = request.data.get('food')).first()
+        if not food_qs:
+            return ResponseWrapper(error_msg=['Food id is not valid'])
+        restaurant_id = food_qs.restaurant_id
+        self.check_object_permissions(request, obj = restaurant_id)
         if serializer.is_valid():
             qs = serializer.update(instance=self.get_object(
             ), validated_data=serializer.validated_data)
@@ -425,6 +433,11 @@ class FoodOptionViewSet(LoggingMixin, CustomViewSet):
     def create(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
+        food_qs = Food.objects.filter(id=request.data.get('food')).first()
+        if not food_qs:
+            return ResponseWrapper(error_msg=['Food id is not valid'])
+        restaurant_id = food_qs.restaurant_id
+        self.check_object_permissions(request, obj=restaurant_id)
         if serializer.is_valid():
             option_type_id = request.data.get('option_type')
             food_id = request.data.get('food')
@@ -457,6 +470,11 @@ class FoodOptionViewSet(LoggingMixin, CustomViewSet):
     def update(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data, partial=True)
+        food_qs = Food.objects.filter(id=request.data.get('food')).first()
+        if not food_qs:
+            return ResponseWrapper(error_msg=['Food id is not valid'])
+        restaurant_id = food_qs.restaurant_id
+        self.check_object_permissions(request, obj=restaurant_id)
         if serializer.is_valid():
             qs = serializer.update(instance=self.get_object(
             ), validated_data=serializer.validated_data)
