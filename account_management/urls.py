@@ -65,6 +65,10 @@ restaurant_account_management = [
     path('customer_notification_by_restaurant/<int:restaurant>/',
          CustomerNotificationViewSet.as_view({'get': 'customer_notification_by_restaurant'}), name='customer_notification_by_restaurant'),
 
+    path('check_fcm', StaffFcmDeviceViewset.as_view({
+        "post": "check_fcm"
+    }), name="check_fcm"),
+
 ]
 
 auth_urlpatterns = [

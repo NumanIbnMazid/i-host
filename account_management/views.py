@@ -43,7 +43,7 @@ from account_management.serializers import (CustomerFcmDeviceSerializer, Custome
                                             StaffLoginInfoGetSerializer,
                                             UserAccountPatchSerializer,
                                             UserAccountSerializer,
-                                            UserSignupSerializer, LogSerializerGet, LogSerializerPost, CustomerNotificationSerializer)
+                                            UserSignupSerializer, LogSerializerGet, LogSerializerPost, CustomerNotificationSerializer, CheckFcmSerializer)
 
 from rest_framework_tracking.mixins import LoggingMixin
 
@@ -75,6 +75,18 @@ class StaffFcmDeviceViewset(LoggingMixin, CustomViewSet):
     queryset = StaffFcmDevice.objects.all()
     lookup_field = 'hotel_staff'
     serializer_class = StaffFcmDeviceSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['check_fcm']:
+            self.serializer_class = CheckFcmSerializer
+        return self.serializer_class
+
+
+    def get_serializer_class(self):
+        if self.action in ['check_fcm']:
+            self.serializer_class = CheckFcmSerializer
+        else:
+            self.serializer_class = StaffFcmDeviceSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
@@ -103,6 +115,19 @@ class StaffFcmDeviceViewset(LoggingMixin, CustomViewSet):
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    # @swagger_auto_schema(
+    #     request_body=CheckFcmSerializer
+    # )
+
+    def check_fcm(self, request, * args, **kwargs):
+        #token = request.data.get('token')
+        token_qs = StaffFcmDevice.objects.filter(
+            token=request.data.get('token'), hotel_staff__user=request.user)
+        if token_qs:
+            return ResponseWrapper(data={"exists": True})
+        else:
+            return ResponseWrapper(data={"exists": False})
 
 
 class UserFcmDeviceViewset(LoggingMixin, CustomViewSet):
@@ -259,10 +284,10 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
 
     def create_owner(self, request, *args, **kwargs):
         staff_qs = HotelStaffInformation.objects.filter(restaurant_id=request.data.get('restaurant_id'),
-                                                      user__phone=request.data.get('phone')).first()
+                                                        user__phone=request.data.get('phone')).first()
         if staff_qs:
             staff_serializer = StaffInfoGetSerializer(instance=staff_qs)
-            return ResponseWrapper(error_msg=['User is already a staff, staff id is ' + str(staff_qs.pk)],data = staff_serializer.data)
+            return ResponseWrapper(error_msg=['User is already a staff, staff id is ' + str(staff_qs.pk)], data=staff_serializer.data)
         return self.create_staff(request, is_owner=True)
 
     def create_manager(self, request, *args, **kwargs):
@@ -283,11 +308,10 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
                            str(manager_limit_qs) + ', Please Update Your Subscription '],
                 error_code=400)
 
-
         staff_qs = res_qs.filter(user__phone=request.data.get('phone'))
         if staff_qs:
             staff_serializer = StaffInfoGetSerializer(instance=staff_qs)
-            return ResponseWrapper(error_msg=['User is already a staff, staff id is ' + str(staff_qs.pk)],data = staff_serializer.data)
+            return ResponseWrapper(error_msg=['User is already a staff, staff id is ' + str(staff_qs.pk)], data=staff_serializer.data)
 
         # email = request.data.pop("email")
         # self.check_object_permissions(request, obj=RestaurantUserSignUpSerializer)
@@ -312,7 +336,7 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
         staff_qs = res_qs.filter(user__phone=request.data.get('phone'))
         if staff_qs:
             staff_serializer = StaffInfoGetSerializer(instance=staff_qs)
-            return ResponseWrapper(error_msg=['User is already a staff, staff id is ' + str(staff_qs.pk)],data = staff_serializer.data)
+            return ResponseWrapper(error_msg=['User is already a staff, staff id is ' + str(staff_qs.pk)], data=staff_serializer.data)
 
         # email = request.data.pop("email")
 

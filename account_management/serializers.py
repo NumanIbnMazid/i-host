@@ -205,7 +205,8 @@ class LogSerializerGet(serializers.ModelSerializer):
     class Meta:
         model = APIRequestLog
         exclude = ['response']
-
+class CheckFcmSerializer(serializers.ModelSerializer):
+    token = serializers.CharField()
 
 class StaffFcmDeviceSerializer(serializers.ModelSerializer):
     class Meta:
