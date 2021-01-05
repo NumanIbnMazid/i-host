@@ -199,8 +199,7 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_msg="failed to delete", error_code=400)
 
     def today_sell(self, request, pk, *args, **kwargs):
-        if not self.check_object_permissions(request, obj=pk):
-            return ResponseWrapper(error_msg=['You are not restaurant staff'])
+        self.check_object_permissions(request, obj=pk)
         today_date = timezone.now().date()
         qs = Invoice.objects.filter(
             created_at__icontains=today_date, payment_status='1_PAID', restaurant_id=pk)
@@ -299,8 +298,6 @@ class FoodOptionTypeViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def food_option_type_detail(self, request, pk, *args, **kwargs):
-        # def food_option_type_detail(self, request,pk, *args, **kwargs):
-
         qs = FoodOptionType.objects.filter(id=pk).first()
         serializer = self.serializer_class(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='success')
@@ -379,6 +376,8 @@ class FoodExtraViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def create(self, request, *args, **kwargs):
+        # print('hi')
+        # self.check_object_permissions(request)
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
