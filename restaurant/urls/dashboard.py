@@ -103,6 +103,8 @@ fake_dashboard_urls = [
     path('restaurant/<int:restaurant_id>/order_item_list/',
          RestaurantViewSet.as_view({'get': 'order_item_list'}), name='order_item_list'),
 
+    path('remaining_subscription_feachers/<int:restaurant_id>/',
+         RestaurantViewSet.as_view({'get': 'remaining_subscription_feachers'}), name='remaining_subscription_feachers'),
 
     path('restaurant_under_owner/',
          RestaurantViewSet.as_view({'get': 'restaurant_under_owner'}), name='restaurant_under_owner'),
