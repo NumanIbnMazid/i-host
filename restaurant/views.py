@@ -83,7 +83,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           ServedOrderSerializer,
                           TopRecommendedFoodListSerializer,
                           VersionUpdateSerializer)
-from .signals import order_done_signal
+from .signals import order_done_signal, kitchen_items_print_signal
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -1084,6 +1084,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             food_order=order_qs.pk, status__in=["1_ORDER_PLACED"])
         all_items_qs.filter(pk__in=request.data.get(
             'food_items')).update(status='2_ORDER_CONFIRMED')
+        kitchen_items_print_signal.send(
+            sender=self.__class__.confirm_status,
+            qs=all_items_qs
+        )
         all_items_qs.exclude(pk__in=request.data.get(
             'food_items')).update(status='4_CANCELLED')
 
@@ -1122,6 +1126,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             food_order=order_qs.pk, status__in=["1_ORDER_PLACED"])
         all_items_qs.filter(pk__in=request.data.get(
             'food_items')).update(status='2_ORDER_CONFIRMED')
+        kitchen_items_print_signal.send(
+            sender=self.__class__.confirm_status,
+            qs=all_items_qs
+        )
         # all_items_qs.exclude(pk__in=request.data.get(
         #     'food_items')).update(status='4_CANCELLED')
 
