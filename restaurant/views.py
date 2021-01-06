@@ -2916,7 +2916,7 @@ class PrintOrder(CustomViewSet):
         # @page { size: Letter; margin: 0cm }
         css = CSS(
             string='@page { size: 80mm 350mm; margin: 0mm }')
-        pdf_byte_code = HTML(string=html_string).write_pdf('hello.pdf',
+        pdf_byte_code = HTML(string=html_string).write_pdf(
             stylesheets=[
                 css], zoom=1
         )
