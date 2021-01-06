@@ -212,7 +212,7 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
 
         return ResponseWrapper(data={'total_sell': round(total, 2), 'total_order': order_qs}, msg="success")
 
-    def remaining_subscription_feachers(self, request, restaurant_id, *args, **kwargs):
+    def remaining_subscription_feathers(self, request, restaurant_id, *args, **kwargs):
         restaurant_qs =  Restaurant.objects.filter(id = restaurant_id).first()
         restaurant_id = restaurant_qs.pk
         table_count = Table.objects.filter(restaurant_id=restaurant_id).count()
