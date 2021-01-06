@@ -997,3 +997,21 @@ class OrderedItemTemplateSerializer(serializers.ModelSerializer):
         if obj.food_order:
             return obj.food_order.table_id
         return None
+
+class ServedOrderSerializer(serializers.ModelSerializer):
+    order= serializers.SerializerMethodField(read_only=True)
+    class Meta:
+        model = FoodOrderLog
+        fields = ['staff','order','created_at']
+
+    def get_order(self, obj):
+        if obj.order:
+            table_id = obj.order.table.pk
+            order_id = obj.order.pk
+            order_status = obj.order.status
+            order_amaount = obj.order.payable_amount
+            return {'table_id':table_id, 'order_id':order_id,
+                    'order_status':order_status,
+                    'order_amaount':order_amaount
+                    }
+

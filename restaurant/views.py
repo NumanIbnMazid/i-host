@@ -75,6 +75,12 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           SubscriptionSerializer, TableSerializer,
                           TableStaffSerializer,
                           TakeAwayFoodOrderPostSerializer,
+                          TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer,
+                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,
+
+                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer, FoodPostSerializer,
+                          ReportByDateRangeSerializer, VersionUpdateSerializer, HotelStaffInformationSerializer,
+                          ServedOrderSerializer)
                           TopRecommendedFoodListSerializer,
                           VersionUpdateSerializer)
 from .signals import order_done_signal
@@ -2141,9 +2147,26 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         restaurant_id = waiter_qs.restaurant_id
         self.check_object_permissions(request, obj=restaurant_id)
         today = timezone.now().date()
-        staff_order_log_qs = FoodOrderLog.objects.filter(staff_id=waiter_qs.pk)
+        before_thirty_day = today - timedelta(days=30)
 
-        return ResponseWrapper(msg='pass')
+        staff_order_log_qs = FoodOrderLog.objects.filter(staff_id = waiter_qs.pk, order__status ='5_PAID',created_at__gte=before_thirty_day,created_at__lte=today)
+        serializer =ServedOrderSerializer(instance= staff_order_log_qs, many = True)
+        return ResponseWrapper(data = serializer.data, msg = 'success')
+
+    def waiter_cancel_report(self, request, waiter_id,*args, **kwargs):
+
+        waiter_qs = HotelStaffInformation.objects.filter(id = waiter_id).first()
+        if not waiter_qs:
+            return ResponseWrapper(msg=['You are not a staff'])
+        restaurant_id = waiter_qs.restaurant_id
+        self.check_object_permissions(request, obj=restaurant_id)
+        today = timezone.now().date()
+        before_thirty_day = today - timedelta(days=30)
+
+        staff_order_log_qs = FoodOrderLog.objects.filter(staff_id = waiter_qs.pk, order__status ='6_CANCELLED',created_at__gte=before_thirty_day,created_at__lte=today)
+        serializer =ServedOrderSerializer(instance= staff_order_log_qs, many = True)
+        return ResponseWrapper(data = serializer.data, msg = 'success')
+
 
     def admin_all_report(self, request, *args, **kwargs):
        # today = timezone.datetime.now()
