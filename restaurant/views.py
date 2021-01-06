@@ -108,7 +108,7 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
             serializer = RestaurantSerializer(instance=qs)
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
-            return ResponseWrapper(error_code=400, error_msg=serializer.errors, msg='failed to create restaurent')
+            return ResponseWrapper(error_code=400, error_msg=serializer.errors, msg='failed to create restaurant')
 
     def retrieve(self, request, pk, *args, **kwargs):
         qs = Restaurant.objects.filter(pk=pk).first()
@@ -211,6 +211,27 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         total = sum(payable_amount_list)
 
         return ResponseWrapper(data={'total_sell': round(total, 2), 'total_order': order_qs}, msg="success")
+
+    def remaining_subscription_feathers(self, request, restaurant_id, *args, **kwargs):
+        restaurant_qs = Restaurant.objects.filter(id = restaurant_id).first()
+        restaurant_id = restaurant_qs.pk
+        table_count = Table.objects.filter(restaurant_id=restaurant_id).count()
+        waiter_staff_qs = HotelStaffInformation.objects.filter(restaurant_id=restaurant_id)
+        waiter_count = waiter_staff_qs.filter(is_waiter=True).count()
+        manager_staff_qs = HotelStaffInformation.objects.filter(restaurant_id=restaurant_id)
+        manager_count = manager_staff_qs.filter(is_manager=True).count()
+        staff_qs = Restaurant.objects.filter(id=restaurant_id).select_related('subscription').first()
+        waiter_limit_count = staff_qs.subscription.waiter_limit
+        manager_limit_count = staff_qs.subscription.manager_limit
+        table_limit_count = staff_qs.subscription.table_limit
+        exist_table = table_limit_count - table_count
+        exist_waiter = waiter_limit_count - waiter_count
+        exist_manager = manager_limit_count - manager_count
+
+        return ResponseWrapper(data= {'waiter':exist_waiter,
+                                      'manager':exist_manager,
+                                      'table':exist_table,})
+
 
 
 # class FoodCategoryViewSet(viewsets.GenericViewSet):
@@ -500,8 +521,23 @@ class TableViewSet(LoggingMixin, CustomViewSet):
     # http_method_names = ['get', 'post', 'patch']
 
     def get_permissions(self):
+        permission_classes = []
         if self.action in ['table_list']:
-            permission_classes = [permissions.IsAuthenticated]
+            permission_classes = [
+                custom_permissions.IsRestaurantStaff
+            ]
+        elif self.action in ['create','add_staff']:
+            permission_classes = [
+                custom_permissions.IsRestaurantManagementOrAdmin
+            ]
+        elif self.action in ['staff_table_list','order_item_list']:
+            permission_classes =[
+                custom_permissions.IsRestaurantStaff
+            ]
+        elif self.action in ['remove_staff']:
+            permission_classes = [
+                custom_permissions.IsRestaurantManagementOrAdmin
+            ]
         else:
             permission_classes = [permissions.AllowAny]
 
@@ -534,6 +570,13 @@ class TableViewSet(LoggingMixin, CustomViewSet):
     def create(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
+        restaurant_qs = Table.objects.filter(restaurant_id  = request.data.get('restaurant')).first()
+
+        restaurant_id = restaurant_qs.restaurant_id
+        if not restaurant_id:
+            return ResponseWrapper(error_msg= ['Restaurant is not valid'])
+        self.check_object_permissions(request, obj=restaurant_id)
+
         res_qs = Restaurant.objects.filter(id=request.data.get(
             'restaurant')).select_related('subscription').last()
         table_count = res_qs.tables.count()
@@ -551,8 +594,12 @@ class TableViewSet(LoggingMixin, CustomViewSet):
     def table_list(self, request, restaurant, *args, **kwargs):
         # url = request.path
         # is_dashboard = url.__contains__('/dashboard/')
-
-        qs = self.queryset.filter(restaurant=restaurant)
+        restaurant_qs = Table.objects.filter(restaurant_id  = restaurant).first()
+        restaurant_id = restaurant_qs.restaurant_id
+        if not restaurant_id:
+            return ResponseWrapper(error_msg= ['Restaurant is not valid'])
+        self.check_object_permissions(request, obj=restaurant_id)
+        qs = self.queryset.filter(restaurant=restaurant_id)
         # if is_dashboard:
         #     page_qs = self.paginate_queryset(qs)
         #     serializer = self.get_serializer(
@@ -571,6 +618,12 @@ class TableViewSet(LoggingMixin, CustomViewSet):
     # @swagger_auto_schema(request_body=ListOfIdSerializer)
     def add_staff(self, request, table_id, *args, **kwargs):
         qs = self.get_queryset().filter(pk=table_id).first()
+
+        restaurant_id = qs.restaurant_id
+        if not restaurant_id:
+            return ResponseWrapper(error_msg=['Restaurant is not valid'])
+        self.check_object_permissions(request, obj=restaurant_id)
+
         id_list = request.data.get('staff_list', [])
         id_list = list(HotelStaffInformation.objects.filter(
             pk__in=id_list).values_list('pk', flat=True))
@@ -585,12 +638,21 @@ class TableViewSet(LoggingMixin, CustomViewSet):
 
     def staff_table_list(self, request, staff_id, *args, **kwargs):
         qs = self.get_queryset().filter(staff_assigned=staff_id)
+        restaurant_id = qs.first().restaurant_id
+        if not restaurant_id:
+            return ResponseWrapper(error_msg= ['Restaurant is not valid'])
+        self.check_object_permissions(request, obj=restaurant_id)
         # qs = qs.filter(is_top = True)
         serializer = self.get_serializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='successful')
 
     def remove_staff(self, request, table_id, *args, **kwargs):
         qs = self.get_queryset().filter(pk=table_id).first()
+        restaurant_id = qs.restaurant_id
+        if not restaurant_id:
+            return ResponseWrapper(error_msg= ['Restaurant is not valid'])
+        self.check_object_permissions(request, obj=restaurant_id)
+
         id_list = request.data.get('staff_list', [])
         id_list = list(HotelStaffInformation.objects.filter(
             pk__in=id_list).values_list('pk', flat=True))
@@ -606,6 +668,11 @@ class TableViewSet(LoggingMixin, CustomViewSet):
     def order_item_list(self, request, table_id, *args, **kwargs):
 
         qs = FoodOrder.objects.filter(table=table_id)
+        restaurant_id = qs.first().restaurant_id
+        if not restaurant_id:
+            return ResponseWrapper(error_msg= ['Restaurant is not valid'])
+        self.check_object_permissions(request, obj=restaurant_id)
+
         # qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
         is_apps = request.path.__contains__('/apps/')
 
@@ -1750,6 +1817,10 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         permission_classes = []
         if self.action in [""]:
             permission_classes = [permissions.IsAuthenticated]
+        elif self.action in ['waiter_served_report']:
+            permission_classes = [
+                custom_permissions.IsRestaurantStaff
+            ]
         # elif self.action == "retrieve" or self.action == "update":
         #     permission_classes = [permissions.AllowAny]
         # else:
@@ -2048,6 +2119,21 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                      #  "yearly_sales_report": yearly_sales_report,
                                      "month_data": {"month_wise_income": month_wise_income, "month_wise_order": month_wise_order}
                                      }, msg="success")
+
+    def waiter_served_report(self, request, waiter_id,*args, **kwargs):
+
+        waiter_qs = HotelStaffInformation.objects.filter(id = waiter_id).first()
+        if not waiter_qs:
+            return ResponseWrapper(msg=['You are not a staff'])
+        restaurant_id = waiter_qs.restaurant_id
+        self.check_object_permissions(request, obj=restaurant_id)
+        today = timezone.now().date()
+        staff_order_log_qs = FoodOrderLog.objects.filter(staff_id = waiter_qs.pk)
+
+
+
+        return ResponseWrapper(msg= 'pass')
+
 
     def admin_all_report(self, request, *args, **kwargs):
        # today = timezone.datetime.now()
@@ -2815,13 +2901,14 @@ class PrintOrder(CustomViewSet):
         }
         html_string = render_to_string('invoice.html', context)
         # @page { size: Letter; margin: 0cm }
-        css = CSS(string='@page { size: 80mm; margin: 0mm }')
-        pdf_byte_code = HTML(string=html_string).write_pdf('example.pdf',
-                                                           stylesheets=[
-                                                               css], zoom=1
-                                                           )
-        # pdf_obj_encoded = base64.b64encode(pdf_byte_code)
-        # pdf_obj_encoded = pdf_obj_encoded.decode('utf-8')
-        # print_node(pdf_obj=pdf_obj_encoded)
-
+        css = CSS(
+            string='@page { size: 80mm 3000mm ; margin: 0mm }')
+        pdf_byte_code = HTML(string=html_string).write_pdf(
+            stylesheets=[
+                css], zoom=1
+        )
+        pdf_obj_encoded = base64.b64encode(pdf_byte_code)
+        pdf_obj_encoded = pdf_obj_encoded.decode('utf-8')
+        print_node(pdf_obj=pdf_obj_encoded)
+        
         return ResponseWrapper(data=serializer.data)
