@@ -2807,7 +2807,7 @@ class PrintOrder(CustomViewSet):
         html_string = render_to_string('invoice.html', {'people': "people"})
         # @page { size: Letter; margin: 0cm }
         css = CSS(
-            string='@page { size: 80mm 300mm ; margin: 0mm }')
+            string='@page { size: 80mm 3000mm ; margin: 0mm }')
         pdf_byte_code = HTML(string=html_string).write_pdf(
             stylesheets=[
                 css], zoom=1
