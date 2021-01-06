@@ -213,12 +213,12 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data={'total_sell': round(total, 2), 'total_order': order_qs}, msg="success")
 
     def remaining_subscription_feathers(self, request, restaurant_id, *args, **kwargs):
-        restaurant_qs =  Restaurant.objects.filter(id = restaurant_id).first()
+        restaurant_qs = Restaurant.objects.filter(id = restaurant_id).first()
         restaurant_id = restaurant_qs.pk
         table_count = Table.objects.filter(restaurant_id=restaurant_id).count()
-        waiter_staff_qs = res_qs = HotelStaffInformation.objects.filter(restaurant_id=restaurant_id)
+        waiter_staff_qs = HotelStaffInformation.objects.filter(restaurant_id=restaurant_id)
         waiter_count = waiter_staff_qs.filter(is_waiter=True).count()
-        manager_staff_qs = res_qs = HotelStaffInformation.objects.filter(restaurant_id=restaurant_id)
+        manager_staff_qs = HotelStaffInformation.objects.filter(restaurant_id=restaurant_id)
         manager_count = manager_staff_qs.filter(is_manager=True).count()
         staff_qs = Restaurant.objects.filter(id=restaurant_id).select_related('subscription').first()
         waiter_limit_count = staff_qs.subscription.waiter_limit
@@ -227,7 +227,6 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         exist_table = table_limit_count - table_count
         exist_waiter = waiter_limit_count - waiter_count
         exist_manager = manager_limit_count - manager_count
-
 
         return ResponseWrapper(data= {'waiter':exist_waiter,
                                       'manager':exist_manager,
@@ -525,7 +524,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         permission_classes = []
         if self.action in ['table_list']:
             permission_classes = [
-                custom_permissions.IsRestaurantManagementOrAdmin
+                custom_permissions.IsRestaurantStaff
             ]
         elif self.action in ['create','add_staff']:
             permission_classes = [
@@ -1818,6 +1817,10 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         permission_classes = []
         if self.action in [""]:
             permission_classes = [permissions.IsAuthenticated]
+        elif self.action in ['waiter_served_report']:
+            permission_classes = [
+                custom_permissions.IsRestaurantStaff
+            ]
         # elif self.action == "retrieve" or self.action == "update":
         #     permission_classes = [permissions.AllowAny]
         # else:
@@ -2116,6 +2119,21 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                      #  "yearly_sales_report": yearly_sales_report,
                                      "month_data": {"month_wise_income": month_wise_income, "month_wise_order": month_wise_order}
                                      }, msg="success")
+
+    def waiter_served_report(self, request, waiter_id,*args, **kwargs):
+
+        waiter_qs = HotelStaffInformation.objects.filter(id = waiter_id).first()
+        if not waiter_qs:
+            return ResponseWrapper(msg=['You are not a staff'])
+        restaurant_id = waiter_qs.restaurant_id
+        self.check_object_permissions(request, obj=restaurant_id)
+        today = timezone.now().date()
+        staff_order_log_qs = FoodOrderLog.objects.filter(staff_id = waiter_qs.pk)
+
+
+
+        return ResponseWrapper(msg= 'pass')
+
 
     def admin_all_report(self, request, *args, **kwargs):
        # today = timezone.datetime.now()

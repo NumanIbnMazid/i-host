@@ -230,8 +230,6 @@ apps_fake = [
 
     path('order_id_by/<int:table_id>/',
          TableViewSet.as_view({'get': 'order_id_by_table', }), name='order_id_by_table'),
-
-
     path('version_create',
          VersionUpdateViewSet.as_view({'post': 'create', }), name='create'),
 
@@ -253,4 +251,7 @@ apps_url = [
          VersionUpdateViewSet.as_view({'get': 'user_version_requirement', }), name='user_version_requirement'),
     path('waiter_version_requirement',
          VersionUpdateViewSet.as_view({'get': 'waiter_version_requirement', }), name='waiter_version_requirement'),
-]+apps_fake
+    # path('served_report/<int:waiter_id>/',
+    #     ReportingViewset.as_view({'get': 'waiter_served_report'}), name='waiter_served_report'),
+
+    ]+apps_fake
