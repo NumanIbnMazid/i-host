@@ -2904,17 +2904,19 @@ class PrintOrder(CustomViewSet):
         items_qs = OrderedItem.objects.all().exclude(food_extra=None)
         serializer = OrderedItemTemplateSerializer(
             instance=items_qs, many=True)
+        now = datetime.now()
         context = {
             'table_no': 12,
             'order_id': 12,
-            'time': str(timezone.now().date()) + '  ' + str(timezone.now().time()),
+            # 'time': str(timezone.now().date()) + '  ' + str(timezone.now().time()),
+            'time': str(now.strftime('%Y/%m/%d %H:%M:%S')),
             'items_data': serializer.data
         }
         html_string = render_to_string('invoice.html', context)
         # @page { size: Letter; margin: 0cm }
         css = CSS(
             string='@page { size: 80mm 350mm; margin: 0mm }')
-        pdf_byte_code = HTML(string=html_string).write_pdf(
+        pdf_byte_code = HTML(string=html_string).write_pdf('hello.pdf',
             stylesheets=[
                 css], zoom=1
         )
