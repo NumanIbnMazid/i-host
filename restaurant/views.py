@@ -500,8 +500,13 @@ class TableViewSet(LoggingMixin, CustomViewSet):
     # http_method_names = ['get', 'post', 'patch']
 
     def get_permissions(self):
+        permission_classes = []
         if self.action in ['table_list']:
             permission_classes = [permissions.IsAuthenticated]
+        elif self.action in ['create']:
+            permission_classes = [
+                custom_permissions.IsRestaurantManagementOrAdmin
+            ]
         else:
             permission_classes = [permissions.AllowAny]
 
@@ -534,6 +539,12 @@ class TableViewSet(LoggingMixin, CustomViewSet):
     def create(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
+        restaurant_id = Table.objects.filter(restaurant_id  = request.data.get('restaurant')).first()
+
+        if not restaurant_id:
+            return ResponseWrapper(error_msg= ['Restaurant is not valid'])
+        self.check_object_permissions(request, obj=restaurant_id)
+
         res_qs = Restaurant.objects.filter(id=request.data.get(
             'restaurant')).select_related('subscription').last()
         table_count = res_qs.tables.count()

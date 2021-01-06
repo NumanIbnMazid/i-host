@@ -9,9 +9,9 @@ def calculate_price(food_order_obj, include_initial_order=False):
         ordered_items_qs = food_order_obj.ordered_items.exclude(
             status__in=["4_CANCELLED", "0_ORDER_INITIALIZED"])
 
-    restaurant_qs = None
-    if food_order_obj.table:
-        restaurant_qs = food_order_obj.table.restaurant
+    restaurant_qs = food_order_obj.restaurant
+    # if food_order_obj.table:
+    #     restaurant_qs = food_order_obj.table.restaurant
 
     total_price = 0.0
     tax_amount = 0.0
