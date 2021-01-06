@@ -110,6 +110,9 @@
       #invoice-POS .itemtext {
         font-size: 0.7em;
       }
+      #invoice-POS .extratext {
+        font-size: 0.3em;
+      }
 
       #invoice-POS #legalcopy {
         margin-top: 5mm;
@@ -128,11 +131,13 @@
       <div id="mid">
         <div class="info">
           <center>
-            <h2>Minus Kitchen</h2>
-            <h2>Order # 251</h2>
-            <h2>Table No: 8</h2>
-            <h2>Waiter: Rakib Hasan</h2>
-            <h2>Time: 05/01/2021, 1:15pm</h2>
+            {% comment %}
+            <h2>{{ items_data.food_order.restaurant__name }}</h2>
+            {% endcomment %}
+            <h2>Order ID: {{ order_id }}</h2>
+            <h2>Table No: {{ table_no }}</h2>
+            <h2>{{ time }}</h2>
+
             <br />
           </center>
         </div>
@@ -144,164 +149,40 @@
             <tbody>
               <tr class="tabletitle">
                 <td class="item">
-                  <h2>Item</h2>
+                  <h2>Food</h2>
+                </td>
+                <td>-</td>
+                <td class="item">
+                  <h2>Option</h2>
                 </td>
                 <td>-</td>
                 <td class="Hours qty">
                   <h2>Qty</h2>
                 </td>
               </tr>
+              {% for item in items_data %}
+
               <tr class="service">
                 <td class="tableitem">
-                  <p class="itemtext">Fish Cake</p>
+                  <p class="itemtext">{{ item.food_option.food_name }}</p>
+                  {%if item.food_extra %}
+
+                  <p class="itemtext">{{ item.food_extra }}</p>
+                  {% endif %}
                 </td>
                 <td>-</td>
-                <td class="tableitem qty">
-                  <p class="itemtext">4</p>
-                </td>
-              </tr>
-              <tr class="service">
+
                 <td class="tableitem">
-                  <p class="itemtext">mutton-do-piaza</p>
+                  <p class="itemtext">{{ item.food_option.name }}</p>
                 </td>
                 <td>-</td>
+
                 <td class="tableitem qty">
-                  <p class="itemtext">3</p>
+                  <p class="itemtext">{{ item.quantity }}</p>
                 </td>
               </tr>
-              <tr class="service">
-                <td class="tableitem">
-                  <p class="itemtext">Pasta</p>
-                </td>
-                <td>-</td>
-                <td class="tableitem qty">
-                  <p class="itemtext">3</p>
-                </td>
-              </tr>
-              <tr class="service">
-                <td class="tableitem">
-                  <p class="itemtext">Fried Rice</p>
-                  Mashrum
-                </td>
-                <td>-</td>
-                <td class="tableitem qty">
-                  <p class="itemtext">3</p>
-                </td>
-              </tr>
-              <tr class="service">
-                <td class="tableitem">
-                  <p class="itemtext">Pasta</p>
-                </td>
-                <td>-</td>
-                <td class="tableitem qty">
-                  <p class="itemtext">3</p>
-                </td>
-              </tr>
-              <tr class="service">
-                <td class="tableitem">
-                  <p class="itemtext">Fried Rice</p>
-                  Mashrum
-                </td>
-                <td>-</td>
-                <td class="tableitem qty">
-                  <p class="itemtext">3</p>
-                </td>
-              </tr>
-              <tr class="service">
-                <td class="tableitem">
-                  <p class="itemtext">Pasta</p>
-                </td>
-                <td>-</td>
-                <td class="tableitem qty">
-                  <p class="itemtext">3</p>
-                </td>
-              </tr>
-              <tr class="service">
-                <td class="tableitem">
-                  <p class="itemtext">Fried Rice</p>
-                  Mashrum
-                </td>
-                <td>-</td>
-                <td class="tableitem qty">
-                  <p class="itemtext">3</p>
-                </td>
-              </tr>
-              <tr class="service">
-                <td class="tableitem">
-                  <p class="itemtext">Pasta</p>
-                </td>
-                <td>-</td>
-                <td class="tableitem qty">
-                  <p class="itemtext">3</p>
-                </td>
-              </tr>
-              <tr class="service">
-                <td class="tableitem">
-                  <p class="itemtext">Fried Rice</p>
-                  Mashrum
-                </td>
-                <td>-</td>
-                <td class="tableitem qty">
-                  <p class="itemtext">3</p>
-                </td>
-              </tr>
-              <tr class="service">
-                <td class="tableitem">
-                  <p class="itemtext">Pasta</p>
-                </td>
-                <td>-</td>
-                <td class="tableitem qty">
-                  <p class="itemtext">3</p>
-                </td>
-              </tr>
-              <tr class="service">
-                <td class="tableitem">
-                  <p class="itemtext">Fried Rice</p>
-                  Mashrum
-                </td>
-                <td>-</td>
-                <td class="tableitem qty">
-                  <p class="itemtext">3</p>
-                </td>
-              </tr>
-              <tr class="service">
-                <td class="tableitem">
-                  <p class="itemtext">Pasta</p>
-                </td>
-                <td>-</td>
-                <td class="tableitem qty">
-                  <p class="itemtext">3</p>
-                </td>
-              </tr>
-              <tr class="service">
-                <td class="tableitem">
-                  <p class="itemtext">Fried Rice</p>
-                  Mashrum
-                </td>
-                <td>-</td>
-                <td class="tableitem qty">
-                  <p class="itemtext">3</p>
-                </td>
-              </tr>
-              <tr class="service">
-                <td class="tableitem">
-                  <p class="itemtext">Pasta</p>
-                </td>
-                <td>-</td>
-                <td class="tableitem qty">
-                  <p class="itemtext">3</p>
-                </td>
-              </tr>
-              <tr class="service">
-                <td class="tableitem">
-                  <p class="itemtext">Fried Rice</p>
-                  Mashrum
-                </td>
-                <td>-</td>
-                <td class="tableitem qty">
-                  <p class="itemtext">3</p>
-                </td>
-              </tr>
+
+              {% endfor %}
             </tbody>
           </table>
         </div>

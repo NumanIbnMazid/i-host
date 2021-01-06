@@ -1,19 +1,28 @@
-from restaurant.serializers import FoodOrderByTableSerializer
-from django.dispatch import Signal, receiver
-from asgiref.sync import async_to_sync, sync_to_async
-import channels.layers
-from channels.generic.websocket import JsonWebsocketConsumer
+import base64
 import json
+
+import channels.layers
+from asgiref.sync import async_to_sync, sync_to_async
 from channels.db import database_sync_to_async
+from channels.generic.websocket import JsonWebsocketConsumer
 from django.conf import settings
+from django.dispatch import Signal, receiver
+from django.template.loader import render_to_string
+from django.utils import timezone
+from utils.print_node import print_node
+from weasyprint import CSS, HTML
 
 from restaurant.models import Table
-from .models import (
-    FoodOrder)
+from restaurant.serializers import (FoodOrderByTableSerializer,
+                                    OrderedItemTemplateSerializer)
 
+from .models import FoodOrder
 
 order_done_signal = Signal(
     providing_args=["qs", "data", "state"])
+
+kitchen_items_print_signal = Signal(
+    providing_args=["qs"])
 
 
 def order_item_list(restaurant_id=1):
@@ -88,3 +97,27 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, qs=None, d
     except:
         pass
     # print('signal got a call', order_qs, table_qs, state)
+
+
+@receiver(kitchen_items_print_signal)
+def kitchen_items_print_signal(sender, qs=None, *args, **kwargs):
+    # items_qs = OrderedItem.objects.all().exclude(food_extra=None)
+    serializer = OrderedItemTemplateSerializer(
+        instance=qs, many=True)
+    context = {
+        'table_no': 12,
+        'order_id': 12,
+        'time': str(timezone.now().date()) + '  ' + str(timezone.now().time()),
+        'items_data': serializer.data
+    }
+    html_string = render_to_string('invoice.html', {'people': "people"})
+    # @page { size: Letter; margin: 0cm }
+    css = CSS(
+        string='@page { size: 80mm 350mm; margin: 0mm }')
+    pdf_byte_code = HTML(string=html_string).write_pdf(
+        stylesheets=[
+            css], zoom=1
+    )
+    pdf_obj_encoded = base64.b64encode(pdf_byte_code)
+    pdf_obj_encoded = pdf_obj_encoded.decode('utf-8')
+    sync_to_async(print_node(pdf_obj=pdf_obj_encoded))
