@@ -129,12 +129,14 @@ class FoodOptionTypeSerializer(serializers.ModelSerializer):
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
+
     class Meta:
         model = Subscription
         fields = '__all__'
         # extra_kwargs = {
         #     'code': {'read_only': False}
         # }
+
     def create(self, validated_data):
         image = validated_data.pop('image', None)
         if image:
@@ -963,3 +965,35 @@ class VersionUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = VersionUpdate
         exclude = ['created_at', 'updated_at']
+
+
+class FoodOptionsTemplateSerializer(serializers.ModelSerializer):
+    food_name = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = FoodOption
+        fields = ['name', 'food_name']
+
+    def get_food_name(self, obj):
+        return obj.food.name
+
+
+class OrderedItemTemplateSerializer(serializers.ModelSerializer):
+    food_extra = serializers.SerializerMethodField(read_only=True)
+    food_option = FoodOptionsTemplateSerializer(read_only=True)
+    table = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = OrderedItem
+        fields = '__all__'
+
+    def get_food_extra(self, obj):
+        if obj.food_extra:
+            return list(obj.food_extra.values_list('name', flat=True))
+        else:
+            return []
+
+    def get_table(self, obj):
+        if obj.food_order:
+            return obj.food_order.table_id
+        return None

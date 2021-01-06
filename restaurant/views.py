@@ -54,7 +54,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           InvoiceSerializer, OnlyFoodOrderIdSerializer,
                           OrderedItemDashboardPostSerializer,
                           OrderedItemGetDetailsSerializer,
-                          OrderedItemSerializer, OrderedItemUserPostSerializer,
+                          OrderedItemSerializer, OrderedItemTemplateSerializer, OrderedItemUserPostSerializer,
                           PaymentSerializer, PaymentTypeSerializer, PopUpSerializer,
                           ReorderSerializer, ReportDateRangeSerializer,
                           ReportingDateRangeGraphSerializer,
@@ -187,7 +187,7 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
 
     def delete_restaurant(self, request, pk, *args, **kwargs):
         self.check_object_permissions(request, obj=pk)
-        #return ResponseWrapper(error_msg=['You are not authorized person'])
+        # return ResponseWrapper(error_msg=['You are not authorized person'])
         qs = self.queryset.filter(pk=pk).first()
         if qs:
             qs.deleted_at = timezone.now()
@@ -378,11 +378,11 @@ class FoodExtraViewSet(LoggingMixin, CustomViewSet):
     def create(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
-        food_qs = Food.objects.filter(id = request.data.get('food')).first()
+        food_qs = Food.objects.filter(id=request.data.get('food')).first()
         if not food_qs:
             return ResponseWrapper(error_msg=['Food id is not valid'])
         restaurant_id = food_qs.restaurant_id
-        self.check_object_permissions(request, obj = restaurant_id)
+        self.check_object_permissions(request, obj=restaurant_id)
         if serializer.is_valid():
             qs = serializer.save()
             serializer = FoodExtraTypeDetailSerializer(instance=qs)
@@ -393,11 +393,11 @@ class FoodExtraViewSet(LoggingMixin, CustomViewSet):
     def update(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data, partial=True)
-        food_qs = Food.objects.filter(id = request.data.get('food')).first()
+        food_qs = Food.objects.filter(id=request.data.get('food')).first()
         if not food_qs:
             return ResponseWrapper(error_msg=['Food id is not valid'])
         restaurant_id = food_qs.restaurant_id
-        self.check_object_permissions(request, obj = restaurant_id)
+        self.check_object_permissions(request, obj=restaurant_id)
         if serializer.is_valid():
             qs = serializer.update(instance=self.get_object(
             ), validated_data=serializer.validated_data)
@@ -1479,7 +1479,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             re_order_item_qs = OrderedItem.objects.create(quantity=new_quantity, food_option=re_order_item_qs.food_option,
                                                           food_order=re_order_item_qs.food_order, status='1_ORDER_PLACED')
 
-        elif re_order_item_qs.status in ['0_ORDER_INITIALIZED','1_ORDER_PLACED']:
+        elif re_order_item_qs.status in ['0_ORDER_INITIALIZED', '1_ORDER_PLACED']:
             update_quantity = re_order_item_qs.quantity + new_quantity
             re_order_item_qs.quantity = update_quantity
             re_order_item_qs.save()
@@ -2804,13 +2804,24 @@ class PrintOrder(CustomViewSet):
         from weasyprint import HTML, CSS
         from django.template.loader import render_to_string
         import base64
-        html_string = render_to_string('invoice.html', {'people': "people"})
+        items_qs = OrderedItem.objects.all().exclude(food_extra=None)
+        serializer = OrderedItemTemplateSerializer(
+            instance=items_qs, many=True)
+        context = {
+            'table_no': 12,
+            'order_id': 12,
+            'time': str(timezone.now().date()) + '  ' + str(timezone.now().time()),
+            'items_data': serializer.data
+        }
+        html_string = render_to_string('invoice.html', context)
         # @page { size: Letter; margin: 0cm }
         css = CSS(string='@page { size: 80mm; margin: 0mm }')
-        pdf_byte_code = HTML(string=html_string).write_pdf(
-            stylesheets=[css], zoom=1
-        )
-        pdf_obj_encoded = base64.b64encode(pdf_byte_code)
-        pdf_obj_encoded = pdf_obj_encoded.decode('utf-8')
-        print_node(pdf_obj=pdf_obj_encoded)
-        return ResponseWrapper()
+        pdf_byte_code = HTML(string=html_string).write_pdf('example.pdf',
+                                                           stylesheets=[
+                                                               css], zoom=1
+                                                           )
+        # pdf_obj_encoded = base64.b64encode(pdf_byte_code)
+        # pdf_obj_encoded = pdf_obj_encoded.decode('utf-8')
+        # print_node(pdf_obj=pdf_obj_encoded)
+
+        return ResponseWrapper(data=serializer.data)
