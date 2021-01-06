@@ -1,26 +1,24 @@
-from utils.print_node import print_node
-from django.views.decorators.cache import cache_page
+from asgiref.sync import async_to_sync, sync_to_async
 import copy
 import decimal
 import json
-from dateutil.relativedelta import relativedelta
-from utils.pagination import CustomLimitPagination
-from .signals import order_done_signal
-
-from django.utils.decorators import method_decorator
+from datetime import date, datetime, timedelta
 
 from account_management import models, serializers
-from account_management.models import (CustomerInfo, FcmNotificationStaff, HotelStaffInformation,
-                                       StaffFcmDevice, UserAccount)
+from account_management.models import (CustomerInfo, FcmNotificationStaff,
+                                       HotelStaffInformation, StaffFcmDevice,
+                                       UserAccount)
 from account_management.serializers import (ListOfIdSerializer,
-                                            StaffInfoSerializer, StaffInfoGetSerializer)
+                                            StaffInfoGetSerializer,
+                                            StaffInfoSerializer)
+from dateutil.relativedelta import relativedelta
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Count, Min, Q, query_utils
 from django.db.models.aggregates import Sum
 from django.http import request
 from django.utils import timezone
-from datetime import datetime, date, timedelta
-
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg2 import openapi
 from drf_yasg2.utils import swagger_auto_schema
@@ -30,16 +28,21 @@ from rest_framework.serializers import Serializer
 from rest_framework_tracking.mixins import LoggingMixin
 from utils.custom_viewset import CustomViewSet
 from utils.fcm import send_fcm_push_notification_appointment
+from utils.pagination import CustomLimitPagination
+from utils.print_node import print_node
 from utils.response_wrapper import ResponseWrapper
 
 from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodExtraType, FoodOption, FoodOptionType,
-                               FoodOrder, Invoice, OrderedItem, PaymentType, PopUp,
-                               Restaurant, Table, Slider, Subscription, Review, RestaurantMessages, VersionUpdate, FoodOrderLog)
+                               FoodOrder, FoodOrderLog, Invoice, OrderedItem,
+                               PaymentType, PopUp, Restaurant,
+                               RestaurantMessages, Review, Slider,
+                               Subscription, Table, VersionUpdate)
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
-                          DiscountSerializer, FcmNotificationStaffSerializer, FoodCategorySerializer,
+                          DiscountSerializer, FcmNotificationStaffSerializer,
+                          FoodCategorySerializer,
                           FoodDetailsByDiscountSerializer,
                           FoodDetailSerializer, FoodExtraPostPatchSerializer,
                           FoodExtraSerializer, FoodExtraTypeDetailSerializer,
@@ -48,26 +51,33 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           FoodOrderByTableSerializer,
                           FoodOrderCancelSerializer,
                           FoodOrderConfirmSerializer, FoodOrderSerializer,
-                          FoodOrderUserPostSerializer,
+                          FoodOrderUserPostSerializer, FoodPostSerializer,
                           FoodsByCategorySerializer, FoodSerializer,
-                          FoodWithPriceSerializer, FreeTableSerializer, InvoiceGetSerializer,
-                          InvoiceSerializer, OnlyFoodOrderIdSerializer,
+                          FoodWithPriceSerializer, FreeTableSerializer,
+                          HotelStaffInformationSerializer,
+                          InvoiceGetSerializer, InvoiceSerializer,
+                          OnlyFoodOrderIdSerializer,
                           OrderedItemDashboardPostSerializer,
                           OrderedItemGetDetailsSerializer,
-                          OrderedItemSerializer, OrderedItemTemplateSerializer, OrderedItemUserPostSerializer,
-                          PaymentSerializer, PaymentTypeSerializer, PopUpSerializer,
-                          ReorderSerializer, ReportDateRangeSerializer,
+                          OrderedItemSerializer, OrderedItemTemplateSerializer,
+                          OrderedItemUserPostSerializer, PaymentSerializer,
+                          PaymentTypeSerializer, PopUpSerializer,
+                          ReOrderedItemSerializer, ReorderSerializer,
+                          ReportByDateRangeSerializer,
+                          ReportDateRangeSerializer,
                           ReportingDateRangeGraphSerializer,
-                          RestaurantContactPerson, RestaurantPostSerialier, RestaurantSerializer,
-                          RestaurantUpdateSerialier, StaffFcmSerializer,
+                          RestaurantContactPerson,
+                          RestaurantMessagesSerializer,
+                          RestaurantPostSerialier, RestaurantSerializer,
+                          RestaurantUpdateSerialier, ReviewSerializer,
+                          SliderSerializer, StaffFcmSerializer,
                           StaffIdListSerializer, StaffTableSerializer,
-                          TableSerializer, TableStaffSerializer,
+                          SubscriptionSerializer, TableSerializer,
+                          TableStaffSerializer,
                           TakeAwayFoodOrderPostSerializer,
-                          TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer,
-                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,
-
-                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer, FoodPostSerializer,
-                          ReportByDateRangeSerializer, VersionUpdateSerializer, HotelStaffInformationSerializer)
+                          TopRecommendedFoodListSerializer,
+                          VersionUpdateSerializer)
+from .signals import order_done_signal
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -213,14 +223,17 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data={'total_sell': round(total, 2), 'total_order': order_qs}, msg="success")
 
     def remaining_subscription_feathers(self, request, restaurant_id, *args, **kwargs):
-        restaurant_qs = Restaurant.objects.filter(id = restaurant_id).first()
+        restaurant_qs = Restaurant.objects.filter(id=restaurant_id).first()
         restaurant_id = restaurant_qs.pk
         table_count = Table.objects.filter(restaurant_id=restaurant_id).count()
-        waiter_staff_qs = HotelStaffInformation.objects.filter(restaurant_id=restaurant_id)
+        waiter_staff_qs = HotelStaffInformation.objects.filter(
+            restaurant_id=restaurant_id)
         waiter_count = waiter_staff_qs.filter(is_waiter=True).count()
-        manager_staff_qs = HotelStaffInformation.objects.filter(restaurant_id=restaurant_id)
+        manager_staff_qs = HotelStaffInformation.objects.filter(
+            restaurant_id=restaurant_id)
         manager_count = manager_staff_qs.filter(is_manager=True).count()
-        staff_qs = Restaurant.objects.filter(id=restaurant_id).select_related('subscription').first()
+        staff_qs = Restaurant.objects.filter(
+            id=restaurant_id).select_related('subscription').first()
         waiter_limit_count = staff_qs.subscription.waiter_limit
         manager_limit_count = staff_qs.subscription.manager_limit
         table_limit_count = staff_qs.subscription.table_limit
@@ -228,10 +241,9 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         exist_waiter = waiter_limit_count - waiter_count
         exist_manager = manager_limit_count - manager_count
 
-        return ResponseWrapper(data= {'waiter':exist_waiter,
-                                      'manager':exist_manager,
-                                      'table':exist_table,})
-
+        return ResponseWrapper(data={'waiter': exist_waiter,
+                                     'manager': exist_manager,
+                                     'table': exist_table, })
 
 
 # class FoodCategoryViewSet(viewsets.GenericViewSet):
@@ -526,12 +538,12 @@ class TableViewSet(LoggingMixin, CustomViewSet):
             permission_classes = [
                 custom_permissions.IsRestaurantStaff
             ]
-        elif self.action in ['create','add_staff']:
+        elif self.action in ['create', 'add_staff']:
             permission_classes = [
                 custom_permissions.IsRestaurantManagementOrAdmin
             ]
-        elif self.action in ['staff_table_list','order_item_list']:
-            permission_classes =[
+        elif self.action in ['staff_table_list', 'order_item_list']:
+            permission_classes = [
                 custom_permissions.IsRestaurantStaff
             ]
         elif self.action in ['remove_staff']:
@@ -570,11 +582,12 @@ class TableViewSet(LoggingMixin, CustomViewSet):
     def create(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
-        restaurant_qs = Table.objects.filter(restaurant_id  = request.data.get('restaurant')).first()
+        restaurant_qs = Table.objects.filter(
+            restaurant_id=request.data.get('restaurant')).first()
 
         restaurant_id = restaurant_qs.restaurant_id
         if not restaurant_id:
-            return ResponseWrapper(error_msg= ['Restaurant is not valid'])
+            return ResponseWrapper(error_msg=['Restaurant is not valid'])
         self.check_object_permissions(request, obj=restaurant_id)
 
         res_qs = Restaurant.objects.filter(id=request.data.get(
@@ -594,10 +607,10 @@ class TableViewSet(LoggingMixin, CustomViewSet):
     def table_list(self, request, restaurant, *args, **kwargs):
         # url = request.path
         # is_dashboard = url.__contains__('/dashboard/')
-        restaurant_qs = Table.objects.filter(restaurant_id  = restaurant).first()
+        restaurant_qs = Table.objects.filter(restaurant_id=restaurant).first()
         restaurant_id = restaurant_qs.restaurant_id
         if not restaurant_id:
-            return ResponseWrapper(error_msg= ['Restaurant is not valid'])
+            return ResponseWrapper(error_msg=['Restaurant is not valid'])
         self.check_object_permissions(request, obj=restaurant_id)
         qs = self.queryset.filter(restaurant=restaurant_id)
         # if is_dashboard:
@@ -640,7 +653,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         qs = self.get_queryset().filter(staff_assigned=staff_id)
         restaurant_id = qs.first().restaurant_id
         if not restaurant_id:
-            return ResponseWrapper(error_msg= ['Restaurant is not valid'])
+            return ResponseWrapper(error_msg=['Restaurant is not valid'])
         self.check_object_permissions(request, obj=restaurant_id)
         # qs = qs.filter(is_top = True)
         serializer = self.get_serializer(instance=qs, many=True)
@@ -650,7 +663,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         qs = self.get_queryset().filter(pk=table_id).first()
         restaurant_id = qs.restaurant_id
         if not restaurant_id:
-            return ResponseWrapper(error_msg= ['Restaurant is not valid'])
+            return ResponseWrapper(error_msg=['Restaurant is not valid'])
         self.check_object_permissions(request, obj=restaurant_id)
 
         id_list = request.data.get('staff_list', [])
@@ -670,7 +683,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         qs = FoodOrder.objects.filter(table=table_id)
         restaurant_id = qs.first().restaurant_id
         if not restaurant_id:
-            return ResponseWrapper(error_msg= ['Restaurant is not valid'])
+            return ResponseWrapper(error_msg=['Restaurant is not valid'])
         self.check_object_permissions(request, obj=restaurant_id)
 
         # qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
@@ -2120,20 +2133,17 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                      "month_data": {"month_wise_income": month_wise_income, "month_wise_order": month_wise_order}
                                      }, msg="success")
 
-    def waiter_served_report(self, request, waiter_id,*args, **kwargs):
+    def waiter_served_report(self, request, waiter_id, *args, **kwargs):
 
-        waiter_qs = HotelStaffInformation.objects.filter(id = waiter_id).first()
+        waiter_qs = HotelStaffInformation.objects.filter(id=waiter_id).first()
         if not waiter_qs:
             return ResponseWrapper(msg=['You are not a staff'])
         restaurant_id = waiter_qs.restaurant_id
         self.check_object_permissions(request, obj=restaurant_id)
         today = timezone.now().date()
-        staff_order_log_qs = FoodOrderLog.objects.filter(staff_id = waiter_qs.pk)
+        staff_order_log_qs = FoodOrderLog.objects.filter(staff_id=waiter_qs.pk)
 
-
-
-        return ResponseWrapper(msg= 'pass')
-
+        return ResponseWrapper(msg='pass')
 
     def admin_all_report(self, request, *args, **kwargs):
        # today = timezone.datetime.now()
@@ -2887,9 +2897,10 @@ class PrintOrder(CustomViewSet):
     http_method_names = ['get']
 
     def list(self, request, *args, **kwargs):
-        from weasyprint import HTML, CSS
-        from django.template.loader import render_to_string
         import base64
+
+        from django.template.loader import render_to_string
+        from weasyprint import CSS, HTML
         items_qs = OrderedItem.objects.all().exclude(food_extra=None)
         serializer = OrderedItemTemplateSerializer(
             instance=items_qs, many=True)
@@ -2909,6 +2920,6 @@ class PrintOrder(CustomViewSet):
         )
         pdf_obj_encoded = base64.b64encode(pdf_byte_code)
         pdf_obj_encoded = pdf_obj_encoded.decode('utf-8')
-        print_node(pdf_obj=pdf_obj_encoded)
-        
-        return ResponseWrapper(data=serializer.data)
+        success = print_node(pdf_obj=pdf_obj_encoded)
+
+        return ResponseWrapper(data={'success': success})

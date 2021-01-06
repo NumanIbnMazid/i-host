@@ -1,19 +1,22 @@
-from utils.print_node import print_node
-from restaurant.serializers import FoodOrderByTableSerializer
-from django.dispatch import Signal, receiver
-from asgiref.sync import async_to_sync, sync_to_async
-import channels.layers
-from channels.generic.websocket import JsonWebsocketConsumer
-import json
-from channels.db import database_sync_to_async
-from django.conf import settings
-from weasyprint import HTML, CSS
-from django.template.loader import render_to_string
 import base64
-from restaurant.models import Table
-from .models import (
-    FoodOrder)
+import json
 
+import channels.layers
+from asgiref.sync import async_to_sync, sync_to_async
+from channels.db import database_sync_to_async
+from channels.generic.websocket import JsonWebsocketConsumer
+from django.conf import settings
+from django.dispatch import Signal, receiver
+from django.template.loader import render_to_string
+from django.utils import timezone
+from utils.print_node import print_node
+from weasyprint import CSS, HTML
+
+from restaurant.models import Table
+from restaurant.serializers import (FoodOrderByTableSerializer,
+                                    OrderedItemTemplateSerializer)
+
+from .models import FoodOrder
 
 order_done_signal = Signal(
     providing_args=["qs", "data", "state"])
@@ -98,6 +101,15 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, qs=None, d
 
 @receiver(kitchen_items_print_signal)
 def kitchen_items_print_signal(sender, qs=None, *args, **kwargs):
+    # items_qs = OrderedItem.objects.all().exclude(food_extra=None)
+    serializer = OrderedItemTemplateSerializer(
+        instance=qs, many=True)
+    context = {
+        'table_no': 12,
+        'order_id': 12,
+        'time': str(timezone.now().date()) + '  ' + str(timezone.now().time()),
+        'items_data': serializer.data
+    }
     html_string = render_to_string('invoice.html', {'people': "people"})
     # @page { size: Letter; margin: 0cm }
     css = CSS(

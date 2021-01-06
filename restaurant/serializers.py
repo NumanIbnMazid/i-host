@@ -989,9 +989,9 @@ class OrderedItemTemplateSerializer(serializers.ModelSerializer):
 
     def get_food_extra(self, obj):
         if obj.food_extra:
-            return list(obj.food_extra.values_list('name', flat=True))
+            return '('+' ,'.join(list(obj.food_extra.values_list('name', flat=True)))+')'
         else:
-            return []
+            return None
 
     def get_table(self, obj):
         if obj.food_order:
