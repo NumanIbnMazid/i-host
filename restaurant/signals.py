@@ -1,3 +1,4 @@
+from utils.print_node import print_node
 from restaurant.serializers import FoodOrderByTableSerializer
 from django.dispatch import Signal, receiver
 from asgiref.sync import async_to_sync, sync_to_async
@@ -6,7 +7,9 @@ from channels.generic.websocket import JsonWebsocketConsumer
 import json
 from channels.db import database_sync_to_async
 from django.conf import settings
-
+from weasyprint import HTML, CSS
+from django.template.loader import render_to_string
+import base64
 from restaurant.models import Table
 from .models import (
     FoodOrder)
@@ -14,6 +17,9 @@ from .models import (
 
 order_done_signal = Signal(
     providing_args=["qs", "data", "state"])
+
+kitchen_items_print_signal = Signal(
+    providing_args=["qs"])
 
 
 def order_item_list(restaurant_id=1):
@@ -88,3 +94,18 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, qs=None, d
     except:
         pass
     # print('signal got a call', order_qs, table_qs, state)
+
+
+@receiver(kitchen_items_print_signal)
+def kitchen_items_print_signal(sender, qs=None, *args, **kwargs):
+    html_string = render_to_string('invoice.html', {'people': "people"})
+    # @page { size: Letter; margin: 0cm }
+    css = CSS(
+        string='@page { size: 80mm 350mm; margin: 0mm }')
+    pdf_byte_code = HTML(string=html_string).write_pdf(
+        stylesheets=[
+            css], zoom=1
+    )
+    pdf_obj_encoded = base64.b64encode(pdf_byte_code)
+    pdf_obj_encoded = pdf_obj_encoded.decode('utf-8')
+    sync_to_async(print_node(pdf_obj=pdf_obj_encoded))

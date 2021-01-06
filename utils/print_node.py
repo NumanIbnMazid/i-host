@@ -2,7 +2,7 @@ import requests
 from weasyprint import pdf
 
 
-def print_node(pdf_obj):
+async def print_node(pdf_obj):
     # data = {"title": "My Test PrintJob", "contentType": "pdf_uri", "content": "https://ihost-space.sgp1.digitaloceanspaces.com/ihost-space-development/pdfresizer.com-pdf-crop.pdf",
     #         "source": "test documentation!", "options": {'fit_to_page': True}, 'printer': 69976050}
 
