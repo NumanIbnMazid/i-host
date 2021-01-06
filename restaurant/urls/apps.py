@@ -251,7 +251,9 @@ apps_url = [
          VersionUpdateViewSet.as_view({'get': 'user_version_requirement', }), name='user_version_requirement'),
     path('waiter_version_requirement',
          VersionUpdateViewSet.as_view({'get': 'waiter_version_requirement', }), name='waiter_version_requirement'),
-    # path('served_report/<int:waiter_id>/',
-    #     ReportingViewset.as_view({'get': 'waiter_served_report'}), name='waiter_served_report'),
+    path('served_order_report/<int:waiter_id>/',
+        ReportingViewset.as_view({'get': 'waiter_served_report'}), name='waiter_served_report'),
+    path('cancel_order_report/<int:waiter_id>/',
+        ReportingViewset.as_view({'get': 'waiter_cancel_report'}), name='waiter_cancel_report'),
 
     ]+apps_fake
