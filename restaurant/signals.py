@@ -100,7 +100,7 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, qs=None, d
 
 
 @receiver(kitchen_items_print_signal)
-def kitchen_items_print_signal(sender, qs=None, *args, **kwargs):
+def kitchen_items_print(sender, qs=None, *args, **kwargs):
     # items_qs = OrderedItem.objects.all().exclude(food_extra=None)
     serializer = OrderedItemTemplateSerializer(
         instance=qs, many=True)
