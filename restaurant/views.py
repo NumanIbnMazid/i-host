@@ -613,8 +613,8 @@ class TableViewSet(LoggingMixin, CustomViewSet):
     def table_list(self, request, restaurant, *args, **kwargs):
         # url = request.path
         # is_dashboard = url.__contains__('/dashboard/')
-        restaurant_qs = Table.objects.filter(restaurant_id=restaurant).first()
-        restaurant_id = restaurant_qs.restaurant_id
+        restaurant_qs = Restaurant.objects.filter(id=restaurant).first()
+        restaurant_id = restaurant_qs.id
         if not restaurant_id:
             return ResponseWrapper(error_msg=['Restaurant is not valid'])
         self.check_object_permissions(request, obj=restaurant_id)
