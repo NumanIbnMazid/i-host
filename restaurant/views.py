@@ -203,7 +203,6 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
 
     def delete_restaurant(self, request, pk, *args, **kwargs):
         self.check_object_permissions(request, obj=pk)
-        # return ResponseWrapper(error_msg=['You are not authorized person'])
         qs = self.queryset.filter(pk=pk).first()
         if qs:
             qs.deleted_at = timezone.now()
@@ -419,7 +418,7 @@ class FoodExtraViewSet(LoggingMixin, CustomViewSet):
         serializer = serializer_class(data=request.data)
         food_qs = Food.objects.filter(id=request.data.get('food')).first()
         if not food_qs:
-            return ResponseWrapper(error_msg=['Food id is not valid'])
+            return ResponseWrapper(error_msg=['Food id is not valid'], error_code=406)
         restaurant_id = food_qs.restaurant_id
         self.check_object_permissions(request, obj=restaurant_id)
         if serializer.is_valid():
@@ -434,7 +433,7 @@ class FoodExtraViewSet(LoggingMixin, CustomViewSet):
         serializer = serializer_class(data=request.data, partial=True)
         food_qs = Food.objects.filter(id=request.data.get('food')).first()
         if not food_qs:
-            return ResponseWrapper(error_msg=['Food id is not valid'])
+            return ResponseWrapper(error_msg=['Food id is not valid'], error_code=404)
         restaurant_id = food_qs.restaurant_id
         self.check_object_permissions(request, obj=restaurant_id)
         if serializer.is_valid():
@@ -474,7 +473,7 @@ class FoodOptionViewSet(LoggingMixin, CustomViewSet):
         serializer = serializer_class(data=request.data)
         food_qs = Food.objects.filter(id=request.data.get('food')).first()
         if not food_qs:
-            return ResponseWrapper(error_msg=['Food id is not valid'])
+            return ResponseWrapper(error_msg=['Food id is not valid'], error_code=404)
         restaurant_id = food_qs.restaurant_id
         self.check_object_permissions(request, obj=restaurant_id)
         if serializer.is_valid():
@@ -512,7 +511,7 @@ class FoodOptionViewSet(LoggingMixin, CustomViewSet):
         serializer = serializer_class(data=request.data, partial=True)
         food_qs = Food.objects.filter(id=request.data.get('food')).first()
         if not food_qs:
-            return ResponseWrapper(error_msg=['Food id is not valid'])
+            return ResponseWrapper(error_msg=['Food id is not valid'], error_code=404)
         restaurant_id = food_qs.restaurant_id
         self.check_object_permissions(request, obj=restaurant_id)
         if serializer.is_valid():
@@ -593,7 +592,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
 
         restaurant_id = restaurant_qs.id
         if not restaurant_id:
-            return ResponseWrapper(error_msg=['Restaurant is not valid'])
+            return ResponseWrapper(error_msg=['Restaurant is not valid'], error_code=404)
         self.check_object_permissions(request, obj=restaurant_id)
 
         res_qs = Restaurant.objects.filter(id=request.data.get(
@@ -616,7 +615,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         restaurant_qs = Restaurant.objects.filter(id=restaurant).first()
         restaurant_id = restaurant_qs.id
         if not restaurant_id:
-            return ResponseWrapper(error_msg=['Restaurant is not valid'])
+            return ResponseWrapper(error_msg=['Restaurant is not valid'], error_code=404)
         self.check_object_permissions(request, obj=restaurant_id)
         qs = self.queryset.filter(restaurant=restaurant_id)
         # if is_dashboard:
@@ -640,7 +639,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
 
         restaurant_id = qs.restaurant_id
         if not restaurant_id:
-            return ResponseWrapper(error_msg=['Restaurant is not valid'])
+            return ResponseWrapper(error_msg=['Restaurant is not valid'], error_code=404)
         self.check_object_permissions(request, obj=restaurant_id)
 
         id_list = request.data.get('staff_list', [])
@@ -659,7 +658,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         qs = self.get_queryset().filter(staff_assigned=staff_id)
         restaurant_id = qs.first().restaurant_id
         if not restaurant_id:
-            return ResponseWrapper(error_msg=['Restaurant is not valid'])
+            return ResponseWrapper(error_msg=['Restaurant is not valid'],error_code=404)
         self.check_object_permissions(request, obj=restaurant_id)
         # qs = qs.filter(is_top = True)
         serializer = self.get_serializer(instance=qs, many=True)
@@ -669,7 +668,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         qs = self.get_queryset().filter(pk=table_id).first()
         restaurant_id = qs.restaurant_id
         if not restaurant_id:
-            return ResponseWrapper(error_msg=['Restaurant is not valid'])
+            return ResponseWrapper(error_msg=['Restaurant is not valid'], error_code=404)
         self.check_object_permissions(request, obj=restaurant_id)
 
         id_list = request.data.get('staff_list', [])
@@ -689,7 +688,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         qs = FoodOrder.objects.filter(table=table_id)
         restaurant_id = qs.first().restaurant_id
         if not restaurant_id:
-            return ResponseWrapper(error_msg=['Restaurant is not valid'])
+            return ResponseWrapper(error_msg=['Restaurant is not valid'], error_code=404)
         self.check_object_permissions(request, obj=restaurant_id)
 
         # qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
@@ -1566,7 +1565,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         re_order_item_qs = OrderedItem.objects.filter(
             id=request.data.get("order_item_id")).first()
         if re_order_item_qs.food_order.status == '5_PAID':
-            return ResponseWrapper(error_msg=['Order is already paid'])
+            return ResponseWrapper(error_msg=['Order is already paid'], error_code= 406)
 
         if re_order_item_qs.status in ['2_ORDER_CONFIRMED', '3_IN_TABLE']:
             # for item in re_order_item_qs:
@@ -1578,7 +1577,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             re_order_item_qs.quantity = update_quantity
             re_order_item_qs.save()
         else:
-            return ResponseWrapper(error_msg=['Order Item is already Cancelled'])
+            return ResponseWrapper(error_msg=['Order Item is already Cancelled'], error_code=406)
 
         # food_order_qs = OrderedItem.objects.filter(food_order_id = re_order_item_qs.food_order_id)
 
@@ -2683,7 +2682,7 @@ class FcmCommunication(viewsets.GenericViewSet):
         ):
             return ResponseWrapper(msg='Success')
         else:
-            return ResponseWrapper(error_msg="failed to notify")
+            return ResponseWrapper(error_msg=["failed to notify"], error_code=400)
 
     def collect_payment(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -2712,7 +2711,7 @@ class FcmCommunication(viewsets.GenericViewSet):
         ):
             return ResponseWrapper(msg='Success')
         else:
-            return ResponseWrapper(error_msg="failed to notify")
+            return ResponseWrapper(error_msg="failed to notify", error_code=400)
 
     def fcm_notification_history_for_staff(self, request, staff_id, *args, **kwargs):
         qs = FcmNotificationStaff.objects.filter(
