@@ -1006,11 +1006,11 @@ class ServedOrderSerializer(serializers.ModelSerializer):
 
     def get_order(self, obj):
         if obj.order:
-            table_id = obj.order.table.pk
+            table_no = obj.order.table.table_no
             order_id = obj.order.pk
             order_status = obj.order.status
             order_amaount = obj.order.payable_amount
-            return {'table_id':table_id, 'order_id':order_id,
+            return {'table_id':table_no, 'order_id':order_id,
                     'order_status':order_status,
                     'order_amaount':order_amaount
                     }

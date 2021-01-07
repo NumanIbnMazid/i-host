@@ -588,10 +588,10 @@ class TableViewSet(LoggingMixin, CustomViewSet):
     def create(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
-        restaurant_qs = Table.objects.filter(
-            restaurant_id=request.data.get('restaurant')).first()
+        restaurant_qs = Restaurant.objects.filter(
+            id=request.data.get('restaurant')).first()
 
-        restaurant_id = restaurant_qs.restaurant_id
+        restaurant_id = restaurant_qs.id
         if not restaurant_id:
             return ResponseWrapper(error_msg=['Restaurant is not valid'])
         self.check_object_permissions(request, obj=restaurant_id)
