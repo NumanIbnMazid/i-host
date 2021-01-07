@@ -1082,12 +1082,14 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
         all_items_qs = OrderedItem.objects.filter(
             food_order=order_qs.pk, status__in=["1_ORDER_PLACED"])
-        all_items_qs.filter(pk__in=request.data.get(
-            'food_items')).update(status='2_ORDER_CONFIRMED')
-        kitchen_items_print_signal.send(
-            sender=self.__class__.confirm_status,
-            qs=all_items_qs,
-        )
+        qs = all_items_qs.filter(pk__in=request.data.get(
+            'food_items'))
+        if qs:
+            kitchen_items_print_signal.send(
+                sender=self.__class__.confirm_status,
+                qs=qs,
+            )
+        qs.update(status='2_ORDER_CONFIRMED')
         all_items_qs.exclude(pk__in=request.data.get(
             'food_items')).update(status='4_CANCELLED')
 
@@ -1123,13 +1125,14 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_msg=['Order is invalid'], error_code=400)
 
         all_items_qs = OrderedItem.objects.filter(
-            food_order=order_qs.pk, status__in=["1_ORDER_PLACED"])
-        all_items_qs.filter(pk__in=request.data.get(
-            'food_items')).update(status='2_ORDER_CONFIRMED')
-        kitchen_items_print_signal.send(
-            sender=self.__class__.confirm_status,
-            qs=all_items_qs
-        )
+            food_order=order_qs.pk, pk__in=request.data.get(
+                'food_items'), status__in=["1_ORDER_PLACED"])
+        if all_items_qs:
+            kitchen_items_print_signal.send(
+                sender=self.__class__.confirm_status,
+                qs=all_items_qs
+            )
+        all_items_qs.update(status='2_ORDER_CONFIRMED')
         # all_items_qs.exclude(pk__in=request.data.get(
         #     'food_items')).update(status='4_CANCELLED')
 
