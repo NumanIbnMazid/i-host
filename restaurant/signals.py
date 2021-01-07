@@ -11,7 +11,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from utils.print_node import print_node
 from weasyprint import CSS, HTML
-
+import datetime
 from restaurant.models import Table
 from restaurant.serializers import (FoodOrderByTableSerializer,
                                     OrderedItemTemplateSerializer)
@@ -104,11 +104,12 @@ def kitchen_items_print(sender, qs=None, *args, **kwargs):
     # items_qs = OrderedItem.objects.all().exclude(food_extra=None)
     serializer = OrderedItemTemplateSerializer(
         instance=qs, many=True)
+    now = datetime.now()
     context = {
         'table_no': qs.values_list('food_order__table__table_no', flat=True).distinct().last(),
         'order_id': qs.values_list('food_order_id', flat=True).distinct().last(),
-        'date': str(timezone.now().strftime('%d/%m/%Y')),
-        'time': str(timezone.now().strftime("%I:%M %p")),
+        'date': str(now.strftime('%d/%m/%Y')),
+        'time': str(now.strftime("%I:%M %p")),
         'items_data': serializer.data
     }
     html_string = render_to_string('invoice.html', context)
