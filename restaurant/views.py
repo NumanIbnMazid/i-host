@@ -899,8 +899,18 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         if request.data.get('table'):
             food_order_dict['table_id'] = request.data.get('table')
 
+        table_qs = Table.objects.filter(pk=food_order_dict.get('table_id')).first()
+        if table_qs:
+            if table_qs.is_occupied:
+                return ResponseWrapper(error_code=status.HTTP_406_NOT_ACCEPTABLE,error_msg=['table already occupied'])
+            else:
+                table_qs.is_occupied = True
+                table_qs.save()
+
         qs = FoodOrder.objects.create(**food_order_dict)
+
         serializer = FoodOrderUserPostSerializer(instance=qs)
+
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=restaurant_id,
@@ -2946,7 +2956,8 @@ class PrintOrder(CustomViewSet):
             'table_no': 12,
             'order_id': 12,
             # 'time': str(timezone.now().date()) + '  ' + str(timezone.now().time()),
-            'time': str(now.strftime('%Y/%m/%d %H:%M:%S')),
+            'date': str(now.strftime('%d/%m/%Y')),
+            'time': str(now.strftime("%I:%M %p")),
             'items_data': serializer.data
         }
         html_string = render_to_string('invoice.html', context)
@@ -2959,6 +2970,6 @@ class PrintOrder(CustomViewSet):
         )
         pdf_obj_encoded = base64.b64encode(pdf_byte_code)
         pdf_obj_encoded = pdf_obj_encoded.decode('utf-8')
-        success = print_node(pdf_obj=pdf_obj_encoded)
+        # success = print_node(pdf_obj=pdf_obj_encoded)
 
-        return ResponseWrapper(data={'success': success})
+        return ResponseWrapper(data={'success': True})
