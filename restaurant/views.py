@@ -2948,6 +2948,7 @@ class PrintOrder(CustomViewSet):
         from django.template.loader import render_to_string
         from weasyprint import CSS, HTML
         items_qs = OrderedItem.objects.all().exclude(food_extra=None)
+        #order_by('-pk')[:50]
         serializer = OrderedItemTemplateSerializer(
             instance=items_qs, many=True)
         now = datetime.now()
@@ -2962,7 +2963,7 @@ class PrintOrder(CustomViewSet):
         # @page { size: Letter; margin: 0cm }
         css = CSS(
             string='@page { size: 80mm 350mm; margin: 0mm }')
-        pdf_byte_code = HTML(string=html_string).write_pdf(
+        pdf_byte_code = HTML(string=html_string).write_pdf('ll.pdf',
             stylesheets=[
                 css], zoom=1
         )
