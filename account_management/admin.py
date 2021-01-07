@@ -10,11 +10,14 @@ class HotelStaffInformationAdmin(admin.ModelAdmin):
 class CustomerFcmDeviceAdmin(admin.ModelAdmin):
     list_display = ['customer', 'device_type']
 
+class CustomerInfoAdmin(admin.ModelAdmin):
+    list_display = ['name','user']
+
 
 admin.site.register(UserAccount)
 admin.site.register(HotelStaffInformation, HotelStaffInformationAdmin)
 admin.site.register(PhoneVerification)
-admin.site.register(CustomerInfo)
+admin.site.register(CustomerInfo, CustomerInfoAdmin)
 admin.site.register(StaffFcmDevice)
 admin.site.register(CustomerFcmDevice, CustomerFcmDeviceAdmin)
 admin.site.register(FcmNotificationCustomer)
