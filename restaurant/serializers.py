@@ -988,7 +988,7 @@ class OrderedItemTemplateSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_food_extra(self, obj):
-        if obj.food_extra:
+        if obj.food_extra.count():
             return '('+' ,'.join(list(obj.food_extra.values_list('name', flat=True)))+')'
         else:
             return None

@@ -2939,6 +2939,7 @@ class PrintOrder(CustomViewSet):
         from django.template.loader import render_to_string
         from weasyprint import CSS, HTML
         items_qs = OrderedItem.objects.all().exclude(food_extra=None)
+        #order_by('-pk')[:50]
         serializer = OrderedItemTemplateSerializer(
             instance=items_qs, many=True)
         now = datetime.now()
