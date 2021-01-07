@@ -1018,17 +1018,18 @@ class ServedOrderSerializer(serializers.ModelSerializer):
                     }
 
 class CustomerOrderDetailsSerializer(serializers.ModelSerializer):
-    table = serializers.SerializerMethodField(read_only=True)
+   # table = serializers.SerializerMethodField(read_only=True)
     order_id = serializers.IntegerField(source='id')
+    restaurant_name = serializers.CharField(source='restaurant.name')
     class Meta:
         model = FoodOrder
-        fields = ['order_id', 'table', 'status','created_at']
+        fields = ['order_id','restaurant_name', 'payable_amount','created_at']
 
-    def get_table(self, obj):
-        if obj.table:
-            table_id = obj.table.id
-            table_no = obj.table.table_no
-            restaurant_name = obj.table.restaurant.name
-            return {'table_id':table_id,
-                    'table_no':table_no,
-                    'restaurant_name':restaurant_name}
+    # def get_table(self, obj):
+    #     if obj.table:
+    #         table_id = obj.table.id
+    #         table_no = obj.table.table_no
+    #         restaurant_name = obj.table.restaurant.name
+    #         return {'table_id':table_id,
+    #                 'table_no':table_no,
+    #                 'restaurant_name':restaurant_name}
