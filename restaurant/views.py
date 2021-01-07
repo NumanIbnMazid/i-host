@@ -82,7 +82,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           ReportByDateRangeSerializer, VersionUpdateSerializer, HotelStaffInformationSerializer,
                           ServedOrderSerializer,
                           TopRecommendedFoodListSerializer,
-                          VersionUpdateSerializer)
+                          VersionUpdateSerializer, CustomerOrderDetailsSerializer)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -793,11 +793,11 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         #     permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
 
-    def get_pagination_class(self):
-        if self.action in ['customer_order_history']:
-            return CustomLimitPagination
-
-    pagination_class = property(get_pagination_class)
+    # def get_pagination_class(self):
+    #     if self.action in ['customer_order_history']:
+    #         return CustomLimitPagination
+    #
+    # pagination_class = property(get_pagination_class)
 
     # def book_table(self, request):
     #     # serializer_class = self.get_serializer_class()
@@ -1414,13 +1414,12 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='Table Transfer')
 
     def customer_order_history(self, request, *args, **kwargs):
-        order_qs = FoodOrder.objects.filter(customer__user=request.user.pk)
-        page_qs = self.paginate_queryset(order_qs)
+        order_qs = FoodOrder.objects.filter(customer__user=request.user.pk, status = '5_PAID').order_by('-created_at')
+       # page_qs = self.paginate_queryset(order_qs)
+        serializer = CustomerOrderDetailsSerializer(instance=order_qs, many=True)
+        # paginated_data = self.get_paginated_response(serializer.data)
 
-        serializer = FoodOrderByTableSerializer(instance=page_qs, many=True)
-        paginated_data = self.get_paginated_response(serializer.data)
-
-        return ResponseWrapper(paginated_data.data)
+        return ResponseWrapper(data = serializer.data,msg = 'success')
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
