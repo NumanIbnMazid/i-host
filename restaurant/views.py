@@ -2946,7 +2946,8 @@ class PrintOrder(CustomViewSet):
             'table_no': 12,
             'order_id': 12,
             # 'time': str(timezone.now().date()) + '  ' + str(timezone.now().time()),
-            'time': str(now.strftime('%Y/%m/%d %H:%M:%S')),
+            'date': str(now.strftime('%d/%m/%Y')),
+            'time': str(now.strftime("%I:%M %p")),
             'items_data': serializer.data
         }
         html_string = render_to_string('invoice.html', context)
@@ -2959,6 +2960,6 @@ class PrintOrder(CustomViewSet):
         )
         pdf_obj_encoded = base64.b64encode(pdf_byte_code)
         pdf_obj_encoded = pdf_obj_encoded.decode('utf-8')
-        success = print_node(pdf_obj=pdf_obj_encoded)
+        # success = print_node(pdf_obj=pdf_obj_encoded)
 
-        return ResponseWrapper(data={'success': success})
+        return ResponseWrapper(data={'success': True})

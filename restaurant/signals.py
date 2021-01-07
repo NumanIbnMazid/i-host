@@ -107,7 +107,8 @@ def kitchen_items_print(sender, qs=None, *args, **kwargs):
     context = {
         'table_no': 12,
         'order_id': 12,
-        'time': str(timezone.now().date()) + '  ' + str(timezone.now().time()),
+        'date': str(timezone.now().strftime('%d/%m/%Y')),
+        'time': str(timezone.now().strftime("%I:%M %p")),
         'items_data': serializer.data
     }
     html_string = render_to_string('invoice.html', context)
