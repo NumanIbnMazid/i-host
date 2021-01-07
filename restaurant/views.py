@@ -658,7 +658,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         qs = self.get_queryset().filter(staff_assigned=staff_id)
         restaurant_id = qs.first().restaurant_id
         if not restaurant_id:
-            return ResponseWrapper(error_msg=['Restaurant is not valid'],error_code=404)
+            return ResponseWrapper(error_msg=['Restaurant is not valid'], error_code=404)
         self.check_object_permissions(request, obj=restaurant_id)
         # qs = qs.filter(is_top = True)
         serializer = self.get_serializer(instance=qs, many=True)
@@ -899,10 +899,11 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         if request.data.get('table'):
             food_order_dict['table_id'] = request.data.get('table')
 
-        table_qs = Table.objects.filter(pk=food_order_dict.get('table_id')).first()
+        table_qs = Table.objects.filter(
+            pk=food_order_dict.get('table_id')).first()
         if table_qs:
             if table_qs.is_occupied:
-                return ResponseWrapper(error_code=status.HTTP_406_NOT_ACCEPTABLE,error_msg=['table already occupied'])
+                return ResponseWrapper(error_code=status.HTTP_406_NOT_ACCEPTABLE, error_msg=['table already occupied'])
             else:
                 table_qs.is_occupied = True
                 table_qs.save()
@@ -1237,6 +1238,13 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             else:
                 order_qs.status = '4_CREATE_INVOICE'
                 order_qs.save()
+
+                waiter_qs = HotelStaffInformation.objects.filter(
+                    user=request.user.pk).first()
+                if waiter_qs.is_waiter:
+                    food_order_log = FoodOrderLog.objects.create(
+                        order=order_qs, staff=waiter_qs, order_status=order_qs.status)
+
                 invoice_qs = self.invoice_generator(
                     order_qs, payment_status="0_UNPAID")
 
@@ -1335,13 +1343,14 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                     table_qs.is_occupied = False
                     table_qs.save()
 
-                invoice_qs = self.invoice_generator(
-                    order_qs, payment_status='1_PAID')
                 waiter_qs = HotelStaffInformation.objects.filter(
                     user=request.user.pk).first()
                 if waiter_qs.is_waiter:
                     food_order_log = FoodOrderLog.objects.create(
                         order=order_qs, staff=waiter_qs, order_status=order_qs.status)
+
+                invoice_qs = self.invoice_generator(
+                    order_qs, payment_status='1_PAID')
 
                 serializer = InvoiceSerializer(instance=invoice_qs)
                 order_done_signal.send(
@@ -1578,7 +1587,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         re_order_item_qs = OrderedItem.objects.filter(
             id=request.data.get("order_item_id")).first()
         if re_order_item_qs.food_order.status == '5_PAID':
-            return ResponseWrapper(error_msg=['Order is already paid'], error_code= 406)
+            return ResponseWrapper(error_msg=['Order is already paid'], error_code=406)
 
         if re_order_item_qs.status in ['2_ORDER_CONFIRMED', '3_IN_TABLE']:
             # for item in re_order_item_qs:
@@ -2948,7 +2957,7 @@ class PrintOrder(CustomViewSet):
         from django.template.loader import render_to_string
         from weasyprint import CSS, HTML
         items_qs = OrderedItem.objects.all().exclude(food_extra=None)
-        #order_by('-pk')[:50]
+        # order_by('-pk')[:50]
         serializer = OrderedItemTemplateSerializer(
             instance=items_qs, many=True)
         now = datetime.now()
@@ -2965,9 +2974,9 @@ class PrintOrder(CustomViewSet):
         css = CSS(
             string='@page { size: 80mm 350mm; margin: 0mm }')
         pdf_byte_code = HTML(string=html_string).write_pdf('ll.pdf',
-            stylesheets=[
-                css], zoom=1
-        )
+                                                           stylesheets=[
+                                                               css], zoom=1
+                                                           )
         pdf_obj_encoded = base64.b64encode(pdf_byte_code)
         pdf_obj_encoded = pdf_obj_encoded.decode('utf-8')
         # success = print_node(pdf_obj=pdf_obj_encoded)
