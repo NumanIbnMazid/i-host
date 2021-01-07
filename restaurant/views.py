@@ -655,7 +655,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_code=400, error_msg='wrong table id')
 
     def staff_table_list(self, request, staff_id, *args, **kwargs):
-        qs = self.get_queryset().filter(staff_assigned=staff_id)
+        qs = self.get_queryset().filter(staff_assigned=staff_id).order_by('table_no')
         restaurant_id = qs.first().restaurant_id
         if not restaurant_id:
             return ResponseWrapper(error_msg=['Restaurant is not valid'], error_code=404)
