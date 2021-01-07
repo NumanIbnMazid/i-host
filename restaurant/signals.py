@@ -110,7 +110,7 @@ def kitchen_items_print(sender, qs=None, *args, **kwargs):
         'time': str(timezone.now().date()) + '  ' + str(timezone.now().time()),
         'items_data': serializer.data
     }
-    html_string = render_to_string('invoice.html', {'people': "people"})
+    html_string = render_to_string('invoice.html', context)
     # @page { size: Letter; margin: 0cm }
     css = CSS(
         string='@page { size: 80mm 350mm; margin: 0mm }')
@@ -120,4 +120,4 @@ def kitchen_items_print(sender, qs=None, *args, **kwargs):
     )
     pdf_obj_encoded = base64.b64encode(pdf_byte_code)
     pdf_obj_encoded = pdf_obj_encoded.decode('utf-8')
-    sync_to_async(print_node(pdf_obj=pdf_obj_encoded))
+    print_node(pdf_obj=pdf_obj_encoded)
