@@ -112,6 +112,7 @@ class StaffInfoGetSerializer(serializers.ModelSerializer):
     user = UserAccountSerializer(read_only=True)
     phone = serializers.CharField(source='user.phone', read_only=True)
     first_name = serializers.CharField(source='user.first_name')
+    table_no = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = HotelStaffInformation
@@ -130,8 +131,16 @@ class StaffInfoGetSerializer(serializers.ModelSerializer):
             "restaurant",
             "phone",
             "tables",
+            "table_no",
             "email",
         ]
+
+    def get_table_no(self, obj):
+        if obj:
+            return obj.tables.values_list('table_no', flat=True)
+        return []
+
+
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
