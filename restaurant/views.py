@@ -1476,7 +1476,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         )
         is_apps = request.path.__contains__('/apps/')
         calculate_price_with_initial_item = request.path.__contains__(
-            '/apps/customer/ordered_item/')
+            '/apps/customer/order/cart/items/')
 
         serializer = FoodOrderByTableSerializer(
             instance=order_qs, context={'is_apps': is_apps, 'request': request,
@@ -1499,7 +1499,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             )
             is_apps = request.path.__contains__('/apps/')
             calculate_price_with_initial_item = request.path.__contains__(
-                '/apps/customer/ordered_item/')
+                '/apps/customer/order/cart/items/')
 
             serializer = FoodOrderSerializer(instance=order_qs, context={
                                              'is_apps': is_apps, 'request': request,
