@@ -352,8 +352,10 @@ class FoodOrderedViewSet(LoggingMixin, CustomViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         is_apps = request.path.__contains__('/apps/')
+        calculate_price_with_initial_item = request.path.__contains__(
+            '/apps/customer/ordered_item/')
         serializer = self.get_serializer(
-            instance, context={'is_apps': is_apps, 'request': request})
+            instance, context={'is_apps': is_apps, 'request': request, "calculate_price_with_initial_item": calculate_price_with_initial_item})
         return ResponseWrapper(serializer.data)
 
     # def ordered_item_list(self, request, ordered_id, *args, **kwargs):
