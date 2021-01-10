@@ -2891,7 +2891,7 @@ class RestaurantMessagesViewset(LoggingMixin, CustomViewSet):
             instance=restaurant_qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
-    def last_restaurant_messages_list(self, request, *args, **kwargs):
+    def all_restaurant_messages_list(self, request, *args, **kwargs):
         notification_list_qs = RestaurantMessages.objects.all().order_by('-updated_at')[:10]
         serializer = RestaurantMessagesListSerializer(instance=notification_list_qs, many=True)
         return ResponseWrapper(data = serializer.data, msg='success')
