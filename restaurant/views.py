@@ -7,10 +7,10 @@ from datetime import date, datetime, timedelta
 from account_management import models, serializers
 from account_management.models import (CustomerInfo, FcmNotificationStaff,
                                        HotelStaffInformation, StaffFcmDevice,
-                                       UserAccount)
+                                       UserAccount, FcmNotificationCustomer)
 from account_management.serializers import (ListOfIdSerializer,
                                             StaffInfoGetSerializer,
-                                            StaffInfoSerializer)
+                                            StaffInfoSerializer, CustomerNotificationSerializer)
 from dateutil.relativedelta import relativedelta
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Count, Min, Q, query_utils
@@ -2556,7 +2556,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         permission_classes = []
         if self.action in ['discount_delete', 'delete_discount', 'create_discount']:
             permission_classes = [permissions.IsAuthenticated]
-        elif self.action in ['last_discount_offer_list']:
+        elif self.action in ['last_notification_list']:
             permission_classes = [permissions.IsAuthenticated]
         # else:
         #     permission_classes = [permissions.IsAdminUser]
@@ -2591,9 +2591,9 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
 
         return ResponseWrapper(paginated_data.data)
 
-    def last_discount_offer_list(self, request, *args, **kwargs):
-        discount_list_qs = Discount.objects.all().order_by('-start_date')[:10]
-        serializer = DiscountSerializer(instance=discount_list_qs, many=True)
+    def last_notification_list(self, request, *args, **kwargs):
+        fcm_notification_list_qs = FcmNotificationCustomer.objects.all().order_by('-created_at')[:10]
+        serializer = CustomerNotificationSerializer(instance=fcm_notification_list_qs, many=True)
         return ResponseWrapper(data = serializer.data, msg='success')
 
     def discount(self, request, pk, *args, **kwargs):
