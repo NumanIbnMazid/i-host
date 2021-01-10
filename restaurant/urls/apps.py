@@ -195,6 +195,10 @@ apps_fake = [
 
     path('restaurant/<int:restaurant>/discount_list/',
          DiscountViewSet.as_view({'get': 'discount_list'}), name='discount_list'),
+
+    path('last_notification_list',
+         DiscountViewSet.as_view({'get': 'last_notification_list'}), name='last_notification_list'),
+
     path('restaurant/discount/<int:pk>/',
          DiscountViewSet.as_view({'get': 'discount'}), name='discount'),
 

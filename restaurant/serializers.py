@@ -409,7 +409,9 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
         # OrderedItemGetDetailsSerializer(many=True, read_only=True)
 
     def get_price(self, obj):
-        return calculate_price(food_order_obj=obj)
+        calculate_price_with_initial_item = self.context.get(
+            'calculate_price_with_initial_item', False)
+        return calculate_price(food_order_obj=obj, include_initial_order=calculate_price_with_initial_item)
 
     def get_customer(self, obj):
         if obj.customer:
@@ -1017,13 +1019,16 @@ class ServedOrderSerializer(serializers.ModelSerializer):
                     'order_amaount': order_amaount
                     }
 
+
 class CustomerOrderDetailsSerializer(serializers.ModelSerializer):
    # table = serializers.SerializerMethodField(read_only=True)
     order_id = serializers.IntegerField(source='id')
     restaurant_name = serializers.CharField(source='restaurant.name')
+
     class Meta:
         model = FoodOrder
-        fields = ['order_id','restaurant_name', 'payable_amount','created_at']
+        fields = ['order_id', 'restaurant_name',
+                  'payable_amount', 'created_at']
 
     # def get_table(self, obj):
     #     if obj.table:

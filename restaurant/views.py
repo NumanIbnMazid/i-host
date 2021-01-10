@@ -7,10 +7,10 @@ from datetime import date, datetime, timedelta
 from account_management import models, serializers
 from account_management.models import (CustomerInfo, FcmNotificationStaff,
                                        HotelStaffInformation, StaffFcmDevice,
-                                       UserAccount)
+                                       UserAccount, FcmNotificationCustomer)
 from account_management.serializers import (ListOfIdSerializer,
                                             StaffInfoGetSerializer,
-                                            StaffInfoSerializer)
+                                            StaffInfoSerializer, CustomerNotificationSerializer)
 from dateutil.relativedelta import relativedelta
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Count, Min, Q, query_utils
@@ -352,8 +352,10 @@ class FoodOrderedViewSet(LoggingMixin, CustomViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         is_apps = request.path.__contains__('/apps/')
+        calculate_price_with_initial_item = request.path.__contains__(
+            '/apps/customer/ordered_item/')
         serializer = self.get_serializer(
-            instance, context={'is_apps': is_apps, 'request': request})
+            instance, context={'is_apps': is_apps, 'request': request, "calculate_price_with_initial_item": calculate_price_with_initial_item})
         return ResponseWrapper(serializer.data)
 
     # def ordered_item_list(self, request, ordered_id, *args, **kwargs):
@@ -2556,8 +2558,8 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         permission_classes = []
         if self.action in ['discount_delete', 'delete_discount', 'create_discount']:
             permission_classes = [permissions.IsAuthenticated]
-        # elif self.action == "retrieve" or self.action == "update":
-        #     permission_classes = [permissions.AllowAny]
+        elif self.action in ['last_notification_list']:
+            permission_classes = [permissions.IsAuthenticated]
         # else:
         #     permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
@@ -2590,6 +2592,11 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         paginated_data = self.get_paginated_response(serializer.data)
 
         return ResponseWrapper(paginated_data.data)
+
+    def last_notification_list(self, request, *args, **kwargs):
+        fcm_notification_list_qs = FcmNotificationCustomer.objects.all().order_by('-created_at')[:10]
+        serializer = CustomerNotificationSerializer(instance=fcm_notification_list_qs, many=True)
+        return ResponseWrapper(data = serializer.data, msg='success')
 
     def discount(self, request, pk, *args, **kwargs):
         qs = Discount.objects.filter(id=pk)
