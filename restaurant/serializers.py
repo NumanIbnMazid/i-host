@@ -409,7 +409,9 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
         # OrderedItemGetDetailsSerializer(many=True, read_only=True)
 
     def get_price(self, obj):
-        return calculate_price(food_order_obj=obj)
+        calculate_price_with_initial_item = self.context.get(
+            'calculate_price_with_initial_item', False)
+        return calculate_price(food_order_obj=obj, include_initial_order=calculate_price_with_initial_item)
 
     def get_customer(self, obj):
         if obj.customer:
@@ -477,11 +479,6 @@ class FoodOrderSerializer(FoodOrderByTableSerializer):
                   "price",
                   'ordered_items'
                   ]
-
-    def get_price(self, obj):
-        calculate_price_with_initial_item = self.context.get(
-            'calculate_price_with_initial_item', False)
-        return calculate_price(food_order_obj=obj, include_initial_order=calculate_price_with_initial_item)
 
 
 class FoodOrderForStaffSerializer(serializers.ModelSerializer):
