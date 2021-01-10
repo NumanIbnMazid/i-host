@@ -2556,8 +2556,8 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         permission_classes = []
         if self.action in ['discount_delete', 'delete_discount', 'create_discount']:
             permission_classes = [permissions.IsAuthenticated]
-        # elif self.action == "retrieve" or self.action == "update":
-        #     permission_classes = [permissions.AllowAny]
+        elif self.action in ['last_discount_offer_list']:
+            permission_classes = [permissions.IsAuthenticated]
         # else:
         #     permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
@@ -2590,6 +2590,11 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         paginated_data = self.get_paginated_response(serializer.data)
 
         return ResponseWrapper(paginated_data.data)
+
+    def last_discount_offer_list(self, request, *args, **kwargs):
+        discount_list_qs = Discount.objects.all().order_by('-start_date')[:10]
+        serializer = DiscountSerializer(instance=discount_list_qs, many=True)
+        return ResponseWrapper(data = serializer.data, msg='success')
 
     def discount(self, request, pk, *args, **kwargs):
         qs = Discount.objects.filter(id=pk)
