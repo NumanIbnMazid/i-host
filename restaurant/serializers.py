@@ -956,6 +956,12 @@ class RestaurantMessagesSerializer(serializers.ModelSerializer):
         model = RestaurantMessages
         fields = '__all__'
 
+class RestaurantMessagesListSerializer(serializers.ModelSerializer):
+    restaurant_name = serializers.CharField(source='restaurant.name')
+    class Meta:
+        model = RestaurantMessages
+        fields = ['id','restaurant','restaurant_name','title','message','updated_at']
+
 
 class FcmNotificationStaffSerializer(serializers.ModelSerializer):
     class Meta:

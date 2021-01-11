@@ -196,8 +196,8 @@ apps_fake = [
     path('restaurant/<int:restaurant>/discount_list/',
          DiscountViewSet.as_view({'get': 'discount_list'}), name='discount_list'),
 
-    path('last_notification_list',
-         DiscountViewSet.as_view({'get': 'last_notification_list'}), name='last_notification_list'),
+    path('all_restaurant_messages_list',
+         RestaurantMessagesViewset.as_view({'get': 'all_restaurant_messages_list'}), name='all_restaurant_messages_list'),
 
     path('restaurant/discount/<int:pk>/',
          DiscountViewSet.as_view({'get': 'discount'}), name='discount'),
@@ -229,6 +229,7 @@ apps_fake = [
          ReviewViewset.as_view({'post': 'create'}, name='create')),
     path('restaurant_messages_list/<int:restaurant>/',
          RestaurantMessagesViewset.as_view({'get': 'restaurant_messages_list'}, name='restaurant_messages_list')),
+
     path('payment_type/<int:restaurant>/',
          PaymentTypeViewSet.as_view({'get': 'restaurant_payment_type'}, name='restaurant_payment_type')),
 

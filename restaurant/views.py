@@ -82,7 +82,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           ReportByDateRangeSerializer, VersionUpdateSerializer, HotelStaffInformationSerializer,
                           ServedOrderSerializer,
                           TopRecommendedFoodListSerializer,
-                          VersionUpdateSerializer, CustomerOrderDetailsSerializer)
+                          VersionUpdateSerializer, CustomerOrderDetailsSerializer, RestaurantMessagesListSerializer)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -1475,8 +1475,12 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             restaurant_id=restaurant_id,
         )
         is_apps = request.path.__contains__('/apps/')
+        calculate_price_with_initial_item = request.path.__contains__(
+            '/apps/customer/order/cart/items/')
+
         serializer = FoodOrderByTableSerializer(
-            instance=order_qs, context={'is_apps': is_apps, 'request': request})
+            instance=order_qs, context={'is_apps': is_apps, 'request': request,
+                                        'calculate_price_with_initial_item':calculate_price_with_initial_item})
 
         return ResponseWrapper(data=serializer.data, msg='Served')
 
@@ -1494,9 +1498,12 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
                 restaurant_id=restaurant_id,
             )
             is_apps = request.path.__contains__('/apps/')
+            calculate_price_with_initial_item = request.path.__contains__(
+                '/apps/customer/order/cart/items/')
 
             serializer = FoodOrderSerializer(instance=order_qs, context={
-                                             'is_apps': is_apps, 'request': request})
+                                             'is_apps': is_apps, 'request': request,
+                                             'calculate_price_with_initial_item':calculate_price_with_initial_item})
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -1507,15 +1514,19 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         if serializer.is_valid():
             is_invalid_order = True
             is_staff_order = False
+            is_waiter_staff_order = False
             if request.data:
                 food_order = request.data[0].get('food_order')
                 food_order_qs = FoodOrder.objects.filter(pk=food_order)
                 restaurant_id = food_order_qs.first().table.restaurant_id
                 is_staff = request.path.__contains__('/waiter_order/')
                 if is_staff:
-                    if HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True) | Q(is_waiter=True), user=request.user.pk, restaurant_id=restaurant_id):
+                    if HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk, restaurant_id=restaurant_id):
                         food_order_qs = food_order_qs.first()
                         is_staff_order = True
+                    elif HotelStaffInformation.objects.filter(is_waiter=True, user=request.user.pk, restaurant_id=restaurant_id):
+                        food_order_qs = food_order_qs.first()
+                        is_waiter_staff_order = True
 
                 else:
                     food_order_qs = food_order_qs.exclude(
@@ -1536,6 +1547,15 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
                 qs = OrderedItem.objects.filter(pk__in=order_pk_list)
                 qs.update(status='2_ORDER_CONFIRMED')
                 food_order_qs.status = '2_ORDER_CONFIRMED'
+                food_order_qs.save()
+
+            elif is_waiter_staff_order:
+                order_pk_list = list()
+                for item in qs:
+                    order_pk_list.append(item.pk)
+                qs = OrderedItem.objects.filter(pk__in=order_pk_list)
+                qs.update(status='1_ORDER_PLACED')
+                food_order_qs.status = '1_ORDER_PLACED'
                 food_order_qs.save()
 
             # order_order_qs= FoodOrder.objects.filter(status = '0_ORDER_INITIALIZED',pk=request.data.get('id'))
@@ -2558,8 +2578,8 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         permission_classes = []
         if self.action in ['discount_delete', 'delete_discount', 'create_discount']:
             permission_classes = [permissions.IsAuthenticated]
-        elif self.action in ['last_notification_list']:
-            permission_classes = [permissions.IsAuthenticated]
+        # elif self.action in ['last_notification_list']:
+        #     permission_classes = [permissions.IsAuthenticated]
         # else:
         #     permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
@@ -2593,10 +2613,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
 
         return ResponseWrapper(paginated_data.data)
 
-    def last_notification_list(self, request, *args, **kwargs):
-        fcm_notification_list_qs = FcmNotificationCustomer.objects.all().order_by('-created_at')[:10]
-        serializer = CustomerNotificationSerializer(instance=fcm_notification_list_qs, many=True)
-        return ResponseWrapper(data = serializer.data, msg='success')
+
 
     def discount(self, request, pk, *args, **kwargs):
         qs = Discount.objects.filter(id=pk)
@@ -2871,16 +2888,14 @@ class RestaurantMessagesViewset(LoggingMixin, CustomViewSet):
     lookup_field = 'pk'
     serializer_class = RestaurantMessagesSerializer
     #logging_methods = ['GET','DELETE', 'POST', 'PATCH']
-    # def get_permissions(self):
-    #     permission_classes = []
-    #     if self.action in ['create']:
-    #         permission_classes = [
-    #             permissions.IsAuthenticated]
-    #
-    #     elif self.action in ['destroy']:
-    #         permission_classes = [
-    #             permissions.IsAdminUser]
-    #     return [permission() for permission in permission_classes]
+
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['restaurant_messages_list', 'last_restaurant_messages_list']:
+            permission_classes = [permissions.IsAuthenticated]
+        # else:
+        #     permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
 
     def restaurant_messages_list(self, request, restaurant, *args, **kwargs):
         restaurant_qs = RestaurantMessages.objects.filter(
@@ -2888,6 +2903,11 @@ class RestaurantMessagesViewset(LoggingMixin, CustomViewSet):
         serializer = RestaurantMessagesSerializer(
             instance=restaurant_qs, many=True)
         return ResponseWrapper(data=serializer.data)
+
+    def all_restaurant_messages_list(self, request, *args, **kwargs):
+        notification_list_qs = RestaurantMessages.objects.all().order_by('-updated_at')[:10]
+        serializer = RestaurantMessagesListSerializer(instance=notification_list_qs, many=True)
+        return ResponseWrapper(data = serializer.data, msg='success')
 
 
 class PaymentTypeViewSet(LoggingMixin, CustomViewSet):
