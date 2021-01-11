@@ -1514,15 +1514,19 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         if serializer.is_valid():
             is_invalid_order = True
             is_staff_order = False
+            is_waiter_staff_order = False
             if request.data:
                 food_order = request.data[0].get('food_order')
                 food_order_qs = FoodOrder.objects.filter(pk=food_order)
                 restaurant_id = food_order_qs.first().table.restaurant_id
                 is_staff = request.path.__contains__('/waiter_order/')
                 if is_staff:
-                    if HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True) | Q(is_waiter=True), user=request.user.pk, restaurant_id=restaurant_id):
+                    if HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk, restaurant_id=restaurant_id):
                         food_order_qs = food_order_qs.first()
                         is_staff_order = True
+                    elif HotelStaffInformation.objects.filter(is_waiter=True, user=request.user.pk, restaurant_id=restaurant_id):
+                        food_order_qs = food_order_qs.first()
+                        is_waiter_staff_order = True
 
                 else:
                     food_order_qs = food_order_qs.exclude(
@@ -1543,6 +1547,15 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
                 qs = OrderedItem.objects.filter(pk__in=order_pk_list)
                 qs.update(status='2_ORDER_CONFIRMED')
                 food_order_qs.status = '2_ORDER_CONFIRMED'
+                food_order_qs.save()
+
+            elif is_waiter_staff_order:
+                order_pk_list = list()
+                for item in qs:
+                    order_pk_list.append(item.pk)
+                qs = OrderedItem.objects.filter(pk__in=order_pk_list)
+                qs.update(status='1_ORDER_PLACED')
+                food_order_qs.status = '1_ORDER_PLACED'
                 food_order_qs.save()
 
             # order_order_qs= FoodOrder.objects.filter(status = '0_ORDER_INITIALIZED',pk=request.data.get('id'))
