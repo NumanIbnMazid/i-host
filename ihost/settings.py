@@ -53,6 +53,7 @@ LIBRARY_APPS = [
     'drf_extra_fields',
     'softdelete',
     'rest_framework_tracking',
+    'actstream',
     # 'autofixture',
     # "mockups",
 ]
@@ -67,8 +68,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
 ]+LIBRARY_APPS+DJANGO_APPS
+SITE_ID = 1
+
+ACTSTREAM_SETTINGS = {
+#     'MANAGER': 'account_management.managers.MyActionManager',
+    'FETCH_RELATIONS': True,
+#     'USE_PREFETCH': True,
+    'USE_JSONFIELD': True,
+#     'GFK_FETCH_DEPTH': 1,
+}
+# ACTSTREAM_SETTINGS['USE_JSONFIELD'] = True
+
 
 AUTH_USER_MODEL = 'account_management.UserAccount'
 

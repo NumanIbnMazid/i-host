@@ -53,6 +53,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/account_management/", include("account_management.urls")),
     path("api/restaurant_management/", include("restaurant.urls")),
+    path('activity/', include('actstream.urls')),
 
 
 ]+swagger_url + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL,
