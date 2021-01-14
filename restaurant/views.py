@@ -1089,16 +1089,34 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 # if order_qs.status in ['0_ORDER_INITIALIZED']:
                 order_qs.status = '1_ORDER_PLACED'
                 order_qs.save()
+                table_id = order_qs.table_id
+                table_qs = Table.objects.filter(pk = table_id).first()
+                if not table_qs:
+                    return ResponseWrapper(error_msg=["no table found with this table id"],
+                                           error_code=status.HTTP_404_NOT_FOUND)
+                staff_fcm_device_qs = StaffFcmDevice.objects.filter(
+                    hotel_staff__tables=table_id)
+                staff_id_list = staff_fcm_device_qs.values_list(
+                    'pk', flat=True)
 
-                order_done_signal.send(
-                    sender=self.__class__.create,
-                    restaurant_id=order_qs.restaurant_id,
-                )
-                is_apps = request.path.__contains__('/apps/')
-                serializer = FoodOrderByTableSerializer(
-                    instance=order_qs, context={'is_apps': is_apps, 'request': request})
+                if send_fcm_push_notification_appointment(
+                    tokens_list= list(staff_fcm_device_qs.values_list(
+                        'token', flat=True)),
+                        table_no=table_qs.table_no if table_qs else None,
+                        status="Received",
+                        staff_id_list=staff_id_list,
+                 ):
+                    order_done_signal.send(
+                        sender=self.__class__.create,
+                        restaurant_id=order_qs.restaurant_id,
+                    )
+                    is_apps = request.path.__contains__('/apps/')
+                    serializer = FoodOrderByTableSerializer(
+                        instance=order_qs, context={'is_apps': is_apps, 'request': request})
 
-                return ResponseWrapper(data=serializer.data, msg='Placed')
+                    return ResponseWrapper(data=serializer.data, msg='Placed')
+                else:
+                    return ResponseWrapper(error_msg=['Faild to notify'], error_code=400)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
