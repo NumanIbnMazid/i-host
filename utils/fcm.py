@@ -21,7 +21,7 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
     status_value = {
         "Received": {
             'notification': {'title': 'Received',
-                             'body': f'An order has been placed {str(datetime.datetime.now())}'},
+                             'body': f'An order has been placed for table {str(table_no)}'},
             'data': {'title': '1', 'body': str(datetime.datetime.now())}
         },
         'Cooking': {

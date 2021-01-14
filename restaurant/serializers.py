@@ -9,6 +9,7 @@ from rest_framework.fields import CurrentUserDefault
 from utils.calculate_price import calculate_item_price_with_discount, calculate_price
 
 from .models import *
+from actstream.models import Action
 
 
 class FoodOptionTypeSerializer(serializers.ModelSerializer):
@@ -1007,23 +1008,54 @@ class OrderedItemTemplateSerializer(serializers.ModelSerializer):
         return None
 
 
+# class ServedOrderSerializer(serializers.ModelSerializer):
+#     order = serializers.SerializerMethodField(read_only=True)
+#
+#     class Meta:
+#         model = FoodOrderLog
+#         fields = ['staff', 'order', 'created_at']
+#
+#     def get_order(self, obj):
+#         if obj.order:
+#             table_no = obj.order.table.table_no
+#             order_id = obj.order.pk
+#             order_status = obj.order.status
+#             order_amaount = obj.order.payable_amount
+#             return {'table_id': table_no, 'order_id': order_id,
+#                     'order_status': order_status,
+#                     'order_amaount': order_amaount
+#                     }
+
 class ServedOrderSerializer(serializers.ModelSerializer):
+    staff = serializers.SerializerMethodField(read_only=True)
     order = serializers.SerializerMethodField(read_only=True)
+    created_at = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = FoodOrderLog
+        model = Action
         fields = ['staff', 'order', 'created_at']
 
+    def get_staff(self,obj):
+        if obj:
+            staff = obj.actor.pk
+            return staff
+
     def get_order(self, obj):
-        if obj.order:
-            table_no = obj.order.table.table_no
-            order_id = obj.order.pk
-            order_status = obj.order.status
-            order_amaount = obj.order.payable_amount
+        if obj:
+            table_no = obj.action_object.table.table_no
+            order_id = obj.action_object.pk
+            order_status = obj.action_object.status
+            order_amaount = obj.action_object.payable_amount
             return {'table_id': table_no, 'order_id': order_id,
                     'order_status': order_status,
                     'order_amaount': order_amaount
                     }
+
+    def get_created_at(self,obj):
+        if obj:
+            created_at = obj.timestamp
+            return created_at
+
 
 
 class CustomerOrderDetailsSerializer(serializers.ModelSerializer):

@@ -31,6 +31,8 @@ from utils.fcm import send_fcm_push_notification_appointment
 from utils.pagination import CustomLimitPagination
 from utils.print_node import print_node
 from utils.response_wrapper import ResponseWrapper
+from actstream import action
+from actstream.models import Action
 
 from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodExtraType, FoodOption, FoodOptionType,
@@ -948,6 +950,16 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs.is_occupied = False
                 table_qs.save()
 
+        staff_qs = HotelStaffInformation.objects.filter(
+            user=request.user.pk, restaurant=order_qs.restaurant_id).first()
+        if staff_qs:
+            action.send(staff_qs, verb=order_qs.status,
+                        action_object=order_qs, target=order_qs.restaurant, request_body=request.data, url=request.path)
+
+        if staff_qs.is_waiter:
+            food_order_log = FoodOrderLog.objects.create(
+                order=order_qs, staff=staff_qs, order_status=order_qs.status)
+
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
@@ -978,6 +990,12 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             if table_qs.is_occupied:
                 table_qs.is_occupied = False
                 table_qs.save()
+
+        staff_qs = HotelStaffInformation.objects.filter(
+            user=request.user.pk, restaurant=order_qs.restaurant_id).first()
+        if staff_qs:
+            action.send(staff_qs, verb=order_qs.status,
+                        action_object=order_qs, target=order_qs.restaurant, request_body=request.data, url=request.path)
 
         order_done_signal.send(
             sender=self.__class__.create,
@@ -1241,11 +1259,14 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 order_qs.status = '4_CREATE_INVOICE'
                 order_qs.save()
 
-                waiter_qs = HotelStaffInformation.objects.filter(
-                    user=request.user.pk).first()
-                if waiter_qs.is_waiter:
+                staff_qs = HotelStaffInformation.objects.filter(
+                    user=request.user.pk, restaurant_id = order_qs.restaurant_id).first()
+                if staff_qs:
+                    action.send(staff_qs, verb=order_qs.status,
+                                action_object=order_qs, target = order_qs.restaurant, request_body=request.data, url=request.path)
+                if staff_qs.is_waiter:
                     food_order_log = FoodOrderLog.objects.create(
-                        order=order_qs, staff=waiter_qs, order_status=order_qs.status)
+                        order=order_qs, staff=staff_qs, order_status=order_qs.status)
 
                 invoice_qs = self.invoice_generator(
                     order_qs, payment_status="0_UNPAID")
@@ -1345,11 +1366,16 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                     table_qs.is_occupied = False
                     table_qs.save()
 
-                waiter_qs = HotelStaffInformation.objects.filter(
-                    user=request.user.pk).first()
-                if waiter_qs.is_waiter:
+                staff_qs = HotelStaffInformation.objects.filter(
+                    user=request.user.pk, restaurant=order_qs.restaurant_id).first()
+                if staff_qs:
+                    action.send(staff_qs, verb=order_qs.status,
+                                action_object=order_qs, target=order_qs.restaurant, request_body=request.data,
+                                url=request.path)
+
+                if staff_qs.is_waiter:
                     food_order_log = FoodOrderLog.objects.create(
-                        order=order_qs, staff=waiter_qs, order_status=order_qs.status)
+                        order=order_qs, staff=staff_qs, order_status=order_qs.status)
 
                 invoice_qs = self.invoice_generator(
                     order_qs, payment_status='1_PAID')
@@ -2198,9 +2224,13 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         self.check_object_permissions(request, obj=restaurant_id)
         today = timezone.now().date()
         before_thirty_day = today - timedelta(days=30)
+        today += timedelta(days=1)
 
-        staff_order_log_qs = FoodOrderLog.objects.filter(
-            staff_id=waiter_qs.pk, order__status='5_PAID', created_at__gte=before_thirty_day, created_at__lte=today)
+        # staff_order_log_qs = FoodOrderLog.objects.filter(
+        #     staff_id=waiter_qs.pk, order__status='5_PAID', created_at__gte=before_thirty_day, created_at__lte=today)
+
+        staff_order_log_qs = waiter_qs.actor_actions.filter(actor_object_id = waiter_qs.pk, verb = '5_PAID',
+                                                   timestamp__gte=before_thirty_day,timestamp__lte= today)
         serializer = ServedOrderSerializer(
             instance=staff_order_log_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
@@ -2214,9 +2244,15 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         self.check_object_permissions(request, obj=restaurant_id)
         today = timezone.now().date()
         before_thirty_day = today - timedelta(days=30)
+        today += timedelta(days=1)
 
-        staff_order_log_qs = FoodOrderLog.objects.filter(
-            staff_id=waiter_qs.pk, order__status='6_CANCELLED', created_at__gte=before_thirty_day, created_at__lte=today)
+
+        # staff_order_log_qs = FoodOrderLog.objects.filter(
+        #     staff_id=waiter_qs.pk, order__status='6_CANCELLED', created_at__gte=before_thirty_day, created_at__lte=today)
+
+        staff_order_log_qs = waiter_qs.actor_actions.filter(actor_object_id=waiter_qs.pk, verb='6_CANCELLED',
+                                                            timestamp__gte=before_thirty_day, timestamp__lte=today)
+
         serializer = ServedOrderSerializer(
             instance=staff_order_log_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
@@ -2319,15 +2355,24 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         if request.data.get('end_date'):
             end_date = datetime.strptime(end_date, '%Y-%m-%d')
         end_date += timedelta(days=1)
+        food_order_qs = FoodOrder.objects.filter(restaurant_id = restaurant, status="5_PAID")
         order_log_qs = FoodOrderLog.objects.filter(order__restaurant_id=restaurant,
                                                    created_at__gte=start_date, created_at__lte=end_date
                                                    ).distinct()
+        # action_object_id_list = food_order_qs.values_list('action_object_actions__pk', flat=True).distinct()
+        # action_qs = Action.objects.filter(pk__in=action_object_id_list, verb="5_PAID")
+        # action_qs.values_list('actions_with_restaurant_foodorder_as_action_object',flat=True)
+        # staff_list = HotelStaffInformation.objects.filter(restaurant=restaurant, is_waiter=True).values_list("pk",
+        #                                                                                                      flat=True)
+        # # order_log_qs = food_order_qs.action_object_actions.filter(timestamp__gte =start_date,
+        #                                                           timestamp__lte = end_date).distinct()
+
         total_waiter = order_log_qs.values_list('staff').distinct().count()
-        order_qs = order_log_qs.values_list('order__payable_amount', flat=True)
-        total_amount = round(sum(order_qs), 2)
+        total_payable_amount = order_log_qs.values_list('order__payable_amount', flat=True)
+        total_amount = round(sum(total_payable_amount), 2)
         staff_list = order_log_qs.values_list('staff', flat=True).distinct()
         staff_report_list = list()
-        staff_list.values_list('staff__user__first_name')
+        # staff_list.values_list('staff__user__first_name')
         for staff in staff_list:
             temp_order_log_qs = order_log_qs.filter(staff_id=staff)
 
