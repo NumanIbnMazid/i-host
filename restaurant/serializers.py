@@ -2,7 +2,7 @@ from django.contrib.postgres import fields
 from django.http import request
 from drf_extra_fields.fields import Base64FileField, Base64ImageField
 import copy
-from account_management.models import FcmNotificationStaff, HotelStaffInformation
+from account_management.models import FcmNotificationStaff, HotelStaffInformation, FcmNotificationCustomer
 from account_management.serializers import StaffInfoGetSerializer
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
@@ -957,11 +957,11 @@ class RestaurantMessagesSerializer(serializers.ModelSerializer):
         model = RestaurantMessages
         fields = '__all__'
 
-class RestaurantMessagesListSerializer(serializers.ModelSerializer):
+class FcmNotificationListSerializer(serializers.ModelSerializer):
     restaurant_name = serializers.CharField(source='restaurant.name')
     class Meta:
-        model = RestaurantMessages
-        fields = ['id','restaurant','restaurant_name','title','message','updated_at']
+        model = FcmNotificationCustomer
+        fields = ['id','restaurant','restaurant_name','title','body','created_at']
 
 
 class FcmNotificationStaffSerializer(serializers.ModelSerializer):

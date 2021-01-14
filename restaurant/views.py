@@ -84,7 +84,8 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           ReportByDateRangeSerializer, VersionUpdateSerializer, HotelStaffInformationSerializer,
                           ServedOrderSerializer,
                           TopRecommendedFoodListSerializer,
-                          VersionUpdateSerializer, CustomerOrderDetailsSerializer, RestaurantMessagesListSerializer)
+                          VersionUpdateSerializer, CustomerOrderDetailsSerializer,
+                          FcmNotificationListSerializer)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -2950,8 +2951,8 @@ class RestaurantMessagesViewset(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data)
 
     def all_restaurant_messages_list(self, request, *args, **kwargs):
-        notification_list_qs = RestaurantMessages.objects.all().order_by('-updated_at')[:10]
-        serializer = RestaurantMessagesListSerializer(instance=notification_list_qs, many=True)
+        notification_list_qs = FcmNotificationCustomer.objects.all().order_by('-created_at')[:10]
+        serializer = FcmNotificationListSerializer(instance=notification_list_qs, many=True)
         return ResponseWrapper(data = serializer.data, msg='success')
 
 
