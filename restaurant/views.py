@@ -998,6 +998,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             action.send(staff_qs, verb=order_qs.status,
                         action_object=order_qs, target=order_qs.restaurant, request_body=request.data, url=request.path)
 
+        if staff_qs.is_waiter:
+            food_order_log = FoodOrderLog.objects.create(
+                order=order_qs, staff=staff_qs, order_status=order_qs.status)
+
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
@@ -2944,11 +2948,11 @@ class RestaurantMessagesViewset(LoggingMixin, CustomViewSet):
         return [permission() for permission in permission_classes]
 
     def restaurant_messages_list(self, request, restaurant, *args, **kwargs):
-        restaurant_qs = RestaurantMessages.objects.filter(
+        restaurant_qs = FcmNotificationCustomer.objects.filter(
             restaurant_id=restaurant)
-        serializer = RestaurantMessagesSerializer(
+        serializer = FcmNotificationListSerializer(
             instance=restaurant_qs, many=True)
-        return ResponseWrapper(data=serializer.data)
+        return ResponseWrapper(data=serializer.data, msg='success')
 
     def all_restaurant_messages_list(self, request, *args, **kwargs):
         notification_list_qs = FcmNotificationCustomer.objects.all().order_by('-created_at')[:10]
