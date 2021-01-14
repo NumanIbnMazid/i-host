@@ -296,6 +296,11 @@ class Discount(SoftDeleteModel):
     end_date = models.DateTimeField(null=True, blank=True)
     restaurant = models.ForeignKey(
         Restaurant, on_delete=models.SET_NULL, related_name='discount', null=True)
+    is_popup = models.BooleanField(default=False)
+    serial_no = models.IntegerField(default=0)
+    clickable = models.BooleanField(default=False)
+    food = models.ForeignKey(
+        Food, on_delete=models.SET_NULL, related_name='discount_slider', null=True)
 
     # discount_slot_start_time = models.TimeField(null=True, blank=True)
     # discounut_slot_closing_time = models.TimeField(null=True, blank=True)
