@@ -1,3 +1,4 @@
+from restaurant.libs.generate_order_no import generate_order_no
 from asgiref.sync import async_to_sync, sync_to_async
 import copy
 import decimal
@@ -783,7 +784,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['apps_cancel_order', 'create_order',"create_order_apps", 'customer_order_history', 'add_items', 'cancel_order', 'placed_status', 'confirm_status', 'cancel_items', 'in_table_status', 'create_invoice']:
+        if self.action in ['apps_cancel_order', 'create_order', "create_order_apps", 'customer_order_history', 'add_items', 'cancel_order', 'placed_status', 'confirm_status', 'cancel_items', 'in_table_status', 'create_invoice']:
             permission_classes = [permissions.IsAuthenticated]
         if self.action in ['create_take_away_order']:
             permission_classes = [
@@ -833,6 +834,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs.save()
                 qs = serializer.save()
                 qs.restaurant = table_qs.restaurant
+                qs.order_no = generate_order_no(
+                    restaurant_id=table_qs.restaurant.pk, order_qs=qs)
                 qs.save()
                 serializer = self.serializer_class(instance=qs)
             else:
@@ -861,6 +864,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs.save()
                 qs = serializer.save()
                 qs.restaurant = table_qs.restaurant
+                qs.order_no = generate_order_no(
+                    restaurant_id=table_qs.restaurant.pk, order_qs=qs
+                )
                 qs.save()
                 if request.query_params.get('is_waiter', 'false') == 'false':
                     self.save_customer_info(request, qs)
@@ -1090,7 +1096,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 order_qs.status = '1_ORDER_PLACED'
                 order_qs.save()
                 table_id = order_qs.table_id
-                table_qs = Table.objects.filter(pk = table_id).first()
+                table_qs = Table.objects.filter(pk=table_id).first()
                 if not table_qs:
                     return ResponseWrapper(error_msg=["no table found with this table id"],
                                            error_code=404)
@@ -1100,12 +1106,12 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                     'pk', flat=True)
 
                 if send_fcm_push_notification_appointment(
-                    tokens_list= list(staff_fcm_device_qs.values_list(
-                        'token', flat=True)),
-                        table_no=table_qs.table_no if table_qs else None,
-                        status="Received",
-                        staff_id_list=staff_id_list,
-                 ):
+                        tokens_list=list(staff_fcm_device_qs.values_list(
+                            'token', flat=True)),
+                    table_no=table_qs.table_no if table_qs else None,
+                    status="Received",
+                    staff_id_list=staff_id_list,
+                ):
                     order_done_signal.send(
                         sender=self.__class__.create,
                         restaurant_id=order_qs.restaurant_id,
@@ -1283,10 +1289,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 order_qs.save()
 
                 staff_qs = HotelStaffInformation.objects.filter(
-                    user=request.user.pk, restaurant_id = order_qs.restaurant_id).first()
+                    user=request.user.pk, restaurant_id=order_qs.restaurant_id).first()
                 if staff_qs:
                     action.send(staff_qs, verb=order_qs.status,
-                                action_object=order_qs, target = order_qs.restaurant, request_body=request.data, url=request.path)
+                                action_object=order_qs, target=order_qs.restaurant, request_body=request.data, url=request.path)
                 if staff_qs.is_waiter:
                     food_order_log = FoodOrderLog.objects.create(
                         order=order_qs, staff=staff_qs, order_status=order_qs.status)
@@ -1465,12 +1471,14 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='Table Transfer')
 
     def customer_order_history(self, request, *args, **kwargs):
-        order_qs = FoodOrder.objects.filter(customer__user=request.user.pk, status = '5_PAID').order_by('-created_at')
+        order_qs = FoodOrder.objects.filter(
+            customer__user=request.user.pk, status='5_PAID').order_by('-created_at')
        # page_qs = self.paginate_queryset(order_qs)
-        serializer = CustomerOrderDetailsSerializer(instance=order_qs, many=True)
+        serializer = CustomerOrderDetailsSerializer(
+            instance=order_qs, many=True)
         # paginated_data = self.get_paginated_response(serializer.data)
 
-        return ResponseWrapper(data = serializer.data,msg = 'success')
+        return ResponseWrapper(data=serializer.data, msg='success')
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1529,7 +1537,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
 
         serializer = FoodOrderByTableSerializer(
             instance=order_qs, context={'is_apps': is_apps, 'request': request,
-                                        'calculate_price_with_initial_item':calculate_price_with_initial_item})
+                                        'calculate_price_with_initial_item': calculate_price_with_initial_item})
 
         return ResponseWrapper(data=serializer.data, msg='Served')
 
@@ -1552,7 +1560,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
 
             serializer = FoodOrderSerializer(instance=order_qs, context={
                                              'is_apps': is_apps, 'request': request,
-                                             'calculate_price_with_initial_item':calculate_price_with_initial_item})
+                                             'calculate_price_with_initial_item': calculate_price_with_initial_item})
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -2252,8 +2260,8 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         # staff_order_log_qs = FoodOrderLog.objects.filter(
         #     staff_id=waiter_qs.pk, order__status='5_PAID', created_at__gte=before_thirty_day, created_at__lte=today)
 
-        staff_order_log_qs = waiter_qs.actor_actions.filter(actor_object_id = waiter_qs.pk, verb = '5_PAID',
-                                                   timestamp__gte=before_thirty_day,timestamp__lte= today)
+        staff_order_log_qs = waiter_qs.actor_actions.filter(actor_object_id=waiter_qs.pk, verb='5_PAID',
+                                                            timestamp__gte=before_thirty_day, timestamp__lte=today)
         serializer = ServedOrderSerializer(
             instance=staff_order_log_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
@@ -2268,7 +2276,6 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         today = timezone.now().date()
         before_thirty_day = today - timedelta(days=30)
         today += timedelta(days=1)
-
 
         # staff_order_log_qs = FoodOrderLog.objects.filter(
         #     staff_id=waiter_qs.pk, order__status='6_CANCELLED', created_at__gte=before_thirty_day, created_at__lte=today)
@@ -2378,7 +2385,8 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         if request.data.get('end_date'):
             end_date = datetime.strptime(end_date, '%Y-%m-%d')
         end_date += timedelta(days=1)
-        food_order_qs = FoodOrder.objects.filter(restaurant_id = restaurant, status="5_PAID")
+        food_order_qs = FoodOrder.objects.filter(
+            restaurant_id=restaurant, status="5_PAID")
         order_log_qs = FoodOrderLog.objects.filter(order__restaurant_id=restaurant,
                                                    created_at__gte=start_date, created_at__lte=end_date
                                                    ).distinct()
@@ -2391,7 +2399,8 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         #                                                           timestamp__lte = end_date).distinct()
 
         total_waiter = order_log_qs.values_list('staff').distinct().count()
-        total_payable_amount = order_log_qs.values_list('order__payable_amount', flat=True)
+        total_payable_amount = order_log_qs.values_list(
+            'order__payable_amount', flat=True)
         total_amount = round(sum(total_payable_amount), 2)
         staff_list = order_log_qs.values_list('staff', flat=True).distinct()
         staff_report_list = list()
@@ -2672,10 +2681,10 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
 
         return ResponseWrapper(paginated_data.data)
 
-    def pop_up_list_by_restaurant(self,request, restaurant_id, *args, **kwargs):
+    def pop_up_list_by_restaurant(self, request, restaurant_id, *args, **kwargs):
         discount_qs = Discount.objects.filter(restaurant_id=restaurant_id)
-        serializer = DiscountPopUpSerializer(instance = discount_qs, many = True)
-        return ResponseWrapper(data = serializer.data, msg='success')
+        serializer = DiscountPopUpSerializer(instance=discount_qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
 
     def all_discount_list(self, request, *args, **kwargs):
         discount_qs = Discount.objects.all()
@@ -2685,8 +2694,6 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         paginated_data = self.get_paginated_response(serializer.data)
 
         return ResponseWrapper(paginated_data.data)
-
-
 
     def discount(self, request, pk, *args, **kwargs):
         qs = Discount.objects.filter(id=pk)
@@ -2978,9 +2985,11 @@ class RestaurantMessagesViewset(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def all_restaurant_messages_list(self, request, *args, **kwargs):
-        notification_list_qs = FcmNotificationCustomer.objects.all().order_by('-created_at')[:10]
-        serializer = FcmNotificationListSerializer(instance=notification_list_qs, many=True)
-        return ResponseWrapper(data = serializer.data, msg='success')
+        notification_list_qs = FcmNotificationCustomer.objects.all().order_by(
+            '-created_at')[:10]
+        serializer = FcmNotificationListSerializer(
+            instance=notification_list_qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
 
 
 class PaymentTypeViewSet(LoggingMixin, CustomViewSet):
