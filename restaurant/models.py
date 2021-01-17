@@ -7,6 +7,7 @@ from django.db.models import JSONField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import manager
+from django.db.models.fields import DecimalField
 from django.db.models.fields.related import OneToOneField
 from softdelete.models import SoftDeleteModel
 
@@ -195,6 +196,7 @@ class FoodOrder(SoftDeleteModel):
         ("6_CANCELLED", "Cancelled"),
 
     ]
+    order_no = models.CharField(max_length=200)
     remarks = models.TextField(null=True, blank=True)
     table = models.ForeignKey(
         Table, on_delete=models.SET_NULL, null=True, related_name='food_orders')
@@ -221,6 +223,12 @@ class FoodOrder(SoftDeleteModel):
             return str(self.id)
         else:
             return 'table null'
+
+    # class Meta:
+    #     constraints = [
+    #         models.UniqueConstraint(
+    #             fields=['restaurant', 'order_no'], name='restaurant and order_no constrains'),
+    #     ]
 
 
 class FoodOrderLog(SoftDeleteModel):
@@ -297,6 +305,8 @@ class Discount(SoftDeleteModel):
     restaurant = models.ForeignKey(
         Restaurant, on_delete=models.SET_NULL, related_name='discount', null=True)
     is_popup = models.BooleanField(default=False)
+    is_slider = models.BooleanField(default=False)
+
     serial_no = models.IntegerField(default=0)
     clickable = models.BooleanField(default=False)
     food = models.ForeignKey(
