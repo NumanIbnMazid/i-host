@@ -85,7 +85,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           ServedOrderSerializer,
                           TopRecommendedFoodListSerializer,
                           VersionUpdateSerializer, CustomerOrderDetailsSerializer,
-                          FcmNotificationListSerializer, DiscountPopUpSerializer)
+                          FcmNotificationListSerializer, DiscountPopUpSerializer, DiscountSliderSerializer)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -2876,9 +2876,9 @@ class SliderViewset(LoggingMixin, CustomViewSet):
         return [permission() for permission in permission_classes]
 
     def slider_list_by_restaurant(self, request, restaurant_id, *args, **kwargs):
-        slider_qs = Slider.objects.filter(
+        slider_qs = Discount.objects.filter(
             restaurant=restaurant_id).order_by('serial_no')
-        serializer = SliderSerializer(instance=slider_qs, many=True)
+        serializer = DiscountSliderSerializer(instance=slider_qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
 

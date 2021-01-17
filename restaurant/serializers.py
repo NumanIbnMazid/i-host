@@ -934,6 +934,20 @@ class SliderSerializer(serializers.ModelSerializer):
             return Slider.objects.create(image=image, **validated_data)
         return Slider.objects.create(**validated_data)
 
+class DiscountSliderSerializer(serializers.ModelSerializer):
+    discoutn_percentage = serializers.SerializerMethodField(read_only=True)
+    title = serializers.CharField(source='name')
+    class Meta:
+        model = Discount
+        fields = ['id','discoutn_percentage','image','title','description','serial_no','clickable','restaurant','food']
+
+    def get_discoutn_percentage(self, obj):
+        discount_percentage = 0
+        if obj.food:
+            if obj.food.discount:
+                discount_percentage = obj.food.discount.amount
+        return discount_percentage
+
 
 class ReOrderedItemSerializer(serializers.Serializer):
     order_item_id = serializers.IntegerField()
