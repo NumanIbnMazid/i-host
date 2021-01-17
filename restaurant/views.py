@@ -919,7 +919,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs.is_occupied = True
                 table_qs.save()
 
-        qs = FoodOrder.objects.create(**food_order_dict)
+        order_no = generate_order_no(restaurant_id=restaurant_id)
+        qs = FoodOrder.objects.create(order_no=order_no, **food_order_dict)
 
         serializer = FoodOrderUserPostSerializer(instance=qs)
 
@@ -2681,13 +2682,13 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
 
         return ResponseWrapper(paginated_data.data)
 
-    def pop_up_list_by_restaurant(self,request, restaurant_id, *args, **kwargs):
+    def pop_up_list_by_restaurant(self, request, restaurant_id, *args, **kwargs):
         today = timezone.datetime.now().date()
         start_date = today - timedelta(days=1)
-        discount_qs = Discount.objects.filter(restaurant_id=restaurant_id, is_popup =True,
-                                              start_date__lte = today, end_date__gte = today).exclude(food = None, image = None)
-        serializer = DiscountPopUpSerializer(instance = discount_qs, many = True)
-        return ResponseWrapper(data = serializer.data, msg='success')
+        discount_qs = Discount.objects.filter(restaurant_id=restaurant_id, is_popup=True,
+                                              start_date__lte=today, end_date__gte=today).exclude(food=None, image=None)
+        serializer = DiscountPopUpSerializer(instance=discount_qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
 
     def all_discount_list(self, request, *args, **kwargs):
         discount_qs = Discount.objects.all()
@@ -2894,8 +2895,8 @@ class SliderViewset(LoggingMixin, CustomViewSet):
         today = timezone.datetime.now().date()
         start_date = today - timedelta(days=1)
         # end_date = today + timedelta(days=1)
-        slider_qs = Discount.objects.filter(restaurant=restaurant_id, is_slider = True,
-                                            start_date__lte = start_date, end_date__gte = today).exclude(food= None, image = None)
+        slider_qs = Discount.objects.filter(restaurant=restaurant_id, is_slider=True,
+                                            start_date__lte=start_date, end_date__gte=today).exclude(food=None, image=None)
         serializer = DiscountSliderSerializer(instance=slider_qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
