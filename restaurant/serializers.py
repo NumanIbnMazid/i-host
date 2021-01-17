@@ -903,6 +903,15 @@ class PopUpSerializer(serializers.ModelSerializer):
         else:
             return None
 
+class DiscountPopUpSerializer(serializers.ModelSerializer):
+    #food = serializers.SerializerMethodField(read_only=True)
+    title = serializers.CharField(source='name')
+    class Meta:
+        model = Discount
+        fields = ['id','image', 'food', 'title','description','serial_no','clickable','foods','restaurant']
+        # fields = '__all__'
+
+
 
 class SliderSerializer(serializers.ModelSerializer):
     discoutn_percentage = serializers.SerializerMethodField(read_only=True)
@@ -924,6 +933,20 @@ class SliderSerializer(serializers.ModelSerializer):
         if image:
             return Slider.objects.create(image=image, **validated_data)
         return Slider.objects.create(**validated_data)
+
+class DiscountSliderSerializer(serializers.ModelSerializer):
+    discoutn_percentage = serializers.SerializerMethodField(read_only=True)
+    title = serializers.CharField(source='name')
+    class Meta:
+        model = Discount
+        fields = ['id','discoutn_percentage','image','title','description','serial_no','clickable','restaurant','food']
+
+    def get_discoutn_percentage(self, obj):
+        discount_percentage = 0.0
+        if obj.food:
+            if obj.food.discount:
+                discount_percentage = obj.food.discount.amount
+        return discount_percentage
 
 
 class ReOrderedItemSerializer(serializers.Serializer):
