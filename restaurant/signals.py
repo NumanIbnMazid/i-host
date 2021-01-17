@@ -106,7 +106,7 @@ def kitchen_items_print(sender, qs=None, *args, **kwargs):
         instance=qs, many=True)
     context = {
         'table_no': qs.values_list('food_order__table__table_no', flat=True).distinct().last(),
-        'order_id': qs.values_list('food_order_id', flat=True).distinct().last(),
+        'order_id': qs.values_list('food_order__order_no', flat=True).distinct().last(),
         'date': str(timezone.now().strftime('%d/%m/%Y')),
         'time': str(timezone.now().strftime("%I:%M %p")),
         'items_data': serializer.data
@@ -115,7 +115,7 @@ def kitchen_items_print(sender, qs=None, *args, **kwargs):
     # @page { size: Letter; margin: 0cm }
     css = CSS(
         string='@page { size: 80mm 350mm; margin: 0mm }')
-    pdf_byte_code = HTML(string=html_string).write_pdf(
+    pdf_byte_code = HTML(string=html_string).write_pdf('example.pdf',
         stylesheets=[
             css], zoom=1
     )

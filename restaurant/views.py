@@ -964,9 +964,12 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             action.send(staff_qs, verb=order_qs.status,
                         action_object=order_qs, target=order_qs.restaurant, request_body=request.data, url=request.path)
 
-        if staff_qs.is_waiter:
-            food_order_log = FoodOrderLog.objects.create(
-                order=order_qs, staff=staff_qs, order_status=order_qs.status)
+        if staff_qs:
+            if staff_qs.is_waiter:
+                food_order_log = FoodOrderLog.objects.create(
+                    order=order_qs, staff=staff_qs, order_status=order_qs.status)
+        # else:
+        #     return ResponseWrapper(error_msg='Please Call Restaurant Staff', error_code=404)
 
         order_done_signal.send(
             sender=self.__class__.create,
@@ -1008,6 +1011,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         if staff_qs.is_waiter:
             food_order_log = FoodOrderLog.objects.create(
                 order=order_qs, staff=staff_qs, order_status=order_qs.status)
+        # else:
+        #     return ResponseWrapper(error_msg='Please Call Restaurant Staff', error_code=404)
 
         order_done_signal.send(
             sender=self.__class__.create,
@@ -1294,9 +1299,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 if staff_qs:
                     action.send(staff_qs, verb=order_qs.status,
                                 action_object=order_qs, target=order_qs.restaurant, request_body=request.data, url=request.path)
-                if staff_qs.is_waiter:
-                    food_order_log = FoodOrderLog.objects.create(
-                        order=order_qs, staff=staff_qs, order_status=order_qs.status)
+                    if staff_qs.is_waiter:
+                        food_order_log = FoodOrderLog.objects.create(
+                            order=order_qs, staff=staff_qs, order_status=order_qs.status)
+
 
                 invoice_qs = self.invoice_generator(
                     order_qs, payment_status="0_UNPAID")

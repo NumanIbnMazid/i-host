@@ -357,6 +357,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOrder
         fields = ['id',
+                  'order_no',
                   "remarks",
                   "table",
                   "status",
@@ -515,7 +516,7 @@ class FoodOrderUserPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FoodOrder
-        fields = ['ordered_items', 'table', 'remarks', 'status', 'id']
+        fields = ['ordered_items', 'table', 'remarks', 'status', 'id', 'order_no']
 
 
 class TakeAwayFoodOrderPostSerializer(serializers.Serializer):
