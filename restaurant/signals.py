@@ -115,7 +115,7 @@ def kitchen_items_print(sender, qs=None, *args, **kwargs):
     # @page { size: Letter; margin: 0cm }
     css = CSS(
         string='@page { size: 80mm 350mm; margin: 0mm }')
-    pdf_byte_code = HTML(string=html_string).write_pdf('example.pdf',
+    pdf_byte_code = HTML(string=html_string).write_pdf(
         stylesheets=[
             css], zoom=1
     )
