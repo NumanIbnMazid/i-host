@@ -2676,7 +2676,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         today = timezone.datetime.now().date()
         start_date = today - timedelta(days=1)
         discount_qs = Discount.objects.filter(restaurant_id=restaurant_id, is_popup =True,
-                                              start_date__lte = today, end_date__gte = today).exclude(food = None)
+                                              start_date__lte = today, end_date__gte = today).exclude(food = None, image = None)
         serializer = DiscountPopUpSerializer(instance = discount_qs, many = True)
         return ResponseWrapper(data = serializer.data, msg='success')
 
@@ -2888,7 +2888,7 @@ class SliderViewset(LoggingMixin, CustomViewSet):
         start_date = today - timedelta(days=1)
         # end_date = today + timedelta(days=1)
         slider_qs = Discount.objects.filter(restaurant=restaurant_id, is_slider = True,
-                                            start_date__lte = start_date, end_date__gte = today).exclude(food= None)
+                                            start_date__lte = start_date, end_date__gte = today).exclude(food= None, image = None)
         serializer = DiscountSliderSerializer(instance=slider_qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
