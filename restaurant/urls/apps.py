@@ -203,7 +203,11 @@ apps_fake = [
          DiscountViewSet.as_view({'get': 'discount'}), name='discount'),
 
     path('restaurant/<int:restaurant_id>/pop_up/',
-         PopUpViewset.as_view({'get': 'pop_up_list_by_restaurant'}), name='pop_up_list_by_restaurant'),
+         DiscountViewSet.as_view({'get': 'pop_up_list_by_restaurant'}), name='pop_up_list_by_restaurant'),
+
+    # path('discount_pop_up/<int:restaurant>/',
+    #      DiscountViewSet.as_view({'get': 'discount_pop_up'}), name='discount_pop_up'),
+
     path('restaurant/<int:restaurant_id>/slider/',
          SliderViewset.as_view({'get': 'slider_list_by_restaurant'}), name='slider_list_by_restaurant'),
 

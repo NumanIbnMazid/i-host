@@ -903,6 +903,15 @@ class PopUpSerializer(serializers.ModelSerializer):
         else:
             return None
 
+class DiscountPopUpSerializer(serializers.ModelSerializer):
+    #food = serializers.SerializerMethodField(read_only=True)
+    title = serializers.CharField(source='name')
+    class Meta:
+        model = Discount
+        fields = ['id','image', 'food', 'title','description','serial_no','clickable','foods','restaurant']
+        # fields = '__all__'
+
+
 
 class SliderSerializer(serializers.ModelSerializer):
     discoutn_percentage = serializers.SerializerMethodField(read_only=True)

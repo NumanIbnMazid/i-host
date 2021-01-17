@@ -85,7 +85,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           ServedOrderSerializer,
                           TopRecommendedFoodListSerializer,
                           VersionUpdateSerializer, CustomerOrderDetailsSerializer,
-                          FcmNotificationListSerializer)
+                          FcmNotificationListSerializer, DiscountPopUpSerializer)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -1093,7 +1093,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs = Table.objects.filter(pk = table_id).first()
                 if not table_qs:
                     return ResponseWrapper(error_msg=["no table found with this table id"],
-                                           error_code=status.HTTP_404_NOT_FOUND)
+                                           error_code=404)
                 staff_fcm_device_qs = StaffFcmDevice.objects.filter(
                     hotel_staff__tables=table_id)
                 staff_id_list = staff_fcm_device_qs.values_list(
@@ -1116,7 +1116,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
                     return ResponseWrapper(data=serializer.data, msg='Placed')
                 else:
-                    return ResponseWrapper(error_msg=['Faild to notify'], error_code=400)
+                    return ResponseWrapper(error_msg=['Failed to notify'], error_code=400)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
@@ -2672,6 +2672,11 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
 
         return ResponseWrapper(paginated_data.data)
 
+    def pop_up_list_by_restaurant(self,request, restaurant_id, *args, **kwargs):
+        discount_qs = Discount.objects.filter(restaurant_id=restaurant_id)
+        serializer = DiscountPopUpSerializer(instance = discount_qs, many = True)
+        return ResponseWrapper(data = serializer.data, msg='success')
+
     def all_discount_list(self, request, *args, **kwargs):
         discount_qs = Discount.objects.all()
         page_qs = self.paginate_queryset(discount_qs)
@@ -2848,11 +2853,11 @@ class PopUpViewset(LoggingMixin, CustomViewSet):
                 custom_permissions.IsRestaurantManagementOrAdmin]
         return [permission() for permission in permission_classes]
 
-    def pop_up_list_by_restaurant(self, request, restaurant_id, *args, **kwargs):
-        popup_qs = PopUp.objects.filter(
-            restaurant=restaurant_id).order_by('serial_no')
-        serializer = PopUpSerializer(instance=popup_qs, many=True)
-        return ResponseWrapper(data=serializer.data)
+    # def pop_up_list_by_restaurant(self, request, restaurant_id, *args, **kwargs):
+    #     popup_qs = PopUp.objects.filter(
+    #         restaurant=restaurant_id).order_by('serial_no')
+    #     serializer = PopUpSerializer(instance=popup_qs, many=True)
+    #     return ResponseWrapper(data=serializer.data)
 
 
 class SliderViewset(LoggingMixin, CustomViewSet):
