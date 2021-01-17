@@ -942,7 +942,7 @@ class DiscountSliderSerializer(serializers.ModelSerializer):
         fields = ['id','discoutn_percentage','image','title','description','serial_no','clickable','restaurant','food']
 
     def get_discoutn_percentage(self, obj):
-        discount_percentage = 0
+        discount_percentage = 0.0
         if obj.food:
             if obj.food.discount:
                 discount_percentage = obj.food.discount.amount
