@@ -196,7 +196,7 @@ class FoodOrder(SoftDeleteModel):
         ("6_CANCELLED", "Cancelled"),
 
     ]
-    order_no = models.CharField(max_length=200)
+    order_no = models.CharField(max_length=200, null=True, blank=True)
     remarks = models.TextField(null=True, blank=True)
     table = models.ForeignKey(
         Table, on_delete=models.SET_NULL, null=True, related_name='food_orders')
