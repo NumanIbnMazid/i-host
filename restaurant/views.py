@@ -2673,7 +2673,10 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(paginated_data.data)
 
     def pop_up_list_by_restaurant(self,request, restaurant_id, *args, **kwargs):
-        discount_qs = Discount.objects.filter(restaurant_id=restaurant_id)
+        today = timezone.datetime.now().date()
+        start_date = today - timedelta(days=1)
+        discount_qs = Discount.objects.filter(restaurant_id=restaurant_id, is_popup =True,
+                                              start_date__lte = today, end_date__gte = today).exclude(food = None)
         serializer = DiscountPopUpSerializer(instance = discount_qs, many = True)
         return ResponseWrapper(data = serializer.data, msg='success')
 
@@ -2704,7 +2707,12 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
                                                     restaurant_id=restaurant_id):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg='user is not manager or owner')
-
+        is_popup = request.data.get('is_popup')
+        is_slider = request.data.get('is_slider')
+        if is_popup or is_slider:
+            food = request.data.get('food')
+            if not food:
+                return ResponseWrapper(error_msg=['Food is required'], status=404)
         qs = serializer.save()
 
         serializer = self.get_serializer(instance=qs)
@@ -2876,8 +2884,11 @@ class SliderViewset(LoggingMixin, CustomViewSet):
         return [permission() for permission in permission_classes]
 
     def slider_list_by_restaurant(self, request, restaurant_id, *args, **kwargs):
-        slider_qs = Discount.objects.filter(
-            restaurant=restaurant_id).order_by('serial_no')
+        today = timezone.datetime.now().date()
+        start_date = today - timedelta(days=1)
+        # end_date = today + timedelta(days=1)
+        slider_qs = Discount.objects.filter(restaurant=restaurant_id, is_slider = True,
+                                            start_date__lte = start_date, end_date__gte = today).exclude(food= None)
         serializer = DiscountSliderSerializer(instance=slider_qs, many=True)
         return ResponseWrapper(data=serializer.data)
 
