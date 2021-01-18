@@ -4,7 +4,7 @@ from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 from .models import Table, FoodOrder
 from channels.generic.websocket import AsyncWebsocketConsumer
-from .serializers import FoodOrderByTableSerializer
+from .serializers import FoodOrderByTableSerializer, TableStaffSerializer
 from channels.db import database_sync_to_async
 
 
@@ -117,9 +117,10 @@ class AppsConsumer(AsyncWebsocketConsumer):
         print('-----------------connect----------------')
         self.waiter_id = int(self.scope.get(
             'url_route', {}).get('kwargs', {}).get('waiter_id'))
-        await self.set_table_ids()
+        # await self.set_table_ids()
 
-        self.group_name = 'tables_%s' % '_'.join(map(str, self.table_ids))
+        self.group_name = 'waiter_%s' % self.waiter_id
+        # '_'.join(map(str, self.table_ids))
 
         # Join room group
         # async_to_sync(self.channel_layer.group_add)(
@@ -139,7 +140,7 @@ class AppsConsumer(AsyncWebsocketConsumer):
             pk=self.waiter_id).first()
         if staff_qs:
             self.table_ids = list(staff_qs.restaurant.tables.values_list(
-                'pk', flat=True))
+                'pk', flat=True).order_by('pk'))
         else:
             self.table_ids = []
 
@@ -175,7 +176,7 @@ class AppsConsumer(AsyncWebsocketConsumer):
         # )
         """
         if text_data:
-            data = await self.order_item_list(table_ids=[int(text_data)])
+            data = await self.order_item_list(waiter_id=int(text_data))
         else:
             data = {'error': ['restaurant id invalid']}
         await self.channel_layer.group_send(
@@ -187,31 +188,33 @@ class AppsConsumer(AsyncWebsocketConsumer):
         )
 
     @database_sync_to_async
-    def order_item_list(self, table_ids=[], single_table=False):
+    def order_item_list(self, waiter_id: int, single_table=False):
+        qs = Table.objects.filter(
+            staff_assigned=waiter_id).order_by('table_no')
+        # qs = Table.objects.filter(pk__in=table_ids).order_by('table_no')
+        # qs = FoodOrder.objects.filter(table_id__in=table_ids).exclude(
+        #     status__in=['5_PAID', '6_CANCELLED']).order_by('table_id')
+        # ordered_table_set = set(qs.values_list('table_id', flat=True))
+        # table_qs = Table.objects.filter(
+        #     pk__in=table_ids).exclude(pk__in=ordered_table_set).order_by('id')
+        # empty_table_data = []
+        # if single_table:
+        #     serializer = FoodOrderByTableSerializer(instance=qs)
+        #     return serializer.data
 
-        qs = FoodOrder.objects.filter(table_id__in=table_ids).exclude(
-            status__in=['5_PAID', '6_CANCELLED']).order_by('table_id')
-        ordered_table_set = set(qs.values_list('table_id', flat=True))
-        table_qs = Table.objects.filter(
-            pk__in=table_ids).exclude(pk__in=ordered_table_set).order_by('id')
-        empty_table_data = []
-        if single_table:
-            serializer = FoodOrderByTableSerializer(instance=qs)
-            return serializer.data
-
-        for empty_table in table_qs:
-            empty_table_data.append(
-                {
-                    'table': empty_table.pk,
-                    'table_no': empty_table.table_no,
-                    'table_name': empty_table.name,
-                    'status': '',
-                    'price': {},
-                    'ordered_items': []
-                }
-            )
-        serializer = FoodOrderByTableSerializer(instance=qs, many=True)
-        return serializer.data+empty_table_data
+        # for empty_table in table_qs:
+        #     empty_table_data.append(
+        #         {
+        #             'table': empty_table.pk,
+        #             'table_no': empty_table.table_no,
+        #             'table_name': empty_table.name,
+        #             'status': '',
+        #             'price': {},
+        #             'ordered_items': []
+        #         }
+        #     )
+        serializer = TableStaffSerializer(instance=qs, many=True)
+        return serializer.data
 
     # async def chat_message(self, event):
     #     message = event['message']
