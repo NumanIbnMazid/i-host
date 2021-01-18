@@ -876,6 +876,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=table_qs.restaurant_id,
+
             )
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
@@ -927,6 +928,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=restaurant_id,
+
+
         )
         return ResponseWrapper(data=serializer.data, msg='created')
 
@@ -988,6 +991,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
+            order_id=order_qs.pk,
         )
         is_apps = request.path.__contains__('/apps/')
 
@@ -1031,6 +1035,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
+            order_id=order_qs.pk,
         )
         is_apps = request.path.__contains__('/apps/')
 
@@ -1061,6 +1066,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=order_qs.restaurant_id,
+                order_id=order_qs.pk,
             )
 
             if not order_qs.status == ['0_ORDER_INITIALIZED','1_ORDER_PLACED']:
@@ -1100,6 +1106,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 order_done_signal.send(
                     sender=self.__class__.revert_back_to_in_table,
                     restaurant_id=order_qs.restaurant_id,
+                    order_id=order_qs.pk,
                 )
                 is_apps = request.path.__contains__('/apps/')
                 serializer = FoodOrderByTableSerializer(
@@ -1135,6 +1142,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 order_done_signal.send(
                     sender=self.__class__.create,
                     restaurant_id=order_qs.restaurant_id,
+                    order_id=order_qs.pk,
                 )
                 is_apps = request.path.__contains__('/apps/')
                 serializer = FoodOrderByTableSerializer(
@@ -1200,6 +1208,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
+            order_id=order_qs.pk,
         )
         is_apps = request.path.__contains__('/apps/')
 
@@ -1243,6 +1252,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
+            order_id=order_qs.pk,
         )
         is_apps = request.path.__contains__('/apps/')
 
@@ -1277,6 +1287,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=order_qs.restaurant_id,
+                order_id=order_qs.pk,
             )
             is_apps = request.path.__contains__('/apps/')
             serializer = FoodOrderByTableSerializer(
@@ -1295,6 +1306,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=order_qs.restaurant_id,
+            order_id=order_qs.pk,
         )
         is_apps = request.path.__contains__('/apps/')
 
@@ -1347,6 +1359,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 order_done_signal.send(
                     sender=self.__class__.create,
                     restaurant_id=order_qs.restaurant_id,
+                    order_id= order_qs.pk,
                 )
             return ResponseWrapper(data=serializer.data.get('order_info'), msg='Invoice Created')
         else:
@@ -1452,6 +1465,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 order_done_signal.send(
                     sender=self.__class__.create,
                     restaurant_id=invoice_qs.restaurant_id,
+                    order_id = order_qs.pk,
                 )
             return ResponseWrapper(data=serializer.data.get('order_info'), msg='Paid')
         else:
@@ -1481,6 +1495,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=reorder_qs.restaurant_id,
+            order_id = order_qs.pk,
         )
         is_apps = request.path.__contains__('/apps/')
 
@@ -1569,6 +1584,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=restaurant_id,
+            order_id = order_qs.pk,
         )
         is_apps = request.path.__contains__('/apps/')
         calculate_price_with_initial_item = request.path.__contains__(
@@ -1592,6 +1608,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=restaurant_id,
+                order_id = order_qs.pk,
             )
             is_apps = request.path.__contains__('/apps/')
             calculate_price_with_initial_item = request.path.__contains__(
@@ -1661,6 +1678,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=restaurant_id,
+                order_id= food_order_qs.pk,
             )
             is_apps = request.path.__contains__('/apps/')
 
@@ -1695,6 +1713,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=restaurant_id,
+            order_id = food_order_qs.pk,
         )
         return ResponseWrapper(data=serializer.data, msg='created')
 
@@ -1723,6 +1742,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         order_done_signal.send(
             sender=self.__class__.re_order_items,
             restaurant_id=re_order_item_qs.food_order.restaurant_id,
+            order_id =re_order_item_qs.food_order.pk,
         )
         is_apps = request.path.__contains__('/apps/')
         serializer = FoodOrderByTableSerializer(

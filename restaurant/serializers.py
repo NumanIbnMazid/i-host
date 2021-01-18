@@ -851,7 +851,7 @@ class DiscountSerializer(serializers.ModelSerializer):
         return Discount.objects.create(**validated_data)
 
     def get_food_name(self,obj):
-        if obj:
+        if obj.food:
             food_name = obj.food.name
             return food_name
         return None
