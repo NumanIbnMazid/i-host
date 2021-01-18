@@ -953,10 +953,18 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         order_qs.save()
         order_qs.ordered_items.update(status="4_CANCELLED")
         table_qs = order_qs.table
+
+
+        staff_fcm_device_qs = StaffFcmDevice.objects.filter(
+            hotel_staff__tables = order_qs.table_id
+        )
+        staff_id_list = staff_fcm_device_qs.values_list('pk', flat=True)
+
         if table_qs:
             if table_qs.is_occupied:
                 table_qs.is_occupied = False
                 table_qs.save()
+
 
         staff_qs = HotelStaffInformation.objects.filter(
             user=request.user.pk, restaurant=order_qs.restaurant_id).first()
@@ -970,6 +978,11 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                     order=order_qs, staff=staff_qs, order_status=order_qs.status)
         # else:
         #     return ResponseWrapper(error_msg='Please Call Restaurant Staff', error_code=404)
+
+        # if send_fcm_push_notification_appointment(
+        #     tokens_list=list(staff_fcm_device_qs.values_list
+        #                      'token', flat= True)
+        # ):
 
         order_done_signal.send(
             sender=self.__class__.create,
@@ -1101,34 +1114,36 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 # if order_qs.status in ['0_ORDER_INITIALIZED']:
                 order_qs.status = '1_ORDER_PLACED'
                 order_qs.save()
+
+                order_done_signal.send(
+                    sender=self.__class__.create,
+                    restaurant_id=order_qs.restaurant_id,
+                )
+                is_apps = request.path.__contains__('/apps/')
+                serializer = FoodOrderByTableSerializer(
+                    instance=order_qs, context={'is_apps': is_apps, 'request': request})
+                #--------- for fcm----------
                 table_id = order_qs.table_id
                 table_qs = Table.objects.filter(pk=table_id).first()
                 if not table_qs:
-                    return ResponseWrapper(error_msg=["no table found with this table id"],
-                                           error_code=404)
+                    return ResponseWrapper(data=serializer.data, msg='Placed')
+
                 staff_fcm_device_qs = StaffFcmDevice.objects.filter(
                     hotel_staff__tables=table_id)
                 staff_id_list = staff_fcm_device_qs.values_list(
                     'pk', flat=True)
 
-                if send_fcm_push_notification_appointment(
+                if not send_fcm_push_notification_appointment(
                         tokens_list=list(staff_fcm_device_qs.values_list(
                             'token', flat=True)),
-                    table_no=table_qs.table_no if table_qs else None,
-                    status="Received",
-                    staff_id_list=staff_id_list,
+                        table_no=table_qs.table_no if table_qs else None,
+                        status="Received",
+                        staff_id_list=staff_id_list,
                 ):
-                    order_done_signal.send(
-                        sender=self.__class__.create,
-                        restaurant_id=order_qs.restaurant_id,
-                    )
-                    is_apps = request.path.__contains__('/apps/')
-                    serializer = FoodOrderByTableSerializer(
-                        instance=order_qs, context={'is_apps': is_apps, 'request': request})
-
-                    return ResponseWrapper(data=serializer.data, msg='Placed')
-                else:
                     return ResponseWrapper(error_msg=['Failed to notify'], error_code=400)
+
+
+                return ResponseWrapper(data=serializer.data, msg='Placed')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
