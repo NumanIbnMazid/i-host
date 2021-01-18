@@ -8,7 +8,7 @@ from datetime import date, datetime, timedelta
 from account_management import models, serializers
 from account_management.models import (CustomerInfo, FcmNotificationStaff,
                                        HotelStaffInformation, StaffFcmDevice,
-                                       UserAccount, FcmNotificationCustomer)
+                                       UserAccount, FcmNotificationCustomer, CustomerFcmDevice)
 from account_management.serializers import (ListOfIdSerializer,
                                             StaffInfoGetSerializer,
                                             StaffInfoSerializer, CustomerNotificationSerializer)
@@ -954,11 +954,18 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         order_qs.ordered_items.update(status="4_CANCELLED")
         table_qs = order_qs.table
 
-
-        staff_fcm_device_qs = StaffFcmDevice.objects.filter(
-            hotel_staff__tables = order_qs.table_id
+        customer_fcm_device_qs = CustomerFcmDevice.objects.filter(
+            customer__food_orders__id=order_qs.pk
         )
-        staff_id_list = staff_fcm_device_qs.values_list('pk', flat=True)
+
+        # customer_id = customer_fcm_device_qs.values_list('pk').last()
+        if send_fcm_push_notification_appointment(
+            tokens_list = list(customer_fcm_device_qs.values_list('token', flat=True)),
+            table_no=table_qs.table_no if table_qs else None,
+            status='OrderCancel',
+            order_no=order_qs.order_no
+        ):
+            pass
 
         if table_qs:
             if table_qs.is_occupied:
@@ -976,13 +983,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             if staff_qs.is_waiter:
                 food_order_log = FoodOrderLog.objects.create(
                     order=order_qs, staff=staff_qs, order_status=order_qs.status)
-        # else:
-        #     return ResponseWrapper(error_msg='Please Call Restaurant Staff', error_code=404)
 
-        # if send_fcm_push_notification_appointment(
-        #     tokens_list=list(staff_fcm_device_qs.values_list
-        #                      'token', flat= True)
-        # ):
 
         order_done_signal.send(
             sender=self.__class__.create,
@@ -1048,9 +1049,11 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
             all_items_qs = OrderedItem.objects.filter(
                 food_order=order_qs).exclude(status__in=["4_CANCELLED"])
+            cancelled_items_names =[]
             if all_items_qs:
                 all_items_qs.filter(pk__in=request.data.get(
                     'food_items')).update(status='4_CANCELLED')
+                cancelled_items_names = all_items_qs.values_list('food_option__food__name',flat=True)
 
             # order_qs.status = '3_IN_TABLE'
             # order_qs.save()
@@ -1059,6 +1062,20 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 sender=self.__class__.create,
                 restaurant_id=order_qs.restaurant_id,
             )
+
+            if not order_qs.status == ['0_ORDER_INITIALIZED','1_ORDER_PLACED']:
+                customer_fcm_device_qs = CustomerFcmDevice.objects.filter(
+                    customer__food_orders__id=order_qs.pk
+                )
+
+                # customer_id = customer_fcm_device_qs.values_list('pk').last()
+                if send_fcm_push_notification_appointment(
+                        tokens_list=list(customer_fcm_device_qs.values_list('token', flat=True)),
+                        status='OrderItemsCancel', food_name= cancelled_items_names
+
+                ):
+                    pass
+
             is_apps = request.path.__contains__('/apps/')
             serializer = FoodOrderByTableSerializer(
                 instance=order_qs, context={'is_apps': is_apps, 'request': request})

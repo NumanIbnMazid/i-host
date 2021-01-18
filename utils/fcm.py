@@ -17,7 +17,11 @@ FCM_DJANGO_SETTINGS = {
 FCM_SERVER_KEY = FCM_DJANGO_SETTINGS.get('FCM_SERVER_KEY')
 
 
-def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff", table_no=0, msg='', staff_id_list: list = list(), qs=None):
+def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff", table_no=0, msg='', staff_id_list: list = list(), qs=None,**kwargs):
+    order_no =kwargs.get('order_no')
+    food_name_list= kwargs.get(('food_name'))
+    food_name_str = ' ,'.join(map(str,food_name_list))
+
     status_value = {
         "Received": {
             'notification': {'title': 'Received',
@@ -57,8 +61,13 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
         },
         'OrderCancel': {
             'notification':{'title':'Order is Cancel',
-                            'body':f'Order is Cancel from {str(table_no)}'},
+                            'body':f'{order_no} no order is Cancel'},
             'data':{'title':'9', 'body': str(datetime.datetime.now())}
+        },
+        'OrderItemsCancel': {
+            'notification': {'title': 'Order Item is Cancel',
+                             'body': f'{food_name_str} is Cancel'},
+            'data': {'title': '9', 'body': str(datetime.datetime.now())}
         },
 
 
