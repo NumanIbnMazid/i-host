@@ -72,7 +72,7 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, order_id=N
     print('---------------------------------------------------------------------------------------------------------------')
     response_data = {}
     staff_list = HotelStaffInformation.objects.filter(
-        restaurant_id=restaurant).values_list('pk', flat=True)
+        restaurant_id=restaurant_id).values_list('pk', flat=True)
 
     if state in ['data_only']:
         if not data:
