@@ -55,6 +55,11 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
                              'body': f'Customer from table no {str(table_no)} is looking for you for {str(msg)} payment'},
             'data': {'title': '8', 'body': str(datetime.datetime.now())}
         },
+        'OrderCancel': {
+            'notification':{'title':'Order is Cancel',
+                            'body':f'Order is Cancel from {str(table_no)}'},
+            'data':{'title':'9', 'body': str(datetime.datetime.now())}
+        },
 
 
     }

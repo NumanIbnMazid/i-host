@@ -357,6 +357,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOrder
         fields = ['id',
+                  'order_no',
                   "remarks",
                   "table",
                   "status",
@@ -473,6 +474,7 @@ class FoodOrderSerializer(FoodOrderByTableSerializer):
 
     class Meta(FoodOrderByTableSerializer.Meta):
         fields = ['id',
+                  'order_no',
                   "remarks",
                   'status_detail',
                   "table",
@@ -489,6 +491,7 @@ class FoodOrderForStaffSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOrder
         fields = ['id',
+                  'order_no',
                   "remarks",
                   "table",
                   "status",
@@ -515,7 +518,7 @@ class FoodOrderUserPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FoodOrder
-        fields = ['ordered_items', 'table', 'remarks', 'status', 'id']
+        fields = ['ordered_items', 'table', 'remarks', 'status', 'id', 'order_no']
 
 
 class TakeAwayFoodOrderPostSerializer(serializers.Serializer):
@@ -875,7 +878,7 @@ class StaffFcmSerializer(serializers.Serializer):
 class OnlyFoodOrderIdSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOrder
-        fields = ['id']
+        fields = ['id','order_no']
 
 
 class CollectPaymentSerializer(serializers.Serializer):
@@ -1067,10 +1070,11 @@ class ServedOrderSerializer(serializers.ModelSerializer):
         if obj:
             table_no = obj.action_object.table.table_no
             order_id = obj.action_object.pk
+            order_no = obj.action_object.order_no
             order_status = obj.action_object.status
             order_amaount = obj.action_object.payable_amount
             return {'table_id': table_no, 'order_id': order_id,
-                    'order_status': order_status,
+                    'order_no':order_no,'order_status': order_status,
                     'order_amaount': order_amaount
                     }
 
@@ -1089,7 +1093,7 @@ class CustomerOrderDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOrder
         fields = ['order_id', 'restaurant_name',
-                  'payable_amount', 'created_at']
+                  'payable_amount', 'created_at','order_no']
 
     # def get_table(self, obj):
     #     if obj.table:
