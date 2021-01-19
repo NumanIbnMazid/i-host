@@ -2458,43 +2458,33 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         order_log_qs = FoodOrderLog.objects.filter(order__restaurant_id=restaurant,
                                                    created_at__gte=start_date, created_at__lte=end_date
                                                    ).distinct()
-        # action_object_id_list = food_order_qs.values_list('action_object_actions__pk', flat=True).distinct()
-        # action_qs = Action.objects.filter(pk__in=action_object_id_list, verb="5_PAID")
-        # action_qs.values_list('actions_with_restaurant_foodorder_as_action_object',flat=True)
-        # staff_list = HotelStaffInformation.objects.filter(restaurant=restaurant, is_waiter=True).values_list("pk",
-        #                                                                                                      flat=True)
-        # # order_log_qs = food_order_qs.action_object_actions.filter(timestamp__gte =start_date,
-        #                                                           timestamp__lte = end_date).distinct()
 
-        total_waiter = order_log_qs.values_list('staff').distinct().count()
-        total_payable_amount = order_log_qs.values_list(
-            'order__payable_amount', flat=True)
+        food_qs_id_list = list(food_order_qs.values_list('pk', flat=True))
+
+        food_order_action_qs = Action.objects.filter(action_object_content_type__model = 'foodorder',action_object_object_id__in = food_qs_id_list,timestamp__gte =start_date,timestamp__lte = end_date)
+        staff_list = HotelStaffInformation.objects.filter(restaurant=restaurant, is_waiter=True).values_list("pk",
+                                                                                                             flat=True).distinct()
+
+        total_waiter = staff_list.__len__()
+        total_payable_amount = food_order_qs.values_list('payable_amount',flat=True)
         total_amount = round(sum(total_payable_amount), 2)
-        staff_list = order_log_qs.values_list('staff', flat=True).distinct()
         staff_report_list = list()
-        # staff_list.values_list('staff__user__first_name')
         for staff in staff_list:
-            temp_order_log_qs = order_log_qs.filter(staff_id=staff)
-
-            payment_amount_list = temp_order_log_qs.values_list(
-                'order__payable_amount', flat=True)
+            temp_food_order_action_qs = food_order_action_qs.filter(actor_object_id=staff)
+            allowed_order_id_list = list(temp_food_order_action_qs.values_list('action_object_object_id', flat=True))
+            payment_amount_list = food_order_qs.filter(pk__in = allowed_order_id_list).values_list('payable_amount', flat=True)
             total_payment_amount = round(sum(payment_amount_list), 2)
             staff_qs = HotelStaffInformation.objects.filter(pk=staff).first()
             staff_serializer = StaffInfoGetSerializer(instance=staff_qs)
             staff_report_dict = {
                 'total_payment_amount': total_payment_amount,
                 'staff_info': staff_serializer.data,
-                'total_served_order': temp_order_log_qs.count(),
+                'total_served_order': allowed_order_id_list.__len__(),
             }
             staff_report_list.append(staff_report_dict)
 
         staff_report_desc_sorted = sorted(staff_report_list,
                                           key=lambda i: i['total_served_order'], reverse=True)
-
-        # response = {'total_waiter':total_waiter,
-        #             'total_amount':total_amount,
-        #             'staff_info':staff_report_desc_sorted,
-        #             }
 
         page_qs = self.paginate_queryset(staff_report_desc_sorted)
         # paginated_data = self.get_paginated_response(page_qs)
