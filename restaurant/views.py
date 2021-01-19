@@ -2769,16 +2769,21 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_code=400, error_msg='empty request body')
 
         restaurant_id = request.data.get('restaurant')
+        food = request.data.get('food')
         if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
                                                     restaurant_id=restaurant_id):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg='user is not manager or owner')
         is_popup = request.data.get('is_popup')
         is_slider = request.data.get('is_slider')
         if is_popup or is_slider:
-            food = request.data.get('food')
             if not food:
                 return ResponseWrapper(error_msg=['Food is required'], status=404)
+
         qs = serializer.save()
+        if food:
+            food_qs = Food.objects.filter(pk=food)
+            food_qs.update(discount=qs.id)
+
 
         serializer = self.get_serializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='created')
