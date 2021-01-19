@@ -1283,6 +1283,12 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             if all_items_qs:
                 if all_items_qs.first().status == "4_CANCELLED":
                     order_qs.status = "6_CANCELLED"
+                    table_qs = order_qs.table
+                    if table_qs:
+                        if table_qs.is_occupied:
+                            table_qs.is_occupied = False
+                            table_qs.save()
+
                 else:
                     order_qs.status = all_items_qs.first().status
             order_qs.save()
