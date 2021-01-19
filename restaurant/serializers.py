@@ -515,11 +515,14 @@ class FoodOrderUserPostSerializer(serializers.ModelSerializer):
     ordered_items = OrderedItemSerializer(
         many=True, read_only=True, required=False)
     status = serializers.CharField(read_only=True)
+    # order_no = serializers.CharField(source='order_no',read_only=True)
 
     class Meta:
         model = FoodOrder
         fields = ['ordered_items', 'table',
                   'remarks', 'status', 'id', 'order_no']
+        read_only_fields = ('order_no',)
+
 
 
 class RequestBodyOfFoodOrderUserPostSerializer(FoodOrderUserPostSerializer):

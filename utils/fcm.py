@@ -19,7 +19,7 @@ FCM_SERVER_KEY = FCM_DJANGO_SETTINGS.get('FCM_SERVER_KEY')
 
 def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff", table_no=0, msg='', staff_id_list: list = list(), qs=None,**kwargs):
     order_no =kwargs.get('order_no')
-    food_name_list= kwargs.get(('food_name'))
+    food_name_list= kwargs.get('food_name',[])
     food_name_str = ' ,'.join(map(str,food_name_list))
 
     status_value = {
