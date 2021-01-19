@@ -1281,7 +1281,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
             # if order_qs.status in ["2_ORDER_CONFIRMED", "1_ORDER_PLACED", "0_ORDER_INITIALIZED"]:
             if all_items_qs:
-                order_qs.status = all_items_qs.first().status
+                if all_items_qs.first().status == "4_CANCELLED":
+                    order_qs.status = "6_CANCELLED"
+                else:
+                    order_qs.status = all_items_qs.first().status
             order_qs.save()
 
             order_done_signal.send(
