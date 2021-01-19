@@ -67,9 +67,9 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, order_id=N
     """
     if settings.TURN_OFF_SIGNAL:
         return
-    print('---------------------------------------------------------------------------------------------------------------')
-    print("FIRING Signals")
-    print('---------------------------------------------------------------------------------------------------------------')
+    # print('---------------------------------------------------------------------------------------------------------------')
+    # print("FIRING Signals")
+    # print('---------------------------------------------------------------------------------------------------------------')
     response_data = {}
     staff_list = HotelStaffInformation.objects.filter(
         restaurant_id=restaurant_id).values_list('pk', flat=True)
@@ -93,7 +93,7 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, order_id=N
             async_to_sync(layer.group_send)(
                 waiter_group_name, {'type': 'response_to_listener', 'data': serializer.data})
 
-        print('done')
+        # print('done')
     except:
         pass
     # print('signal got a call', order_qs, table_qs, state)
