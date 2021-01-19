@@ -109,6 +109,7 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
                     fcm_notification_staff_obj_list, ignore_conflicts=True)
 
     except Exception as e:
-        print("FCm Exception ", e)
+        # print("FCm Exception ", e)
+        pass
 
     return success
