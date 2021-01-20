@@ -868,8 +868,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             if is_customer:
                 food_order_qs = FoodOrder.objects.filter(customer__user=request.user.pk, restaurant_id=table_qs.restaurant_id).exclude(
                     status__in=['5_PAID', '6_CANCELLED']).last()
-                serializer = self.serializer_class(instance=food_order_qs)
-                return ResponseWrapper(data= serializer.data, msg='Success')
+                if food_order_qs:
+                    serializer = self.serializer_class(instance=food_order_qs)
+                    return ResponseWrapper(data= serializer.data, msg='Success')
 
             if not table_qs.is_occupied:
                 table_qs.is_occupied = True
@@ -1222,6 +1223,19 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             restaurant_id=order_qs.restaurant_id,
             order_id=order_qs.pk,
         )
+        # customer_fcm_device_qs = CustomerFcmDevice.objects.filter(
+        #     customer__food_orders__id=order_qs.pk
+        # )
+        #
+        #
+        # # customer_id = customer_fcm_device_qs.values_list('pk').last()
+        # if send_fcm_push_notification_appointment(
+        #         tokens_list=list(customer_fcm_device_qs.values_list('token', flat=True)),
+        #         status='Cooking',
+        #         order_no=order_qs.order_no
+        # ):
+        #     pass
+
         is_apps = request.path.__contains__('/apps/')
 
         serializer = FoodOrderByTableSerializer(
