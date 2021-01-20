@@ -851,7 +851,7 @@ class DiscountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discount
         # fields ='__all__'
-        exclude = ['deleted_at']
+        # exclude = ['deleted_at']
 
     def create(self, validated_data):
         image = validated_data.pop('image', None)
