@@ -288,7 +288,7 @@ class Invoice(SoftDeleteModel):
         choices=STATUS, max_length=25, default="0_UNPAID")
 
 
-class Discount(SoftDeleteModel):
+class Discount(models.Model):
     DISCOUNT_TYPE = [
         ("PERCENTAGE", "percentage"), ("AMOUNT", "amount")]
 
