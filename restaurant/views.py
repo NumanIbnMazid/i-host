@@ -1090,7 +1090,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 # customer_id = customer_fcm_device_qs.values_list('pk').last()
                 if send_fcm_push_notification_appointment(
                         tokens_list=list(customer_fcm_device_qs.values_list('token', flat=True)),
-                        status='OrderItemsCancel', food_name= cancelled_items_names
+                        status='OrderItemsCancel', food_names= cancelled_items_names
 
                 ):
                     pass
@@ -1626,6 +1626,21 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             restaurant_id=restaurant_id,
             order_id = order_qs.pk,
         )
+
+        if not order_qs.status == ['0_ORDER_INITIALIZED', '1_ORDER_PLACED']:
+            customer_fcm_device_qs = CustomerFcmDevice.objects.filter(
+                customer__food_orders__id=order_qs.pk
+            )
+
+            # customer_id = customer_fcm_device_qs.values_list('pk').last()
+            if send_fcm_push_notification_appointment(
+                    tokens_list=list(customer_fcm_device_qs.values_list('token', flat=True)),
+                    status='OrderItemCancel', food_name=item_qs.food_option.food.name
+
+            ):
+                pass
+
+
         is_apps = request.path.__contains__('/apps/')
         calculate_price_with_initial_item = request.path.__contains__(
             '/apps/customer/order/cart/items/')
