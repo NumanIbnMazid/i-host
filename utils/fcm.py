@@ -29,8 +29,8 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
             'data': {'title': '1', 'body': str(datetime.datetime.now())}
         },
         'Cooking': {
-            'notification': {'title': 'Cooking',
-                             'body': f'Your food is preparing {str(datetime.datetime.now())}'},
+            'notification': {'title': 'Order Verified',
+                             'body': f'Your food is preparing'},
             'data': {'title': '2', 'body': str(datetime.datetime.now())}
         },
         'WaiterHand': {
@@ -60,13 +60,13 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
             'data': {'title': '8', 'body': str(datetime.datetime.now())}
         },
         'OrderCancel': {
-            'notification':{'title':'Order is Cancel',
-                            'body':f'{order_no} no order is Cancel'},
+            'notification':{'title':'Order Cancel',
+                            'body':f'Your order has been cancelled'},
             'data':{'title':'9', 'body': str(datetime.datetime.now())}
         },
         'OrderItemsCancel': {
-            'notification': {'title': 'Order Item is Cancel',
-                             'body': f'{food_name_str} is Cancel'},
+            'notification': {'title': 'Item cancel',
+                             'body': f'{food_name_str} has been cancelled from your cart'},
             'data': {'title': '9', 'body': str(datetime.datetime.now())}
         },
 

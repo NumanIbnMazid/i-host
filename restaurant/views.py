@@ -785,12 +785,12 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['apps_cancel_order', 'create_order', "create_order_apps", 'customer_order_history', 'add_items', 'cancel_order', 'placed_status', 'confirm_status', 'cancel_items', 'in_table_status', 'create_invoice']:
+        if self.action in ['apps_cancel_order', 'create_order','order_status', "create_order_apps", 'customer_order_history', 'add_items', 'cancel_order', 'placed_status', 'confirm_status', 'cancel_items', 'in_table_status', 'create_invoice']:
             permission_classes = [permissions.IsAuthenticated]
         if self.action in ['create_take_away_order']:
             permission_classes = [
                 custom_permissions.IsRestaurantManagementOrAdmin]
-        if self.action in ['get_order_status','payment', 'table_transfer', 'confirm_status_without_cancel', 'revert_back_to_in_table']:
+        if self.action in ['payment', 'table_transfer', 'confirm_status_without_cancel', 'revert_back_to_in_table']:
             permission_classes = [
                 custom_permissions.IsRestaurantStaff
             ]
@@ -1223,18 +1223,18 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             restaurant_id=order_qs.restaurant_id,
             order_id=order_qs.pk,
         )
-        # customer_fcm_device_qs = CustomerFcmDevice.objects.filter(
-        #     customer__food_orders__id=order_qs.pk
-        # )
-        #
-        #
-        # # customer_id = customer_fcm_device_qs.values_list('pk').last()
-        # if send_fcm_push_notification_appointment(
-        #         tokens_list=list(customer_fcm_device_qs.values_list('token', flat=True)),
-        #         status='Cooking',
-        #         order_no=order_qs.order_no
-        # ):
-        #     pass
+        customer_fcm_device_qs = CustomerFcmDevice.objects.filter(
+            customer__food_orders__id=order_qs.pk
+        )
+
+
+        # customer_id = customer_fcm_device_qs.values_list('pk').last()
+        if send_fcm_push_notification_appointment(
+                tokens_list=list(customer_fcm_device_qs.values_list('token', flat=True)),
+                status='Cooking',
+                order_no=order_qs.order_no
+        ):
+            pass
 
         is_apps = request.path.__contains__('/apps/')
 
@@ -1576,7 +1576,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             instance, context={'is_apps': is_apps, 'request': request})
         return ResponseWrapper(serializer.data)
 
-    def get_order_status(self,request, order_id, *args, **kwargs):
+    def order_status(self,request, order_id, *args, **kwargs):
         food_order_qs = FoodOrder.objects.filter(pk = order_id).last()
         serializer = FoodOrderStatusSerializer(instance= food_order_qs)
         return ResponseWrapper(data = serializer.data,msg='success')
