@@ -850,7 +850,7 @@ class DiscountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Discount
-        # fields ='__all__'
+        fields ='__all__'
         # exclude = ['deleted_at']
 
     def create(self, validated_data):
