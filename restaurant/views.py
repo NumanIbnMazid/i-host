@@ -829,6 +829,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         if serializer.is_valid():
             table_qs = Table.objects.filter(
                 pk=request.data.get('table')).last()
+
+
             if not table_qs.is_occupied:
                 table_qs.is_occupied = True
                 table_qs.save()
@@ -859,6 +861,15 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         if serializer.is_valid():
             table_qs = Table.objects.filter(
                 pk=request.data.get('table')).last()
+
+            # ____ Customer Running Order Checking______
+            is_customer = request.path.__contains__('/apps/customer/order/create_order/')
+            if is_customer:
+                food_order_qs = FoodOrder.objects.filter(customer__user=request.user.pk, restaurant_id=table_qs.restaurant_id).exclude(
+                    status__in=['5_PAID', '6_CANCELLED']).last()
+                serializer = self.serializer_class(instance=food_order_qs)
+                return ResponseWrapper(data= serializer.data, msg='Success')
+
             if not table_qs.is_occupied:
                 table_qs.is_occupied = True
                 table_qs.save()
