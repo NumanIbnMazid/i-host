@@ -71,8 +71,11 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, order_id=N
     # print("FIRING Signals")
     # print('---------------------------------------------------------------------------------------------------------------')
     response_data = {}
-    staff_list = HotelStaffInformation.objects.filter(
-        restaurant_id=restaurant_id).values_list('pk', flat=True)
+    # staff_list = HotelStaffInformation.objects.filter(
+    #     restaurant_id=restaurant_id,).values_list('pk', flat=True)
+    table_qs = Table.objects.filter(restaurant_id=restaurant_id,
+                                    food_orders__id=order_id).prefetch_related('food_orders').order_by('table_no').distinct()
+    staff_list = list(table_qs.values_list('staff_assigned__pk', flat=True))
 
     if state in ['data_only']:
         if not data:
@@ -87,7 +90,7 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, order_id=N
             group_name, {'type': 'response_to_listener', 'data': response_data})
         for staff_id in staff_list:
             waiter_group_name = 'waiter_%s' % staff_id
-            qs = Table.objects.filter(
+            qs = table_qs.filter(
                 staff_assigned=staff_id).order_by('table_no')
             serializer = TableStaffSerializer(instance=qs, many=True)
             async_to_sync(layer.group_send)(
