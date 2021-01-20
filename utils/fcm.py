@@ -19,7 +19,8 @@ FCM_SERVER_KEY = FCM_DJANGO_SETTINGS.get('FCM_SERVER_KEY')
 
 def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff", table_no=0, msg='', staff_id_list: list = list(), qs=None,**kwargs):
     order_no =kwargs.get('order_no')
-    food_name_list= kwargs.get('food_name',[])
+    food_name= kwargs.get(('food_name'))
+    food_name_list= kwargs.get('food_names',[])
     food_name_str = ' ,'.join(map(str,food_name_list))
 
     status_value = {
@@ -67,6 +68,11 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
         'OrderItemsCancel': {
             'notification': {'title': 'Item cancel',
                              'body': f'{food_name_str} has been cancelled from your cart'},
+            'data': {'title': '9', 'body': str(datetime.datetime.now())}
+        },
+        'OrderItemCancel': {
+            'notification': {'title': 'Item cancel',
+                             'body': f'{food_name} has been cancelled from your cart'},
             'data': {'title': '9', 'body': str(datetime.datetime.now())}
         },
 
