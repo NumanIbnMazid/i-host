@@ -86,7 +86,8 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           ServedOrderSerializer,
                           TopRecommendedFoodListSerializer,
                           VersionUpdateSerializer, CustomerOrderDetailsSerializer,
-                          FcmNotificationListSerializer, DiscountPopUpSerializer, DiscountSliderSerializer)
+                          FcmNotificationListSerializer, DiscountPopUpSerializer, DiscountSliderSerializer,
+                          FoodOrderStatusSerializer)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -789,7 +790,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         if self.action in ['create_take_away_order']:
             permission_classes = [
                 custom_permissions.IsRestaurantManagementOrAdmin]
-        if self.action in ['payment', 'table_transfer', 'confirm_status_without_cancel', 'revert_back_to_in_table']:
+        if self.action in ['get_order_status','payment', 'table_transfer', 'confirm_status_without_cancel', 'revert_back_to_in_table']:
             permission_classes = [
                 custom_permissions.IsRestaurantStaff
             ]
@@ -1560,6 +1561,11 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         serializer = self.get_serializer(
             instance, context={'is_apps': is_apps, 'request': request})
         return ResponseWrapper(serializer.data)
+
+    def get_order_status(self,request, order_id, *args, **kwargs):
+        food_order_qs = FoodOrder.objects.filter(pk = order_id).last()
+        serializer = FoodOrderStatusSerializer(instance= food_order_qs)
+        return ResponseWrapper(data = serializer.data,msg='success')
 
 
 class OrderedItemViewSet(LoggingMixin, CustomViewSet):

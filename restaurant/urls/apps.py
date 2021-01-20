@@ -124,6 +124,9 @@ apps_fake = [
     path('order/table_transfer/',
          FoodOrderViewSet.as_view({'post': 'table_transfer'}, name='table_transfer')),
 
+    path('get_order_status/<int:order_id>/',
+         FoodOrderViewSet.as_view({'get': 'get_order_status'}, name='get_order_status')),
+
     path('reorder/', FoodOrderViewSet.as_view(
         {'post': 'food_reorder_by_order_id'}, name='food_reorder_by_order_id')),
     path('customer_order_history/', FoodOrderViewSet.as_view(

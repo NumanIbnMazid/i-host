@@ -842,6 +842,10 @@ class DiscountByFoodSerializer(serializers.Serializer):
     discount_id = serializers.IntegerField()
     food_id_lists = serializers.ListSerializer(
         child=serializers.IntegerField())
+class FoodOrderStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodOrder
+        fields = ['status']
 
 
 class DiscountSerializer(serializers.ModelSerializer):
