@@ -404,7 +404,7 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
 
         staff_serializer = StaffInfoGetSerializer(instance=staff_qs)
         if error_msg:
-            return ResponseWrapper(data=staff_serializer.data, error_msg=error_msg)
+            return ResponseWrapper(data=staff_serializer.data, error_msg=error_msg, msg="User already exists so password remains unchanged. If you forgot  password please try reset password form the app.")
         return ResponseWrapper(data=staff_serializer.data, status=200)
 
     # def retrieve(self, request, *args, **kwargs):
