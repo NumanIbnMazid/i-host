@@ -785,7 +785,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['apps_cancel_order', 'create_order','order_status', "create_order_apps", 'customer_order_history', 'add_items', 'cancel_order', 'placed_status', 'confirm_status', 'cancel_items', 'in_table_status', 'create_invoice']:
+        if self.action in ['apps_cancel_order', 'create_order', 'order_status', "create_order_apps", 'customer_order_history', 'add_items', 'cancel_order', 'placed_status', 'confirm_status', 'cancel_items', 'in_table_status', 'create_invoice']:
             permission_classes = [permissions.IsAuthenticated]
         if self.action in ['create_take_away_order']:
             permission_classes = [
@@ -831,7 +831,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             table_qs = Table.objects.filter(
                 pk=request.data.get('table')).last()
 
-
             if not table_qs.is_occupied:
                 table_qs.is_occupied = True
                 table_qs.save()
@@ -864,13 +863,14 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 pk=request.data.get('table')).last()
 
             # ____ Customer Running Order Checking______
-            is_customer = request.path.__contains__('/apps/customer/order/create_order/')
+            is_customer = request.path.__contains__(
+                '/apps/customer/order/create_order/')
             if is_customer:
                 food_order_qs = FoodOrder.objects.filter(customer__user=request.user.pk, restaurant_id=table_qs.restaurant_id).exclude(
                     status__in=['5_PAID', '6_CANCELLED']).last()
                 if food_order_qs:
                     serializer = self.serializer_class(instance=food_order_qs)
-                    return ResponseWrapper(data= serializer.data, msg='Success')
+                    return ResponseWrapper(data=serializer.data, msg='Success')
 
             if not table_qs.is_occupied:
                 table_qs.is_occupied = True
@@ -976,7 +976,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
         # customer_id = customer_fcm_device_qs.values_list('pk').last()
         if send_fcm_push_notification_appointment(
-            tokens_list = list(customer_fcm_device_qs.values_list('token', flat=True)),
+            tokens_list=list(
+                customer_fcm_device_qs.values_list('token', flat=True)),
             table_no=table_qs.table_no if table_qs else None,
             status='OrderCancel',
             order_no=order_qs.order_no
@@ -988,7 +989,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs.is_occupied = False
                 table_qs.save()
 
-
         staff_qs = HotelStaffInformation.objects.filter(
             user=request.user.pk, restaurant=order_qs.restaurant_id).first()
         if staff_qs:
@@ -999,7 +999,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             if staff_qs.is_waiter:
                 food_order_log = FoodOrderLog.objects.create(
                     order=order_qs, staff=staff_qs, order_status=order_qs.status)
-
 
         order_done_signal.send(
             sender=self.__class__.create,
@@ -1057,7 +1056,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
         # customer_id = customer_fcm_device_qs.values_list('pk').last()
         if send_fcm_push_notification_appointment(
-            tokens_list = list(customer_fcm_device_qs.values_list('token', flat=True)),
+            tokens_list=list(
+                customer_fcm_device_qs.values_list('token', flat=True)),
             status='OrderCancel',
             order_no=order_qs.order_no
         ):
@@ -1080,12 +1080,14 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
             all_items_qs = OrderedItem.objects.filter(
                 food_order=order_qs).exclude(status__in=["4_CANCELLED"])
-            cancelled_items_names =[]
+            cancelled_items_names = []
             if all_items_qs:
                 all_items_qs.filter(pk__in=request.data.get(
                     'food_items')).update(status='4_CANCELLED')
-                cancel_items = OrderedItem.objects.filter(pk__in = request.data.get('food_items'), status__in=['4_CANCELLED'])
-                cancelled_items_names = cancel_items.values_list('food_option__food__name',flat=True)
+                cancel_items = OrderedItem.objects.filter(
+                    pk__in=request.data.get('food_items'), status__in=['4_CANCELLED'])
+                cancelled_items_names = cancel_items.values_list(
+                    'food_option__food__name', flat=True)
 
             # order_qs.status = '3_IN_TABLE'
             # order_qs.save()
@@ -1096,15 +1098,16 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 order_id=order_qs.pk,
             )
 
-            if not order_qs.status == ['0_ORDER_INITIALIZED','1_ORDER_PLACED']:
+            if not order_qs.status == ['0_ORDER_INITIALIZED', '1_ORDER_PLACED']:
                 customer_fcm_device_qs = CustomerFcmDevice.objects.filter(
                     customer__food_orders__id=order_qs.pk
                 )
 
                 # customer_id = customer_fcm_device_qs.values_list('pk').last()
                 if send_fcm_push_notification_appointment(
-                        tokens_list=list(customer_fcm_device_qs.values_list('token', flat=True)),
-                        status='OrderItemsCancel', food_names= cancelled_items_names
+                        tokens_list=list(
+                            customer_fcm_device_qs.values_list('token', flat=True)),
+                        status='OrderItemsCancel', food_names=cancelled_items_names
 
                 ):
                     pass
@@ -1174,7 +1177,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 is_apps = request.path.__contains__('/apps/')
                 serializer = FoodOrderByTableSerializer(
                     instance=order_qs, context={'is_apps': is_apps, 'request': request})
-                #--------- for fcm----------
+                # --------- for fcm----------
                 table_id = order_qs.table_id
                 table_qs = Table.objects.filter(pk=table_id).first()
                 if not table_qs:
@@ -1193,7 +1196,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                         staff_id_list=staff_id_list,
                 ):
                     return ResponseWrapper(error_msg=['Failed to notify'], error_code=400)
-
 
                 return ResponseWrapper(data=serializer.data, msg='Placed')
         else:
@@ -1241,10 +1243,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             customer__food_orders__id=order_qs.pk
         )
 
-
         # customer_id = customer_fcm_device_qs.values_list('pk').last()
         if send_fcm_push_notification_appointment(
-                tokens_list=list(customer_fcm_device_qs.values_list('token', flat=True)),
+                tokens_list=list(
+                    customer_fcm_device_qs.values_list('token', flat=True)),
                 status='Cooking',
                 order_no=order_qs.order_no
         ):
@@ -1396,7 +1398,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                         food_order_log = FoodOrderLog.objects.create(
                             order=order_qs, staff=staff_qs, order_status=order_qs.status)
 
-
                 invoice_qs = self.invoice_generator(
                     order_qs, payment_status="0_UNPAID")
 
@@ -1408,7 +1409,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 order_done_signal.send(
                     sender=self.__class__.create,
                     restaurant_id=order_qs.restaurant_id,
-                    order_id= order_qs.pk,
+                    order_id=order_qs.pk,
                 )
             return ResponseWrapper(data=serializer.data.get('order_info'), msg='Invoice Created')
         else:
@@ -1514,7 +1515,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 order_done_signal.send(
                     sender=self.__class__.create,
                     restaurant_id=invoice_qs.restaurant_id,
-                    order_id = order_qs.pk,
+                    order_id=order_qs.pk,
                 )
             return ResponseWrapper(data=serializer.data.get('order_info'), msg='Paid')
         else:
@@ -1544,7 +1545,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=reorder_qs.restaurant_id,
-            order_id = order_qs.pk,
+            order_id=order_qs.pk,
         )
         is_apps = request.path.__contains__('/apps/')
 
@@ -1590,10 +1591,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             instance, context={'is_apps': is_apps, 'request': request})
         return ResponseWrapper(serializer.data)
 
-    def order_status(self,request, order_id, *args, **kwargs):
-        food_order_qs = FoodOrder.objects.filter(pk = order_id).last()
-        serializer = FoodOrderStatusSerializer(instance= food_order_qs)
-        return ResponseWrapper(data = serializer.data,msg='success')
+    def order_status(self, request, order_id, *args, **kwargs):
+        food_order_qs = FoodOrder.objects.filter(pk=order_id).last()
+        serializer = FoodOrderStatusSerializer(instance=food_order_qs)
+        return ResponseWrapper(data=serializer.data, msg='success')
 
 
 class OrderedItemViewSet(LoggingMixin, CustomViewSet):
@@ -1638,7 +1639,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=restaurant_id,
-            order_id = order_qs.pk,
+            order_id=order_qs.pk,
         )
 
         if not order_qs.status == ['0_ORDER_INITIALIZED', '1_ORDER_PLACED']:
@@ -1648,12 +1649,12 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
 
             # customer_id = customer_fcm_device_qs.values_list('pk').last()
             if send_fcm_push_notification_appointment(
-                    tokens_list=list(customer_fcm_device_qs.values_list('token', flat=True)),
+                    tokens_list=list(
+                        customer_fcm_device_qs.values_list('token', flat=True)),
                     status='OrderItemCancel', food_name=item_qs.food_option.food.name
 
             ):
                 pass
-
 
         is_apps = request.path.__contains__('/apps/')
         calculate_price_with_initial_item = request.path.__contains__(
@@ -1677,7 +1678,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=restaurant_id,
-                order_id = order_qs.pk,
+                order_id=order_qs.pk,
             )
             is_apps = request.path.__contains__('/apps/')
             calculate_price_with_initial_item = request.path.__contains__(
@@ -1747,7 +1748,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=restaurant_id,
-                order_id= food_order_qs.pk,
+                order_id=food_order_qs.pk,
             )
             is_apps = request.path.__contains__('/apps/')
 
@@ -1782,7 +1783,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=restaurant_id,
-            order_id = food_order_qs.pk,
+            order_id=food_order_qs.pk,
         )
         return ResponseWrapper(data=serializer.data, msg='created')
 
@@ -1811,7 +1812,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
         order_done_signal.send(
             sender=self.__class__.re_order_items,
             restaurant_id=re_order_item_qs.food_order.restaurant_id,
-            order_id =re_order_item_qs.food_order.pk,
+            order_id=re_order_item_qs.food_order.pk,
         )
         is_apps = request.path.__contains__('/apps/')
         serializer = FoodOrderByTableSerializer(
@@ -1876,9 +1877,11 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
     @cache_page(60*15)
     def food_details(self, request, pk, *args,  **kwargs):
-        qs = Food.objects.filter(pk=pk).select_related('category').prefetch_related("food_extras").last()
+        qs = Food.objects.filter(pk=pk).select_related(
+            'category').prefetch_related("food_extras").last()
         serializer = FoodDetailSerializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='success')
 
@@ -2521,18 +2524,23 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
         food_qs_id_list = list(food_order_qs.values_list('pk', flat=True))
 
-        food_order_action_qs = Action.objects.filter(action_object_content_type__model = 'foodorder',action_object_object_id__in = food_qs_id_list,timestamp__gte =start_date,timestamp__lte = end_date)
+        food_order_action_qs = Action.objects.filter(action_object_content_type__model='foodorder',
+                                                     action_object_object_id__in=food_qs_id_list, timestamp__gte=start_date, timestamp__lte=end_date)
         staff_list = HotelStaffInformation.objects.filter(restaurant=restaurant, is_waiter=True).values_list("pk",
                                                                                                              flat=True).distinct()
 
         total_waiter = staff_list.__len__()
-        total_payable_amount = food_order_qs.values_list('payable_amount',flat=True)
+        total_payable_amount = food_order_qs.values_list(
+            'payable_amount', flat=True)
         total_amount = round(sum(total_payable_amount), 2)
         staff_report_list = list()
         for staff in staff_list:
-            temp_food_order_action_qs = food_order_action_qs.filter(actor_object_id=staff)
-            allowed_order_id_list = list(temp_food_order_action_qs.values_list('action_object_object_id', flat=True))
-            payment_amount_list = food_order_qs.filter(pk__in = allowed_order_id_list).values_list('payable_amount', flat=True)
+            temp_food_order_action_qs = food_order_action_qs.filter(
+                actor_object_id=staff)
+            allowed_order_id_list = list(temp_food_order_action_qs.values_list(
+                'action_object_object_id', flat=True))
+            payment_amount_list = food_order_qs.filter(
+                pk__in=allowed_order_id_list).values_list('payable_amount', flat=True)
             total_payment_amount = round(sum(payment_amount_list), 2)
             staff_qs = HotelStaffInformation.objects.filter(pk=staff).first()
             staff_serializer = StaffInfoGetSerializer(instance=staff_qs)
@@ -2843,7 +2851,6 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         if food:
             food_qs = Food.objects.filter(pk=food)
             food_qs.update(discount=qs.id)
-
 
         serializer = self.get_serializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='created')
