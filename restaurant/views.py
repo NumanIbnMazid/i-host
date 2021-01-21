@@ -1880,9 +1880,8 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
 
     # @method_decorator(cache_page(60*15))
     def food_details(self, request, pk, *args,  **kwargs):
-        qs = Food.objects.filter(pk=pk).last()
-        # select_related(
-        # 'category').prefetch_related("food_extras").last()
+        qs = Food.objects.filter(pk=pk).select_related(
+            'category').prefetch_related("food_extras").last()
         serializer = FoodDetailSerializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='success')
 
