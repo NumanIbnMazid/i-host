@@ -2,6 +2,7 @@ import restaurant
 from account_management.models import HotelStaffInformation
 import base64
 import json
+from django_q.tasks import async_task
 
 import channels.layers
 from asgiref.sync import async_to_sync, sync_to_async
@@ -50,7 +51,7 @@ def order_item_list(restaurant_id=1):
 
 
 @receiver(order_done_signal)
-def dashboard_update_on_order_change_signals(sender,   restaurant_id, order_id=None, qs=None, data=None, state='data_only', **kwargs):
+def socket_fire_on_order_change_signals(sender,   restaurant_id, order_id=None, qs=None, data=None, state='data_only', **kwargs):
     """
     signal reciever for dashboard update and call websocket connections
 
@@ -70,6 +71,12 @@ def dashboard_update_on_order_change_signals(sender,   restaurant_id, order_id=N
     # print('---------------------------------------------------------------------------------------------------------------')
     # print("FIRING Signals")
     # print('---------------------------------------------------------------------------------------------------------------')
+    async_task('restaurant.tasks.socket_fire_task_on_order_crud',
+               restaurant_id, order_id, state, data)
+    # socket_fire_task_on_order_crud(restaurant_id, order_id, state, data)
+
+
+def socket_fire_task_on_order_crud(restaurant_id, order_id, state, data):
     response_data = {}
     # staff_list = HotelStaffInformation.objects.filter(
     #     restaurant_id=restaurant_id,).values_list('pk', flat=True)

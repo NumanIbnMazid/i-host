@@ -54,6 +54,7 @@ LIBRARY_APPS = [
     'softdelete',
     'rest_framework_tracking',
     'actstream',
+    'django_q',
     # 'autofixture',
     # "mockups",
 ]
@@ -74,11 +75,11 @@ INSTALLED_APPS = [
 SITE_ID = 1
 
 ACTSTREAM_SETTINGS = {
-#     'MANAGER': 'account_management.managers.MyActionManager',
+    #     'MANAGER': 'account_management.managers.MyActionManager',
     'FETCH_RELATIONS': True,
-#     'USE_PREFETCH': True,
+    #     'USE_PREFETCH': True,
     'USE_JSONFIELD': True,
-#     'GFK_FETCH_DEPTH': 1,
+    #     'GFK_FETCH_DEPTH': 1,
 }
 # ACTSTREAM_SETTINGS['USE_JSONFIELD'] = True
 
@@ -292,6 +293,23 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': '/var/tmp/django_cache',
+    }
+}
+
+Q_CLUSTER = {
+    'name': 'ihost',
+    # 'workers': 8,
+    # 'recycle': 500,
+    # 'timeout': 600,
+    # 'compress': True,
+    # 'save_limit': 250,
+    # 'queue_limit': 500,
+    # 'cpu_affinity': 1,
+    # 'label': 'Django Q',
+    'redis': {
+        'host': '127.0.0.1',
+        'port': 6379,
+        'db': 0,
     }
 }
 
