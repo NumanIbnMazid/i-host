@@ -289,12 +289,12 @@ FCM_DJANGO_SETTINGS = {
     "DELETE_INACTIVE_DEVICES": True,
 }
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/var/tmp/django_cache',
-    }
-}
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+#         'LOCATION': '/var/tmp/django_cache',
+#     }
+# }
 
 Q_CLUSTER = {
     'name': 'ihost',
