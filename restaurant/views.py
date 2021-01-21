@@ -1071,7 +1071,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             if all_items_qs:
                 all_items_qs.filter(pk__in=request.data.get(
                     'food_items')).update(status='4_CANCELLED')
-                cancelled_items_names = all_items_qs.values_list('food_option__food__name',flat=True)
+                cancel_items = OrderedItem.objects.filter(pk__in = request.data.get('food_items'), status__in=['4_CANCELLED'])
+                cancelled_items_names = cancel_items.values_list('food_option__food__name',flat=True)
 
             # order_qs.status = '3_IN_TABLE'
             # order_qs.save()
