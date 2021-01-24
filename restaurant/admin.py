@@ -49,6 +49,8 @@ class ReviewAdmin(admin.ModelAdmin):
 class RestaurantMessagesAdmin(admin.ModelAdmin):
     list_display = ['id','title','message','restaurant']
 
+class PrintNodeAdmin(admin.ModelAdmin):
+    list_display = ['id','printer_id','restaurant']
 
 admin.site.register(Restaurant)
 admin.site.register(FoodOrderLog,FoodOrderLogAdmin)
@@ -67,7 +69,7 @@ admin.site.register(FoodOption, FoodOptionAdmin)
 admin.site.register(Table, TableAdmin)
 admin.site.register(FoodOrder,FoodOrderAdmin)
 admin.site.register(OrderedItem, OrderedItemAdmin)
-admin.site.register(Invoice, InvoiceAdmin)
+admin.site.register(Invoice,InvoiceAdmin)
 admin.site.register(Discount, DiscountAdmin)
 admin.site.register(PopUp, PopUpAdmin)
 admin.site.register(Slider, SliderAdmin)
@@ -75,3 +77,4 @@ admin.site.register(Review, ReviewAdmin)
 admin.site.register(RestaurantMessages, RestaurantMessagesAdmin)
 admin.site.register(PaymentType)
 admin.site.register(VersionUpdate)
+admin.site.register(PrintNode,PrintNodeAdmin)
