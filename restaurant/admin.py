@@ -52,6 +52,9 @@ class RestaurantMessagesAdmin(admin.ModelAdmin):
 class PrintNodeAdmin(admin.ModelAdmin):
     list_display = ['id','printer_id','restaurant']
 
+class TakeAwayOrderAdmin(admin.ModelAdmin):
+    list_display = ['id','restaurant']
+
 admin.site.register(Restaurant)
 admin.site.register(FoodOrderLog,FoodOrderLogAdmin)
 admin.site.register(Subscription, SubscriptionAdmin)
@@ -78,3 +81,4 @@ admin.site.register(RestaurantMessages, RestaurantMessagesAdmin)
 admin.site.register(PaymentType)
 admin.site.register(VersionUpdate)
 admin.site.register(PrintNode,PrintNodeAdmin)
+admin.site.register(TakeAwayOrder,TakeAwayOrderAdmin)
