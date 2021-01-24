@@ -1646,7 +1646,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             order_id=order_qs.pk,
         )
 
-        if not order_qs.status == ['0_ORDER_INITIALIZED', '1_ORDER_PLACED']:
+        if order_qs.status not in ['0_ORDER_INITIALIZED', '1_ORDER_PLACED']:
             customer_fcm_device_qs = CustomerFcmDevice.objects.filter(
                 customer__food_orders__id=order_qs.pk
             )
@@ -3311,7 +3311,8 @@ class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
     http_method_names = ['post', 'patch', 'get', 'delete']
 
     def take_away_order_list(self, request, restaurant_id,*args ,**kwargs):
-        qs = TakeAwayOrder.objects.filter(restaurant_id =restaurant_id)
+        qs = TakeAwayOrder.objects.filter(restaurant_id =restaurant_id).exclude(running_order__status__in = ['5_PAID','6_CANCELLED'])
+
         serializer = TakeAwayOrderSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
