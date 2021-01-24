@@ -936,8 +936,12 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
         order_no = generate_order_no(restaurant_id=restaurant_id)
         qs = FoodOrder.objects.create(order_no=order_no, **food_order_dict)
-        take_away_order_qs =TakeAwayOrder.objects.create(restaurant_id = restaurant_id)
-        add_running_order = take_away_order_qs.running_order.add(qs.id)
+        take_away_order_qs = TakeAwayOrder.objects.filter(restaurant_id = restaurant_id).first()
+        if take_away_order_qs:
+            add_running_order = take_away_order_qs.running_order.add(qs.id)
+        else:
+            take_away_order=TakeAwayOrder.objects.create(restaurant_id = restaurant_id)
+            add_running_order = take_away_order.running_order.add(qs.id)
 
         serializer = FoodOrderUserPostSerializer(instance=qs)
 
@@ -3311,8 +3315,8 @@ class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
     http_method_names = ['post', 'patch', 'get', 'delete']
 
     def take_away_order_list(self, request, restaurant_id,*args ,**kwargs):
-        qs = TakeAwayOrder.objects.filter(restaurant_id =restaurant_id).exclude(running_order__status__in = ['5_PAID','6_CANCELLED'])
+        qs = TakeAwayOrder.objects.filter(restaurant_id =restaurant_id).first()
 
-        serializer = TakeAwayOrderSerializer(instance=qs, many=True)
+        serializer = FoodOrderByTableSerializer(instance=qs.running_order.exclude(status__in = ['5_PAID','6_CANCELLED']), many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
