@@ -3308,15 +3308,14 @@ class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['take_away_order_list']:
+        if self.action in ['take_away_order']:
             permission_classes = [custom_permissions.IsRestaurantStaff]
         return [permission() for permission in permission_classes]
 
     http_method_names = ['post', 'patch', 'get', 'delete']
 
-    def take_away_order_list(self, request, restaurant_id,*args ,**kwargs):
+    def take_away_order(self, request, restaurant_id,*args ,**kwargs):
         qs = TakeAwayOrder.objects.filter(restaurant_id =restaurant_id).first()
-
         serializer = FoodOrderByTableSerializer(instance=qs.running_order.exclude(status__in = ['5_PAID','6_CANCELLED']), many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
