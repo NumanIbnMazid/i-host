@@ -385,3 +385,22 @@ class VersionUpdate(models.Model):
 
     # def __str__(self):
     #     return self.version_id
+
+class PrintNode(models.Model):
+    restaurant = models.ForeignKey(
+        to=Restaurant, on_delete=models.SET_NULL, null=True, related_name='print_nodes')
+    printer_id = models.IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return self.restaurant
+
+
+class TakeAwayOrder(models.Model):
+    restaurant = models.ForeignKey(
+        to=Restaurant, on_delete=models.SET_NULL, null=True, related_name='take_away_orders')
+    running_order = models.ManyToManyField(
+        to='FoodOrder', blank=True, related_name='take_away_orders')
+    assigned_staff = models.ManyToManyField(
+        to='account_management.HotelStaffInformation', blank=True, related_name='take_away_orders')
+    def __str__(self):
+        return self.restaurant
