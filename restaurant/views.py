@@ -40,7 +40,7 @@ from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodOrder, FoodOrderLog, Invoice, OrderedItem,
                                PaymentType, PopUp, Restaurant,
                                RestaurantMessages, Review, Slider,
-                               Subscription, Table, VersionUpdate)
+                               Subscription, Table, VersionUpdate,PrintNode)
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
@@ -87,7 +87,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           TopRecommendedFoodListSerializer,
                           VersionUpdateSerializer, CustomerOrderDetailsSerializer,
                           FcmNotificationListSerializer, DiscountPopUpSerializer, DiscountSliderSerializer,
-                          FoodOrderStatusSerializer)
+                          FoodOrderStatusSerializer, PrintNodeSerializer)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -3231,3 +3231,61 @@ class PrintOrder(CustomViewSet):
         # success = print_node(pdf_obj=pdf_obj_encoded)
 
         return ResponseWrapper(data={'success': True})
+
+
+class PrintNodeViewSet(LoggingMixin, CustomViewSet):
+    serializer_class = PrintNodeSerializer
+    queryset = PrintNode.objects.all()
+    lookup_field = 'pk'
+    def get_serializer_class(self):
+        return self.serializer_class
+
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['print_node_create','print_node_update','print_node_destroy']:
+            permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+
+    http_method_names = ['post', 'patch', 'get', 'delete']
+
+    def print_node_create(self, request):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+        if serializer.is_valid():
+            qs = serializer.save()
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def print_node_update(self, request, **kwargs):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data, partial=True)
+        if serializer.is_valid():
+            qs = serializer.update(instance=self.get_object(
+            ), validated_data=serializer.validated_data)
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+    def print_node_destroy(self, request, **kwargs):
+        qs = self.queryset.filter(**kwargs).first()
+        if qs:
+            qs.delete()
+            return ResponseWrapper(status=200, msg='deleted')
+        else:
+            return ResponseWrapper(error_msg="failed to delete", error_code=400)
+
+    def list(self,request,*args, **kwargs):
+        qs = PrintNode.objects.all()
+        serializer = PrintNodeSerializer(instance=qs,many=True)
+        return ResponseWrapper(data = serializer.data, msg='success')
+
+    def print_node_list(self, request, restaurant_id,*args ,**kwargs):
+        qs = PrintNode.objects.filter(restaurant_id =restaurant_id)
+        serializer = PrintNodeSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
+    
+
+
+
