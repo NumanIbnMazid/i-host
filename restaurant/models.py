@@ -330,6 +330,20 @@ class Discount(models.Model):
     #     return self.name
 
 
+class ParentCompanyPromotion(models.Model):
+    PROMO_TYPE = [
+        ("PERCENTAGE", "percentage"), ("AMOUNT", "amount")]
+    code = models.CharField(max_length=200, unique=True)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    promo_type = models.CharField(choices=PROMO_TYPE, max_length=50)
+    max_amount = models.FloatField(default=0)
+    minimum_purchase_amount = models.FloatField(default=0)
+    amount = models.FloatField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    restaurant = models.ManyToManyField(Restaurant)
+
+
 class PopUp(models.Model):
     restaurant = models.ForeignKey(to=Restaurant, on_delete=models.CASCADE)
     image = models.ImageField()
@@ -386,6 +400,7 @@ class VersionUpdate(models.Model):
     # def __str__(self):
     #     return self.version_id
 
+
 class PrintNode(models.Model):
     restaurant = models.ForeignKey(
         to=Restaurant, on_delete=models.SET_NULL, null=True, related_name='print_nodes')
@@ -402,5 +417,6 @@ class TakeAwayOrder(models.Model):
         to='FoodOrder', blank=True, related_name='take_away_orders')
     assigned_staff = models.ManyToManyField(
         to='account_management.HotelStaffInformation', blank=True, related_name='take_away_orders')
+
     def __str__(self):
         return self.restaurant
