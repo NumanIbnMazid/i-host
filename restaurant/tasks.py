@@ -33,9 +33,9 @@ def socket_fire_task_on_order_crud(restaurant_id, order_id, state, data):
 
     # staff_list = HotelStaffInformation.objects.filter(
     #     restaurant_id=restaurant_id,).values_list('pk', flat=True)
-    table_qs = Table.objects.filter(restaurant_id=restaurant_id,
-                                    food_orders__id=order_id).order_by('table_no').distinct()
-    staff_list = list(table_qs.values_list('staff_assigned__pk', flat=True))
+    staff_list = Table.objects.filter(restaurant_id=restaurant_id,
+                                    food_orders__id=order_id).order_by('table_no').distinct().values_list('staff_assigned__pk', flat=True)
+    # staff_list = list(table_qs.values_list('staff_assigned__pk', flat=True))
 
     if state in ['data_only']:
         if not data:
