@@ -417,6 +417,5 @@ class TakeAwayOrder(models.Model):
         to='FoodOrder', blank=True, related_name='take_away_orders')
     assigned_staff = models.ManyToManyField(
         to='account_management.HotelStaffInformation', blank=True, related_name='take_away_orders')
-
-    def __str__(self):
-        return self.restaurant
+    # def __str__(self):
+    #     return self.restaurant

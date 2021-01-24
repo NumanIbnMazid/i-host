@@ -40,7 +40,7 @@ from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodOrder, FoodOrderLog, Invoice, OrderedItem,
                                PaymentType, PopUp, Restaurant,
                                RestaurantMessages, Review, Slider,
-                               Subscription, Table, VersionUpdate,PrintNode)
+                               Subscription, Table, VersionUpdate,PrintNode,TakeAwayOrder)
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
@@ -87,7 +87,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           TopRecommendedFoodListSerializer,
                           VersionUpdateSerializer, CustomerOrderDetailsSerializer,
                           FcmNotificationListSerializer, DiscountPopUpSerializer, DiscountSliderSerializer,
-                          FoodOrderStatusSerializer, PrintNodeSerializer)
+                          FoodOrderStatusSerializer, PrintNodeSerializer, TakeAwayOrderSerializer)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -933,14 +933,18 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs.is_occupied = True
                 table_qs.save()
 
+
         order_no = generate_order_no(restaurant_id=restaurant_id)
         qs = FoodOrder.objects.create(order_no=order_no, **food_order_dict)
+        take_away_order_qs =TakeAwayOrder.objects.create(restaurant_id = restaurant_id)
+        add_running_order = take_away_order_qs.running_order.add(qs.id)
 
         serializer = FoodOrderUserPostSerializer(instance=qs)
 
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=restaurant_id,
+            order_id = qs.id
 
 
         )
@@ -1642,7 +1646,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             order_id=order_qs.pk,
         )
 
-        if not order_qs.status == ['0_ORDER_INITIALIZED', '1_ORDER_PLACED']:
+        if order_qs.status not in ['0_ORDER_INITIALIZED', '1_ORDER_PLACED']:
             customer_fcm_device_qs = CustomerFcmDevice.objects.filter(
                 customer__food_orders__id=order_qs.pk
             )
@@ -1683,10 +1687,15 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             is_apps = request.path.__contains__('/apps/')
             calculate_price_with_initial_item = request.path.__contains__(
                 '/apps/customer/order/cart/items/')
+            if calculate_price_with_initial_item:
+                serializer = FoodOrderSerializer(instance=order_qs, context={
+                                                 'is_apps': is_apps, 'request': request,
+                                                 'calculate_price_with_initial_item': calculate_price_with_initial_item})
+            else:
+                serializer = FoodOrderByTableSerializer(instance=order_qs,context={
+                                                 'is_apps': is_apps, 'request': request,
+                                                 'calculate_price_with_initial_item': calculate_price_with_initial_item})
 
-            serializer = FoodOrderSerializer(instance=order_qs, context={
-                                             'is_apps': is_apps, 'request': request,
-                                             'calculate_price_with_initial_item': calculate_price_with_initial_item})
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -3286,6 +3295,24 @@ class PrintNodeViewSet(LoggingMixin, CustomViewSet):
         serializer = PrintNodeSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
     
+class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
+    serializer_class = TakeAwayOrderSerializer
+    queryset = TakeAwayOrder.objects.all()
+    lookup_field = 'pk'
+    def get_serializer_class(self):
+        return self.serializer_class
 
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['take_away_order_list']:
+            permission_classes = [custom_permissions.IsRestaurantStaff]
+        return [permission() for permission in permission_classes]
 
+    http_method_names = ['post', 'patch', 'get', 'delete']
+
+    def take_away_order_list(self, request, restaurant_id,*args ,**kwargs):
+        qs = TakeAwayOrder.objects.filter(restaurant_id =restaurant_id).exclude(running_order__status__in = ['5_PAID','6_CANCELLED'])
+
+        serializer = TakeAwayOrderSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
 

@@ -1136,3 +1136,15 @@ class PrintNodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PrintNode
         fields = '__all__'
+
+
+class TakeAwayOrderSerializer(serializers.ModelSerializer):
+    running_order = serializers.SerializerMethodField(read_only=True)
+    class Meta:
+        model = TakeAwayOrder
+        fields = '__all__'
+
+    def get_running_order(self,obj):
+        if obj.running_order:
+            return ['hi']
+
