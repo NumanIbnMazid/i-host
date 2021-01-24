@@ -1878,7 +1878,7 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    # @cache_page(60*15)
+    # @method_decorator(cache_page(60*15))
     def food_details(self, request, pk, *args,  **kwargs):
         qs = Food.objects.filter(pk=pk).select_related(
             'category').prefetch_related("food_extras").last()
