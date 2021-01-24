@@ -34,7 +34,7 @@ def socket_fire_task_on_order_crud(restaurant_id, order_id, state, data):
     # staff_list = HotelStaffInformation.objects.filter(
     #     restaurant_id=restaurant_id,).values_list('pk', flat=True)
     table_qs = Table.objects.filter(restaurant_id=restaurant_id,
-                                    food_orders__id=order_id).prefetch_related('food_orders').order_by('table_no').distinct()
+                                    food_orders__id=order_id).order_by('table_no').distinct()
     staff_list = list(table_qs.values_list('staff_assigned__pk', flat=True))
 
     if state in ['data_only']:
@@ -50,7 +50,8 @@ def socket_fire_task_on_order_crud(restaurant_id, order_id, state, data):
             group_name, {'type': 'response_to_listener', 'data': response_data})
         for staff_id in staff_list:
             waiter_group_name = 'waiter_%s' % staff_id
-            qs = table_qs.filter(
+            qs = Table.objects.filter(
+                restaurant_id=restaurant_id,
                 staff_assigned=staff_id).order_by('table_no')
             serializer = TableStaffSerializer(instance=qs, many=True)
             async_to_sync(layer.group_send)(
