@@ -1,7 +1,10 @@
 import decimal
+from restaurant.models import ParentCompanyPromotion
+import restaurant
+from django.utils import timezone
 
 
-def calculate_price(food_order_obj, include_initial_order=False):
+def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
     if include_initial_order:
         ordered_items_qs = food_order_obj.ordered_items.exclude(
             status__in=["4_CANCELLED"])
@@ -10,6 +13,9 @@ def calculate_price(food_order_obj, include_initial_order=False):
             status__in=["4_CANCELLED", "0_ORDER_INITIALIZED"])
 
     restaurant_qs = food_order_obj.restaurant
+    promo_code = kwargs.get('promo_code')
+    parent_promo_qs = ParentCompanyPromotion.objects.filter(
+        code=promo_code, restaurant=restaurant.pk, start_date__lte=timezone.now(), end_date__gte=timezone.now()).first()
     # if food_order_obj.table:
     #     restaurant_qs = food_order_obj.table.restaurant
 
@@ -40,6 +46,22 @@ def calculate_price(food_order_obj, include_initial_order=False):
     else:
         service_charge = restaurant_qs.service_charge
 
+    if parent_promo_qs:
+        promo_discount_amount = 0
+
+        if parent_promo_qs.promo_type == "PERCENTAGE":
+            promo_discount_amount = grand_total_price * \
+                (parent_promo_qs.amount/100)
+        else:
+            promo_discount_amount = parent_promo_qs.amount
+
+        if grand_total_price < parent_promo_qs.minimum_purchase_amount:
+            promo_discount_amount = 0
+
+        discount_amount += promo_discount_amount
+        if discount_amount > parent_promo_qs.max_amount:
+            discount_amount = parent_promo_qs.max_amount
+
     grand_total_price += service_charge
     tax_amount = ((total_price * restaurant_qs.tax_percentage)/hundred)
     grand_total_price += tax_amount
@@ -51,7 +73,7 @@ def calculate_price(food_order_obj, include_initial_order=False):
         "tax_amount": round(tax_amount, 2),
         'tax_percentage': round(restaurant_qs.tax_percentage, 2),
         "service_charge": round(service_charge, 2),
-        "service_charge_is_percentage":restaurant_qs.service_charge_is_percentage,
+        "service_charge_is_percentage": restaurant_qs.service_charge_is_percentage,
         "service_charge_base_amount": restaurant_qs.service_charge,
         'total_price': round(total_price, 2),
     }
