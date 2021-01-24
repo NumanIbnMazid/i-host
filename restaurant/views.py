@@ -40,7 +40,7 @@ from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodOrder, FoodOrderLog, Invoice, OrderedItem,
                                PaymentType, PopUp, Restaurant,
                                RestaurantMessages, Review, Slider,
-                               Subscription, Table, VersionUpdate,PrintNode)
+                               Subscription, Table, VersionUpdate,PrintNode,TakeAwayOrder)
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
@@ -933,8 +933,13 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 table_qs.is_occupied = True
                 table_qs.save()
 
+
         order_no = generate_order_no(restaurant_id=restaurant_id)
         qs = FoodOrder.objects.create(order_no=order_no, **food_order_dict)
+        take_away_order_qs =TakeAwayOrder.objects.create(restaurant_id = restaurant_id)
+
+
+
 
         serializer = FoodOrderUserPostSerializer(instance=qs)
 
