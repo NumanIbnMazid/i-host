@@ -996,6 +996,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             if table_qs.is_occupied:
                 table_qs.is_occupied = False
                 table_qs.save()
+        take_away_order_qs = TakeAwayOrder.objects.filter(running_order=order_qs.id).first()
+        if take_away_order_qs:
+            take_away_order_qs.running_order.remove(order_qs.id)
 
         staff_qs = HotelStaffInformation.objects.filter(
             user=request.user.pk, restaurant=order_qs.restaurant_id).first()
@@ -1504,6 +1507,11 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 if table_qs:
                     table_qs.is_occupied = False
                     table_qs.save()
+                take_away_order_qs = TakeAwayOrder.objects.filter(running_order = order_qs.id).first()
+                if take_away_order_qs:
+                    take_away_order_qs.running_order.remove(order_qs.id)
+
+
 
                 staff_qs = HotelStaffInformation.objects.filter(
                     user=request.user.pk, restaurant=order_qs.restaurant_id).first()
