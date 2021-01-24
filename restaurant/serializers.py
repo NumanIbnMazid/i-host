@@ -1130,3 +1130,9 @@ class CustomerOrderDetailsSerializer(serializers.ModelSerializer):
     #         return {'table_id':table_id,
     #                 'table_no':table_no,
     #                 'restaurant_name':restaurant_name}
+
+
+class PrintNodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PrintNode
+        fields = '__all__'
