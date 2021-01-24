@@ -40,7 +40,7 @@ from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodOrder, FoodOrderLog, Invoice, OrderedItem,
                                PaymentType, PopUp, Restaurant,
                                RestaurantMessages, Review, Slider,
-                               Subscription, Table, VersionUpdate,PrintNode,TakeAwayOrder)
+                               Subscription, Table, VersionUpdate,PrintNode,TakeAwayOrder, ParentCompanyPromotion)
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
@@ -87,7 +87,8 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           TopRecommendedFoodListSerializer,
                           VersionUpdateSerializer, CustomerOrderDetailsSerializer,
                           FcmNotificationListSerializer, DiscountPopUpSerializer, DiscountSliderSerializer,
-                          FoodOrderStatusSerializer, PrintNodeSerializer, TakeAwayOrderSerializer)
+                          FoodOrderStatusSerializer, PrintNodeSerializer, TakeAwayOrderSerializer,
+                          ParentCompanyPromotionSerializer, RestaurantParentCompanyPromotionSerializer)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -3327,3 +3328,19 @@ class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
         serializer = FoodOrderByTableSerializer(instance=qs.running_order.exclude(status__in = ['5_PAID','6_CANCELLED']), many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
+class ParentCompanyPromotionViewSet(LoggingMixin, CustomViewSet):
+    serializer_class =ParentCompanyPromotionSerializer
+    queryset = ParentCompanyPromotion.objects.all()
+    lookup_field = 'pk'
+    http_method_names = ['post', 'patch', 'get', 'delete']
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['create', 'destroy', 'patch','list']:
+            permission_classes = [
+                permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+
+    def parent_company_promotions(self,request,restaurant_id, *args,**kwargs):
+        qs = ParentCompanyPromotion.objects.filter(restaurant = restaurant_id)
+        serializers = ParentCompanyPromotionSerializer(instance=qs,many=True)
+        return ResponseWrapper(data=serializers.data, msg='Success')

@@ -1148,3 +1148,21 @@ class TakeAwayOrderSerializer(serializers.ModelSerializer):
         if obj.running_order:
             pass
 
+
+class RestaurantInfoSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk')
+    class Meta:
+        model = Restaurant
+        fields = ['id','name']
+
+class ParentCompanyPromotionSerializer(serializers.ModelSerializer):
+    restaurant = RestaurantInfoSerializer(read_only=True, many=True)
+    class Meta:
+        model = ParentCompanyPromotion
+        fields = '__all__'
+
+class RestaurantParentCompanyPromotionSerializer(serializers.ModelSerializer):
+    restaurant = serializers.IntegerField(source='restaurant.id')
+    class Meta:
+        model = ParentCompanyPromotion
+        fields = '__all__'
