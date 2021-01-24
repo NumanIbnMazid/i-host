@@ -936,8 +936,12 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
 
         order_no = generate_order_no(restaurant_id=restaurant_id)
         qs = FoodOrder.objects.create(order_no=order_no, **food_order_dict)
-        take_away_order_qs =TakeAwayOrder.objects.create(restaurant_id = restaurant_id)
-        add_running_order = take_away_order_qs.running_order.add(qs.id)
+        take_away_order_qs = TakeAwayOrder.objects.filter(restaurant_id = restaurant_id).first()
+        if take_away_order_qs:
+            add_running_order = take_away_order_qs.running_order.add(qs.id)
+        else:
+            take_away_order=TakeAwayOrder.objects.create(restaurant_id = restaurant_id)
+            add_running_order = take_away_order.running_order.add(qs.id)
 
         serializer = FoodOrderUserPostSerializer(instance=qs)
 
@@ -992,6 +996,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             if table_qs.is_occupied:
                 table_qs.is_occupied = False
                 table_qs.save()
+        take_away_order_qs = TakeAwayOrder.objects.filter(running_order=order_qs.id).first()
+        if take_away_order_qs:
+            take_away_order_qs.running_order.remove(order_qs.id)
 
         staff_qs = HotelStaffInformation.objects.filter(
             user=request.user.pk, restaurant=order_qs.restaurant_id).first()
@@ -1500,6 +1507,11 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
                 if table_qs:
                     table_qs.is_occupied = False
                     table_qs.save()
+                take_away_order_qs = TakeAwayOrder.objects.filter(running_order = order_qs.id).first()
+                if take_away_order_qs:
+                    take_away_order_qs.running_order.remove(order_qs.id)
+
+
 
                 staff_qs = HotelStaffInformation.objects.filter(
                     user=request.user.pk, restaurant=order_qs.restaurant_id).first()
@@ -3304,15 +3316,14 @@ class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['take_away_order_list']:
+        if self.action in ['take_away_order']:
             permission_classes = [custom_permissions.IsRestaurantStaff]
         return [permission() for permission in permission_classes]
 
     http_method_names = ['post', 'patch', 'get', 'delete']
 
-    def take_away_order_list(self, request, restaurant_id,*args ,**kwargs):
-        qs = TakeAwayOrder.objects.filter(restaurant_id =restaurant_id).exclude(running_order__status__in = ['5_PAID','6_CANCELLED'])
-
-        serializer = TakeAwayOrderSerializer(instance=qs, many=True)
+    def take_away_order(self, request, restaurant_id,*args ,**kwargs):
+        qs = TakeAwayOrder.objects.filter(restaurant_id =restaurant_id).first()
+        serializer = FoodOrderByTableSerializer(instance=qs.running_order.exclude(status__in = ['5_PAID','6_CANCELLED']), many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 

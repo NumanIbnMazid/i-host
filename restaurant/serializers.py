@@ -1146,5 +1146,5 @@ class TakeAwayOrderSerializer(serializers.ModelSerializer):
 
     def get_running_order(self,obj):
         if obj.running_order:
-            return ['hi']
+            pass
 

@@ -219,10 +219,10 @@ class FoodOrder(SoftDeleteModel):
         to=Restaurant, on_delete=models.SET_NULL, null=True, blank=True, related_name='food_orders')
 
     def __str__(self):
-        if self.table:
-            return str(self.id)
+        if self.order_no:
+            return str(self.order_no)
         else:
-            return 'table null'
+            return 'order no null'
 
     # class Meta:
     #     constraints = [
