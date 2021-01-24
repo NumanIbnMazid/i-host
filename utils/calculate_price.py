@@ -15,7 +15,7 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
     restaurant_qs = food_order_obj.restaurant
     promo_code = kwargs.get('promo_code')
     parent_promo_qs = ParentCompanyPromotion.objects.filter(
-        code=promo_code,   start_date__lte=timezone.now(), end_date__gte=timezone.now()).first()
+        code=promo_code,  restaurant=restaurant_qs.pk, start_date__lte=timezone.now(), end_date__gte=timezone.now()).first()
     # if food_order_obj.table:
     #     restaurant_qs = food_order_obj.table.restaurant
 
