@@ -292,5 +292,7 @@ dashboard_urls = [
          PrintNodeViewSet.as_view({'patch': 'print_node_update','delete':'print_node_destroy','get':'retrieve'}, name='print_node')),
     path('print_node_list/<int:restaurant_id>/',
          PrintNodeViewSet.as_view({'get': 'print_node_list'}, name='print_node_list')),
+    path('take_away_order_list/<int:restaurant_id>/',
+         TakeAwayOrderViewSet.as_view({'get': 'take_away_order_list'}, name='take_away_order_list')),
 
 ] + fake_dashboard_urls

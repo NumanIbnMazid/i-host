@@ -1136,3 +1136,9 @@ class PrintNodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PrintNode
         fields = '__all__'
+
+
+class TakeAwayOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TakeAwayOrder
+        fields = '__all__'
