@@ -13,9 +13,12 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
             status__in=["4_CANCELLED", "0_ORDER_INITIALIZED"])
 
     restaurant_qs = food_order_obj.restaurant
-    promo_code = kwargs.get('promo_code')
-    parent_promo_qs = ParentCompanyPromotion.objects.filter(
-        code=promo_code,  restaurant=restaurant_qs, start_date__lte=timezone.now(), end_date__gte=timezone.now()).first()
+    promo_code = food_order_obj.applied_promo_code  # kwargs.get('promo_code')
+    if promo_code:
+        parent_promo_qs = ParentCompanyPromotion.objects.filter(
+            code=promo_code,  restaurant=restaurant_qs, start_date__lte=timezone.now(), end_date__gte=timezone.now()).first()
+    else:
+        parent_promo_qs = None
     # if food_order_obj.table:
     #     restaurant_qs = food_order_obj.table.restaurant
 
