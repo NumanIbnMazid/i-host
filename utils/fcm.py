@@ -4,24 +4,26 @@ import datetime
 import json
 
 import requests
+from django.conf import settings
+
 # from fcm_django.models import FCMDevice
 
 
-FCM_DJANGO_SETTINGS = {
-    "FCM_SERVER_KEY": "AAAA0HAEqOY:APA91bH5tJDGmxbdt7cZgVyImj-QU1tvIFpq3EfkiQZgmj-ktSRMNJkonGnZiVoKAVH9bT80Y-TFs22u4F5O46d97xQn90CE0FEnItifG6cofZt0_IorqX2N7sZwaUgUBvzGwE5aZ9Kt",
-    "ONE_DEVICE_PER_USER": True,
-    "DELETE_INACTIVE_DEVICES": False,
-}
+# FCM_DJANGO_SETTINGS = {
+#     "FCM_SERVER_KEY": "AAAA0HAEqOY:APA91bH5tJDGmxbdt7cZgVyImj-QU1tvIFpq3EfkiQZgmj-ktSRMNJkonGnZiVoKAVH9bT80Y-TFs22u4F5O46d97xQn90CE0FEnItifG6cofZt0_IorqX2N7sZwaUgUBvzGwE5aZ9Kt",
+#     "ONE_DEVICE_PER_USER": True,
+#     "DELETE_INACTIVE_DEVICES": False,
+# }
 
 
-FCM_SERVER_KEY = FCM_DJANGO_SETTINGS.get('FCM_SERVER_KEY')
+FCM_SERVER_KEY = settings.FCM_DJANGO_SETTINGS.get('FCM_SERVER_KEY')
 
 
-def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff", table_no=0, msg='', staff_id_list: list = list(), qs=None,**kwargs):
-    order_no =kwargs.get('order_no')
-    food_name= kwargs.get(('food_name'))
-    food_name_list= kwargs.get('food_names',[])
-    food_name_str = ' ,'.join(map(str,food_name_list))
+def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff", table_no=0, msg='', staff_id_list: list = list(), qs=None, **kwargs):
+    order_no = kwargs.get('order_no')
+    food_name = kwargs.get(('food_name'))
+    food_name_list = kwargs.get('food_names', [])
+    food_name_str = ' ,'.join(map(str, food_name_list))
 
     status_value = {
         "Received": {
@@ -61,9 +63,9 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
             'data': {'title': '8', 'body': str(datetime.datetime.now())}
         },
         'OrderCancel': {
-            'notification':{'title':'Order Cancel',
-                            'body':f'Your order has been cancelled'},
-            'data':{'title':'9', 'body': str(datetime.datetime.now())}
+            'notification': {'title': 'Order Cancel',
+                             'body': f'Your order has been cancelled'},
+            'data': {'title': '9', 'body': str(datetime.datetime.now())}
         },
         'OrderItemsCancel': {
             'notification': {'title': 'Item cancel',
