@@ -938,7 +938,15 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet,FoodOrderCore):
                     food_order_qs = FoodOrder.objects.filter(customer__user=request.user.pk,
                                                              restaurant_id=table_qs.restaurant_id).exclude(
                         status__in=['5_PAID', '6_CANCELLED']).last()
+                    running_order_table_qs = food_order_qs.table
+                    running_order_table_qs.is_occupied = False
+                    running_order_table_qs.save()
+
                     if food_order_qs:
+                        food_order_qs.table_id = table_qs.id
+                        table_qs.is_occupied = True
+                        table_qs.save()
+                        food_order_qs.save()
                         serializer = self.serializer_class(instance=food_order_qs)
                         return ResponseWrapper(data=serializer.data, msg='Success')
 
