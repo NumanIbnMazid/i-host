@@ -92,6 +92,69 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
+class FoodOrderCore:
+    def invoice_generator(self, order_qs, payment_status, *args, **kwargs):
+        # adjust cart for unique items
+        self.adjust_cart_for_unique_items(order_qs)
+
+        #is_apps = request.path.__contains__('/apps/')
+        serializer = FoodOrderByTableSerializer(instance=order_qs)
+        grand_total = serializer.data.get(
+            'price', {}).get('grand_total_price')
+        payable_amount = serializer.data.get(
+            'price', {}).get('payable_amount')
+
+        if order_qs.invoices.first():
+            invoice_qs = order_qs.invoices.first()
+            invoice_qs.order_info = json.loads(
+                json.dumps(serializer.data, cls=DjangoJSONEncoder))
+            invoice_qs.grand_total = grand_total
+            invoice_qs.payment_status = payment_status
+            invoice_qs.payable_amount = payable_amount
+            invoice_qs.save()
+        else:
+            invoice_qs = Invoice.objects.create(
+                restaurant_id=serializer.data.get(
+                    'restaurant_info', {}).get('id'),
+                order=order_qs,
+                order_info=json.loads(json.dumps(
+                    serializer.data, cls=DjangoJSONEncoder)),
+                grand_total=grand_total,
+                payable_amount=payable_amount,
+                payment_status=payment_status
+            )
+        return invoice_qs
+
+    def adjust_cart_for_unique_items(self, order_qs, *args, **kwargs):
+        ordered_items_qs = order_qs.ordered_items.all().exclude(status='4_CANCELLED')
+        food_option_extra_tuple_list = ordered_items_qs.values_list(
+            'food_option', 'food_extra')
+
+        food_option_list = ordered_items_qs.values_list(
+            'food_option', flat=True).distinct()
+        for food_option in food_option_list:
+            ordered_items_by_food_options_qs = ordered_items_qs.filter(
+                food_option=food_option)
+            if ordered_items_by_food_options_qs.count() > 1:
+                temp_order_list = []
+                temp_extra_list = []
+
+                for order_items_qs in ordered_items_by_food_options_qs:
+                    extras = list(
+                        order_items_qs.food_extra.values_list('pk', flat=True))
+                    if extras in temp_extra_list:
+                        first_order_qs = temp_order_list[temp_extra_list.index(
+                            extras)]
+                        first_order_qs.quantity += order_items_qs.quantity
+                        first_order_qs.save()
+                        order_items_qs.delete()
+
+                    else:
+                        temp_extra_list.append(extras)
+                        temp_order_list.append(order_items_qs)
+
+
+
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
     queryset = Restaurant.objects.all()
     lookup_field = 'pk'
@@ -750,7 +813,10 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
 
-class FoodOrderViewSet(LoggingMixin, CustomViewSet):
+
+
+
+class FoodOrderViewSet(LoggingMixin, CustomViewSet,FoodOrderCore):
 
     # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodOrder.objects.all()
@@ -866,14 +932,24 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
             # ____ Customer Running Order Checking______
             is_customer = request.path.__contains__(
                 '/apps/customer/order/create_order/')
-            if is_customer:
-                food_order_qs = FoodOrder.objects.filter(customer__user=request.user.pk, restaurant_id=table_qs.restaurant_id).exclude(
-                    status__in=['5_PAID', '6_CANCELLED']).last()
-                if food_order_qs:
-                    serializer = self.serializer_class(instance=food_order_qs)
-                    return ResponseWrapper(data=serializer.data, msg='Success')
 
             if not table_qs.is_occupied:
+                if is_customer:
+                    food_order_qs = FoodOrder.objects.filter(customer__user=request.user.pk,
+                                                             restaurant_id=table_qs.restaurant_id).exclude(
+                        status__in=['5_PAID', '6_CANCELLED']).last()
+                    running_order_table_qs = food_order_qs.table
+                    running_order_table_qs.is_occupied = False
+                    running_order_table_qs.save()
+
+                    if food_order_qs:
+                        food_order_qs.table_id = table_qs.id
+                        table_qs.is_occupied = True
+                        table_qs.save()
+                        food_order_qs.save()
+                        serializer = self.serializer_class(instance=food_order_qs)
+                        return ResponseWrapper(data=serializer.data, msg='Success')
+
                 table_qs.is_occupied = True
                 table_qs.save()
                 qs = serializer.save()
@@ -1302,6 +1378,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         # if order_qs.status in ["0_ORDER_INITIALIZED", "1_ORDER_PLACED"]:
         order_qs.status = '2_ORDER_CONFIRMED'
         order_qs.save()
+        invoice_qs = order_qs.invoices.last()
+        if invoice_qs:
+           invoice_qs = self.invoice_generator(
+            order_qs, payment_status=invoice_qs.payment_status)
 
         order_done_signal.send(
             sender=self.__class__.create,
@@ -1427,65 +1507,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def invoice_generator(self, order_qs, payment_status, *args, **kwargs):
-        # adjust cart for unique items
-        self.adjust_cart_for_unique_items(order_qs)
-
-        #is_apps = request.path.__contains__('/apps/')
-        serializer = FoodOrderByTableSerializer(instance=order_qs)
-        grand_total = serializer.data.get(
-            'price', {}).get('grand_total_price')
-        payable_amount = serializer.data.get(
-            'price', {}).get('payable_amount')
-
-        if order_qs.invoices.first():
-            invoice_qs = order_qs.invoices.first()
-            invoice_qs.order_info = json.loads(
-                json.dumps(serializer.data, cls=DjangoJSONEncoder))
-            invoice_qs.grand_total = grand_total
-            invoice_qs.payment_status = payment_status
-            invoice_qs.payable_amount = payable_amount
-            invoice_qs.save()
-        else:
-            invoice_qs = Invoice.objects.create(
-                restaurant_id=serializer.data.get(
-                    'restaurant_info', {}).get('id'),
-                order=order_qs,
-                order_info=json.loads(json.dumps(
-                    serializer.data, cls=DjangoJSONEncoder)),
-                grand_total=grand_total,
-                payable_amount=payable_amount,
-                payment_status=payment_status
-            )
-        return invoice_qs
-
-    def adjust_cart_for_unique_items(self, order_qs, *args, **kwargs):
-        ordered_items_qs = order_qs.ordered_items.all().exclude(status='4_CANCELLED')
-        food_option_extra_tuple_list = ordered_items_qs.values_list(
-            'food_option', 'food_extra')
-
-        food_option_list = ordered_items_qs.values_list(
-            'food_option', flat=True).distinct()
-        for food_option in food_option_list:
-            ordered_items_by_food_options_qs = ordered_items_qs.filter(
-                food_option=food_option)
-            if ordered_items_by_food_options_qs.count() > 1:
-                temp_order_list = []
-                temp_extra_list = []
-
-                for order_items_qs in ordered_items_by_food_options_qs:
-                    extras = list(
-                        order_items_qs.food_extra.values_list('pk', flat=True))
-                    if extras in temp_extra_list:
-                        first_order_qs = temp_order_list[temp_extra_list.index(
-                            extras)]
-                        first_order_qs.quantity += order_items_qs.quantity
-                        first_order_qs.save()
-                        order_items_qs.delete()
-
-                    else:
-                        temp_extra_list.append(extras)
-                        temp_order_list.append(order_items_qs)
 
     def payment(self, request,  *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -1614,7 +1635,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
 
-class OrderedItemViewSet(LoggingMixin, CustomViewSet):
+class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
     queryset = OrderedItem.objects.all()
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
@@ -1651,6 +1672,8 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
 
         item_qs.status = '4_CANCELLED'
         item_qs.save()
+
+
 
         restaurant_id = order_qs.restaurant_id
         order_done_signal.send(
@@ -1754,6 +1777,8 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
                 food_order_qs.status = '2_ORDER_CONFIRMED'
                 food_order_qs.save()
 
+
+
             elif is_waiter_staff_order:
                 order_pk_list = list()
                 for item in qs:
@@ -1799,6 +1824,11 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg='not a valid manager or owner')
 
         list_of_qs = serializer.save()
+        invoice_qs = food_order_qs.invoices.last()
+        if invoice_qs:
+            invoice_qs = self.invoice_generator(
+                food_order_qs, payment_status=invoice_qs.payment_status)
+
 
         serializer = OrderedItemGetDetailsSerializer(
             instance=list_of_qs, many=True)
