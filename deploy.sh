@@ -16,3 +16,13 @@ sudo service sheduler restart
 echo "sheduler and daphane restarted on ihost dev"
 exit
 "
+
+# momos cafe
+ssh root@139.59.114.34 "
+cd i-host-backend/
+git pull
+sudo service daphane restart
+sudo service sheduler restart
+echo "sheduler and daphane restarted on ihost dev"
+exit
+"

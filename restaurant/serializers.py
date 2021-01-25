@@ -371,6 +371,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   'created_at',
                   'updated_at',
                   'customer',
+                  'applied_promo_code',
                   #   'grand_total_price',
                   #   "total_price",
                   #   "discount_amount",
@@ -379,6 +380,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   #   "service_charge",
                   #   "payable_amount",
                   ]
+        read_only_fields = ('applied_promo_code',)
         # ordering = ['table']
 
     def get_ordered_items(self, obj):
@@ -522,7 +524,6 @@ class FoodOrderUserPostSerializer(serializers.ModelSerializer):
         fields = ['ordered_items', 'table',
                   'remarks', 'status', 'id', 'order_no']
         read_only_fields = ('order_no',)
-
 
 
 class RequestBodyOfFoodOrderUserPostSerializer(FoodOrderUserPostSerializer):
@@ -842,6 +843,8 @@ class DiscountByFoodSerializer(serializers.Serializer):
     discount_id = serializers.IntegerField()
     food_id_lists = serializers.ListSerializer(
         child=serializers.IntegerField())
+
+
 class FoodOrderStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOrder
@@ -854,7 +857,7 @@ class DiscountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Discount
-        fields ='__all__'
+        fields = '__all__'
         # exclude = ['deleted_at']
 
     def create(self, validated_data):
@@ -863,7 +866,7 @@ class DiscountSerializer(serializers.ModelSerializer):
             return Discount.objects.create(image=image, **validated_data)
         return Discount.objects.create(**validated_data)
 
-    def get_food_name(self,obj):
+    def get_food_name(self, obj):
         if obj.food:
             food_name = obj.food.name
             return food_name
@@ -1140,29 +1143,35 @@ class PrintNodeSerializer(serializers.ModelSerializer):
 
 class TakeAwayOrderSerializer(serializers.ModelSerializer):
     running_order = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = TakeAwayOrder
         fields = '__all__'
 
-    def get_running_order(self,obj):
+    def get_running_order(self, obj):
         if obj.running_order:
             pass
 
 
 class RestaurantInfoSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='pk')
+
     class Meta:
         model = Restaurant
-        fields = ['id','name']
+        fields = ['id', 'name']
+
 
 class ParentCompanyPromotionSerializer(serializers.ModelSerializer):
     restaurant = RestaurantInfoSerializer(read_only=True, many=True)
+
     class Meta:
         model = ParentCompanyPromotion
         fields = '__all__'
 
+
 class RestaurantParentCompanyPromotionSerializer(serializers.ModelSerializer):
     restaurant = serializers.IntegerField(source='restaurant.id')
+
     class Meta:
         model = ParentCompanyPromotion
         fields = '__all__'
