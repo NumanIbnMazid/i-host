@@ -2,7 +2,7 @@ from ..models import FoodOrder
 
 
 def generate_order_no(restaurant_id: int, order_qs: FoodOrder = None):
-    last_order_no = ""
+    last_order_no = str(0).zfill(DIGITS_FOR_ORDER)
     DIGITS_FOR_ORDER = 6
     if order_qs:
         last_order_qs = FoodOrder.objects.filter(
@@ -10,9 +10,10 @@ def generate_order_no(restaurant_id: int, order_qs: FoodOrder = None):
     else:
         last_order_qs = FoodOrder.objects.filter(
             restaurant_id=restaurant_id).order_by('-created_at').first()
-    last_order_no = last_order_qs.order_no
-    if last_order_no == None:
-        last_order_no = str(0).zfill(DIGITS_FOR_ORDER)
+    
+    if not last_order_qs == None:
+        if last_order_qs.order_no:
+            last_order_no = last_order_qs.order_no
 
     try:
         order_no = str(int(last_order_no)+1).zfill(DIGITS_FOR_ORDER)
