@@ -131,4 +131,4 @@ def kitchen_items_print(sender, qs=None, *args, **kwargs):
     )
     pdf_obj_encoded = base64.b64encode(pdf_byte_code)
     pdf_obj_encoded = pdf_obj_encoded.decode('utf-8')
-    print_node(pdf_obj=pdf_obj_encoded)
+    print_node(pdf_obj=pdf_obj_encoded,restaurant_id = qs.last().food_order.restaurant_id)

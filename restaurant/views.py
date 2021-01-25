@@ -3342,5 +3342,5 @@ class ParentCompanyPromotionViewSet(LoggingMixin, CustomViewSet):
 
     def parent_company_promotions(self,request,restaurant_id, *args,**kwargs):
         qs = ParentCompanyPromotion.objects.filter(restaurant = restaurant_id)
-        serializers = ParentCompanyPromotionSerializer(instance=qs,many=True)
-        return ResponseWrapper(data=serializers.data, msg='Success')
+        serializer = ParentCompanyPromotionSerializer(instance=qs,many=True)
+        return ResponseWrapper(data=serializer.data, msg='Success')
