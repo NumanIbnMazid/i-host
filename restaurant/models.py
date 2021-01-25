@@ -408,7 +408,7 @@ class PrintNode(models.Model):
     printer_id = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
-        return self.restaurant
+        return self.restaurant.name
 
 
 class TakeAwayOrder(models.Model):
