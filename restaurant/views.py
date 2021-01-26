@@ -40,7 +40,7 @@ from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodOrder, FoodOrderLog, Invoice, OrderedItem,
                                PaymentType, PopUp, Restaurant,
                                RestaurantMessages, Review, Slider,
-                               Subscription, Table, VersionUpdate,PrintNode,TakeAwayOrder, ParentCompanyPromotion)
+                               Subscription, Table, VersionUpdate, PrintNode, TakeAwayOrder, ParentCompanyPromotion)
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
@@ -152,7 +152,6 @@ class FoodOrderCore:
                     else:
                         temp_extra_list.append(extras)
                         temp_order_list.append(order_items_qs)
-
 
 
 class RestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -813,10 +812,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg='success')
 
 
-
-
-
-class FoodOrderViewSet(LoggingMixin, CustomViewSet,FoodOrderCore):
+class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
 
     # permission_classes = [permissions.IsAuthenticated]
     queryset = FoodOrder.objects.all()
@@ -949,14 +945,13 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet,FoodOrderCore):
             is_customer = request.path.__contains__(
                 '/apps/customer/order/create_order/')
 
-            if table_qs.is_occupied:
+            if (not is_customer) and table_qs.is_occupied:
                 return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
-            
+
             if is_customer:
                 food_order_qs = FoodOrder.objects.filter(customer__user=request.user.pk,
-                                                            restaurant_id=table_qs.restaurant_id).exclude(
+                                                         restaurant_id=table_qs.restaurant_id).exclude(
                     status__in=['5_PAID', '6_CANCELLED']).last()
-                
 
                 if food_order_qs:
                     running_order_table_qs = food_order_qs.table
@@ -968,29 +963,39 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet,FoodOrderCore):
                     food_order_qs.save()
                     serializer = self.serializer_class(instance=food_order_qs)
                     # return ResponseWrapper(data=serializer.data, msg='Success')
+                elif table_qs.is_occupied:
+                    return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
+                else:
+                    serializer = self.create_fresh_order(
+                        request, serializer, table_qs)
 
             else:
-                table_qs.is_occupied = True
-                table_qs.save()
-                qs = serializer.save()
-                qs.restaurant = table_qs.restaurant
-                qs.order_no = generate_order_no(
-                    restaurant_id=table_qs.restaurant.pk, order_qs=qs
-                )
-                qs.save()
-                if request.query_params.get('is_waiter', 'false') == 'false':
-                    self.save_customer_info(request, qs)
-                serializer = self.serializer_class(instance=qs)
-            
+                serializer = self.create_fresh_order(
+                    request, serializer, table_qs)
+
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=table_qs.restaurant_id,
 
             )
-            
+
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def create_fresh_order(self, request, serializer, table_qs):
+        table_qs.is_occupied = True
+        table_qs.save()
+        qs = serializer.save()
+        qs.restaurant = table_qs.restaurant
+        qs.order_no = generate_order_no(
+            restaurant_id=table_qs.restaurant.pk, order_qs=qs
+        )
+        qs.save()
+        if request.query_params.get('is_waiter', 'false') == 'false':
+            self.save_customer_info(request, qs)
+        serializer = self.serializer_class(instance=qs)
+        return serializer
 
     def save_customer_info(self, request, qs, *args, **kwargs):
         # if request.data.get('table'):
@@ -1030,14 +1035,15 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet,FoodOrderCore):
                 table_qs.is_occupied = True
                 table_qs.save()
 
-
         order_no = generate_order_no(restaurant_id=restaurant_id)
         qs = FoodOrder.objects.create(order_no=order_no, **food_order_dict)
-        take_away_order_qs = TakeAwayOrder.objects.filter(restaurant_id = restaurant_id).first()
+        take_away_order_qs = TakeAwayOrder.objects.filter(
+            restaurant_id=restaurant_id).first()
         if take_away_order_qs:
             add_running_order = take_away_order_qs.running_order.add(qs.id)
         else:
-            take_away_order=TakeAwayOrder.objects.create(restaurant_id = restaurant_id)
+            take_away_order = TakeAwayOrder.objects.create(
+                restaurant_id=restaurant_id)
             add_running_order = take_away_order.running_order.add(qs.id)
 
         serializer = FoodOrderUserPostSerializer(instance=qs)
@@ -1045,7 +1051,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet,FoodOrderCore):
         order_done_signal.send(
             sender=self.__class__.create,
             restaurant_id=restaurant_id,
-            order_id = qs.id
+            order_id=qs.id
 
         )
         return ResponseWrapper(data=serializer.data, msg='created')
@@ -1092,7 +1098,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet,FoodOrderCore):
             if table_qs.is_occupied:
                 table_qs.is_occupied = False
                 table_qs.save()
-        take_away_order_qs = TakeAwayOrder.objects.filter(running_order=order_qs.id).first()
+        take_away_order_qs = TakeAwayOrder.objects.filter(
+            running_order=order_qs.id).first()
         if take_away_order_qs:
             take_away_order_qs.running_order.remove(order_qs.id)
 
@@ -1399,8 +1406,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet,FoodOrderCore):
         order_qs.save()
         invoice_qs = order_qs.invoices.last()
         if invoice_qs:
-           invoice_qs = self.invoice_generator(
-            order_qs, payment_status=invoice_qs.payment_status)
+            invoice_qs = self.invoice_generator(
+                order_qs, payment_status=invoice_qs.payment_status)
 
         order_done_signal.send(
             sender=self.__class__.create,
@@ -1526,7 +1533,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet,FoodOrderCore):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-
     def payment(self, request,  *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -1548,11 +1554,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet,FoodOrderCore):
                 if table_qs:
                     table_qs.is_occupied = False
                     table_qs.save()
-                take_away_order_qs = TakeAwayOrder.objects.filter(running_order = order_qs.id).first()
+                take_away_order_qs = TakeAwayOrder.objects.filter(
+                    running_order=order_qs.id).first()
                 if take_away_order_qs:
                     take_away_order_qs.running_order.remove(order_qs.id)
-
-
 
                 staff_qs = HotelStaffInformation.objects.filter(
                     user=request.user.pk, restaurant=order_qs.restaurant_id).first()
@@ -1692,8 +1697,6 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
         item_qs.status = '4_CANCELLED'
         item_qs.save()
 
-
-
         restaurant_id = order_qs.restaurant_id
         order_done_signal.send(
             sender=self.__class__.create,
@@ -1747,9 +1750,9 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
                                                  'is_apps': is_apps, 'request': request,
                                                  'calculate_price_with_initial_item': calculate_price_with_initial_item})
             else:
-                serializer = FoodOrderByTableSerializer(instance=order_qs,context={
-                                                 'is_apps': is_apps, 'request': request,
-                                                 'calculate_price_with_initial_item': calculate_price_with_initial_item})
+                serializer = FoodOrderByTableSerializer(instance=order_qs, context={
+                    'is_apps': is_apps, 'request': request,
+                    'calculate_price_with_initial_item': calculate_price_with_initial_item})
 
             return ResponseWrapper(data=serializer.data)
         else:
@@ -1795,8 +1798,6 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
                 qs.update(status='2_ORDER_CONFIRMED')
                 food_order_qs.status = '2_ORDER_CONFIRMED'
                 food_order_qs.save()
-
-
 
             elif is_waiter_staff_order:
                 order_pk_list = list()
@@ -1847,7 +1848,6 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
         if invoice_qs:
             invoice_qs = self.invoice_generator(
                 food_order_qs, payment_status=invoice_qs.payment_status)
-
 
         serializer = OrderedItemGetDetailsSerializer(
             instance=list_of_qs, many=True)
@@ -3311,12 +3311,13 @@ class PrintNodeViewSet(LoggingMixin, CustomViewSet):
     serializer_class = PrintNodeSerializer
     queryset = PrintNode.objects.all()
     lookup_field = 'pk'
+
     def get_serializer_class(self):
         return self.serializer_class
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['print_node_create','print_node_update','print_node_destroy']:
+        if self.action in ['print_node_create', 'print_node_update', 'print_node_destroy']:
             permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
 
@@ -3342,6 +3343,7 @@ class PrintNodeViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
     def print_node_destroy(self, request, **kwargs):
         qs = self.queryset.filter(**kwargs).first()
         if qs:
@@ -3350,20 +3352,22 @@ class PrintNodeViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg="failed to delete", error_code=400)
 
-    def list(self,request,*args, **kwargs):
+    def list(self, request, *args, **kwargs):
         qs = PrintNode.objects.all()
-        serializer = PrintNodeSerializer(instance=qs,many=True)
-        return ResponseWrapper(data = serializer.data, msg='success')
-
-    def print_node_list(self, request, restaurant_id,*args ,**kwargs):
-        qs = PrintNode.objects.filter(restaurant_id =restaurant_id)
         serializer = PrintNodeSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
-    
+
+    def print_node_list(self, request, restaurant_id, *args, **kwargs):
+        qs = PrintNode.objects.filter(restaurant_id=restaurant_id)
+        serializer = PrintNodeSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
+
 class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
     serializer_class = TakeAwayOrderSerializer
     queryset = TakeAwayOrder.objects.all()
     lookup_field = 'pk'
+
     def get_serializer_class(self):
         return self.serializer_class
 
@@ -3375,25 +3379,28 @@ class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
 
     http_method_names = ['post', 'patch', 'get', 'delete']
 
-    def take_away_order(self, request, restaurant_id,*args ,**kwargs):
-        qs = TakeAwayOrder.objects.filter(restaurant_id =restaurant_id).first()
-        serializer = FoodOrderByTableSerializer(instance=qs.running_order.exclude(status__in = ['5_PAID','6_CANCELLED']), many=True)
+    def take_away_order(self, request, restaurant_id, *args, **kwargs):
+        qs = TakeAwayOrder.objects.filter(restaurant_id=restaurant_id).first()
+        serializer = FoodOrderByTableSerializer(instance=qs.running_order.exclude(
+            status__in=['5_PAID', '6_CANCELLED']), many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
+
 class ParentCompanyPromotionViewSet(LoggingMixin, CustomViewSet):
-    serializer_class =ParentCompanyPromotionSerializer
+    serializer_class = ParentCompanyPromotionSerializer
     queryset = ParentCompanyPromotion.objects.all()
     lookup_field = 'pk'
     http_method_names = ['post', 'patch', 'get', 'delete']
+
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['create', 'destroy', 'patch','list']:
+        if self.action in ['create', 'destroy', 'patch', 'list']:
             permission_classes = [
                 permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
 
-    def parent_company_promotions(self,request,restaurant_id, *args,**kwargs):
-        qs = ParentCompanyPromotion.objects.filter(restaurant = restaurant_id)
-        serializer = ParentCompanyPromotionSerializer(instance=qs,many=True)
+    def parent_company_promotions(self, request, restaurant_id, *args, **kwargs):
+        qs = ParentCompanyPromotion.objects.filter(restaurant=restaurant_id)
+        serializer = ParentCompanyPromotionSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='Success')
 
