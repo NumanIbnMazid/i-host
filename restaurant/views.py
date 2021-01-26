@@ -88,7 +88,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           VersionUpdateSerializer, CustomerOrderDetailsSerializer,
                           FcmNotificationListSerializer, DiscountPopUpSerializer, DiscountSliderSerializer,
                           FoodOrderStatusSerializer, PrintNodeSerializer, TakeAwayOrderSerializer,
-                          ParentCompanyPromotionSerializer, RestaurantParentCompanyPromotionSerializer,FoodOrderPromoCodeSerializer)
+                          ParentCompanyPromotionSerializer, RestaurantParentCompanyPromotionSerializer, FoodOrderPromoCodeSerializer)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -956,6 +956,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
                     status__in=['5_PAID', '6_CANCELLED']).last()
 
                 if food_order_qs:
+                    if table_qs.is_occupied and (table_qs.pk != food_order_qs.table.pk):
+                        return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
+
                     running_order_table_qs = food_order_qs.table
                     running_order_table_qs.is_occupied = False
                     running_order_table_qs.save()
@@ -2037,9 +2040,6 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
-
-
-
 
 
 class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -3405,4 +3405,3 @@ class ParentCompanyPromotionViewSet(LoggingMixin, CustomViewSet):
         qs = ParentCompanyPromotion.objects.filter(restaurant=restaurant_id)
         serializer = ParentCompanyPromotionSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='Success')
-
