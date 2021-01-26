@@ -929,7 +929,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             is_customer = request.path.__contains__(
                 '/apps/customer/order/create_order/')
 
-            if table_qs.is_occupied:
+            if (not is_customer) and table_qs.is_occupied:
                 return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
 
             if is_customer:
@@ -947,6 +947,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
                     food_order_qs.save()
                     serializer = self.serializer_class(instance=food_order_qs)
                     # return ResponseWrapper(data=serializer.data, msg='Success')
+                elif table_qs.is_occupied:
+                    return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
                 else:
                     serializer = self.create_fresh_order(
                         request, serializer, table_qs)
