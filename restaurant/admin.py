@@ -15,7 +15,7 @@ class DiscountAdmin(admin.ModelAdmin):
     list_display = ['id', 'name','restaurant']
 
 class TableAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'restaurant','is_occupied']
+    list_display = ['id', 'name','table_no', 'restaurant','is_occupied']
 
 
 class FoodOrderAdmin(admin.ModelAdmin):
