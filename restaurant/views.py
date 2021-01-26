@@ -945,23 +945,27 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet,FoodOrderCore):
             is_customer = request.path.__contains__(
                 '/apps/customer/order/create_order/')
 
-            if not table_qs.is_occupied:
-                if is_customer:
-                    food_order_qs = FoodOrder.objects.filter(customer__user=request.user.pk,
-                                                             restaurant_id=table_qs.restaurant_id).exclude(
-                        status__in=['5_PAID', '6_CANCELLED']).last()
+            if table_qs.is_occupied:
+                return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
+            
+            if is_customer:
+                food_order_qs = FoodOrder.objects.filter(customer__user=request.user.pk,
+                                                            restaurant_id=table_qs.restaurant_id).exclude(
+                    status__in=['5_PAID', '6_CANCELLED']).last()
+                
+
+                if food_order_qs:
                     running_order_table_qs = food_order_qs.table
                     running_order_table_qs.is_occupied = False
                     running_order_table_qs.save()
+                    food_order_qs.table_id = table_qs.id
+                    table_qs.is_occupied = True
+                    table_qs.save()
+                    food_order_qs.save()
+                    serializer = self.serializer_class(instance=food_order_qs)
+                    # return ResponseWrapper(data=serializer.data, msg='Success')
 
-                    if food_order_qs:
-                        food_order_qs.table_id = table_qs.id
-                        table_qs.is_occupied = True
-                        table_qs.save()
-                        food_order_qs.save()
-                        serializer = self.serializer_class(instance=food_order_qs)
-                        return ResponseWrapper(data=serializer.data, msg='Success')
-
+            else:
                 table_qs.is_occupied = True
                 table_qs.save()
                 qs = serializer.save()
@@ -973,13 +977,13 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet,FoodOrderCore):
                 if request.query_params.get('is_waiter', 'false') == 'false':
                     self.save_customer_info(request, qs)
                 serializer = self.serializer_class(instance=qs)
-            else:
-                return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
+            
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=table_qs.restaurant_id,
 
             )
+            
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
