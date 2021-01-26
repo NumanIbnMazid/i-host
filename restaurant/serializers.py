@@ -433,7 +433,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
         if food_order_log_qs:
             if food_order_log_qs.staff:
                 return {'name': food_order_log_qs.staff.name, 'staff_id': food_order_log_qs.staff_id}
-        return {}
+        return {'name': None, 'staff_id': None}
 
     def get_restaurant_info(self, obj):
         restaurant_qs = None
