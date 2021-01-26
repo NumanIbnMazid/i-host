@@ -893,9 +893,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet,FoodOrderCore):
     #         return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def promo_code(self, request, order_id, *args, **kwargs):
-        serializer = self.get_serializer(data = request.data)
-        if not serializer.is_valid():
-            return ResponseWrapper(error_msg=['Promo code not valid'], error_code=400)
+        # serializer = self.get_serializer(data = request.data)
+        promo_code = ParentCompanyPromotion.objects.filter(code=request.data.get('applied_promo_code')).last()
+        if not promo_code:
+            return ResponseWrapper(error_msg=['Promo code not valid'],msg='Promo code not valid', error_code=400)
         food_order_qs = FoodOrder.objects.filter(pk=order_id).last()
         # promo_code = food_order_qs.applied_promo_code
         food_order_qs.applied_promo_code = request.data.get('applied_promo_code')

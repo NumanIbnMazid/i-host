@@ -82,3 +82,5 @@ admin.site.register(PaymentType)
 admin.site.register(VersionUpdate)
 admin.site.register(PrintNode,PrintNodeAdmin)
 admin.site.register(TakeAwayOrder,TakeAwayOrderAdmin)
+admin.site.register(ParentCompanyPromotion,)
+
