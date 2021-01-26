@@ -122,6 +122,9 @@ apps_fake = [
     path('order/create_order/',
          FoodOrderViewSet.as_view({'post': 'create_order_apps'}, name='create_order_apps')),
 
+    path('order/<int:order_id>/promo_code/',
+         FoodOrderViewSet.as_view({'post': 'promo_code'}, name='promo_code')),
+
     path('order/table_transfer/',
          FoodOrderViewSet.as_view({'post': 'table_transfer'}, name='table_transfer')),
 

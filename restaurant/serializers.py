@@ -1175,3 +1175,8 @@ class RestaurantParentCompanyPromotionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ParentCompanyPromotion
         fields = '__all__'
+
+class FoodOrderPromoCodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodOrder
+        fields = ['applied_promo_code']

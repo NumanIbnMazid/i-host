@@ -88,7 +88,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           VersionUpdateSerializer, CustomerOrderDetailsSerializer,
                           FcmNotificationListSerializer, DiscountPopUpSerializer, DiscountSliderSerializer,
                           FoodOrderStatusSerializer, PrintNodeSerializer, TakeAwayOrderSerializer,
-                          ParentCompanyPromotionSerializer, RestaurantParentCompanyPromotionSerializer)
+                          ParentCompanyPromotionSerializer, RestaurantParentCompanyPromotionSerializer,FoodOrderPromoCodeSerializer)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -840,7 +840,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             self.serializer_class = FoodOrderByTableSerializer
         elif self.action in ['food_reorder_by_order_id', 'table_transfer']:
             self.serializer_class = ReorderSerializer
-
+        elif self.action in ['promo_code']:
+            self.serializer_class = FoodOrderPromoCodeSerializer
         else:
             self.serializer_class = FoodOrderUserPostSerializer
 
@@ -886,6 +887,18 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
     #         return ResponseWrapper(data=serializer.data, msg='created')
     #     else:
     #         return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def promo_code(self, request, order_id, *args, **kwargs):
+        # serializer = self.get_serializer(data = request.data)
+        promo_code = ParentCompanyPromotion.objects.filter(code=request.data.get('applied_promo_code')).last()
+        if not promo_code:
+            return ResponseWrapper(error_msg=['Promo code not valid'],msg='Promo code not valid', error_code=400)
+        food_order_qs = FoodOrder.objects.filter(pk=order_id).last()
+        # promo_code = food_order_qs.applied_promo_code
+        food_order_qs.applied_promo_code = request.data.get('applied_promo_code')
+        food_order_qs.save()
+
+        return ResponseWrapper(msg='Promo Code Applied', status=200)
 
     def create_order(self, request, *args, **kwargs):
         # serializer_class = self.get_serializer_class()
@@ -1036,7 +1049,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             sender=self.__class__.create,
             restaurant_id=restaurant_id,
             order_id=qs.id
-
 
         )
         return ResponseWrapper(data=serializer.data, msg='created')
@@ -2020,6 +2032,9 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+
+
 
 
 class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -3385,3 +3400,4 @@ class ParentCompanyPromotionViewSet(LoggingMixin, CustomViewSet):
         qs = ParentCompanyPromotion.objects.filter(restaurant=restaurant_id)
         serializer = ParentCompanyPromotionSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='Success')
+
