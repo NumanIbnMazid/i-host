@@ -894,7 +894,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet,FoodOrderCore):
 
     def promo_code(self, request, order_id, *args, **kwargs):
         # serializer = self.get_serializer(data = request.data)
-        promo_code = ParentCompanyPromotion.objects.filter(code=request.data.get('applied_promo_code')).last()
+        today = timezone.datetime.now().date()
+        start_date = today - timedelta(days=1)
+        promo_code = ParentCompanyPromotion.objects.filter(code=request.data.get('applied_promo_code'),
+                                                           start_date__lte=start_date, end_date__gte=today).last()
         if not promo_code:
             return ResponseWrapper(error_msg=['Promo code not valid'],msg='Promo code not valid', error_code=400)
         food_order_qs = FoodOrder.objects.filter(pk=order_id).last()
