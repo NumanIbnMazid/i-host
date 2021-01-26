@@ -892,14 +892,15 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
         # serializer = self.get_serializer(data = request.data)
         today = timezone.datetime.now().date()
         start_date = today - timedelta(days=1)
-        promo_code = ParentCompanyPromotion.objects.filter(code=request.data.get('applied_promo_code'),
+        food_order_qs = FoodOrder.objects.filter(pk=order_id).last()
+        restaurant_id = food_order_qs.restaurant_id
+        promo_code = ParentCompanyPromotion.objects.filter(code=request.data.get('applied_promo_code'),restaurant__in = [restaurant_id],
                                                            start_date__lte=start_date, end_date__gte=today).last()
         if not promo_code:
-            return ResponseWrapper(error_msg=['Promo code not valid'], msg='Promo code not valid', error_code=400)
-        food_order_qs = FoodOrder.objects.filter(pk=order_id).last()
+            return ResponseWrapper(msg='Promo code not valid', status=200)
+
         # promo_code = food_order_qs.applied_promo_code
-        food_order_qs.applied_promo_code = request.data.get(
-            'applied_promo_code')
+        food_order_qs.applied_promo_code = request.data.get('applied_promo_code')
         food_order_qs.save()
 
         return ResponseWrapper(msg='Promo Code Applied', status=200)
@@ -1708,19 +1709,18 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             order_id=order_qs.pk,
         )
 
-        if order_qs.status not in ['0_ORDER_INITIALIZED', '1_ORDER_PLACED']:
+        if order_qs.status not in ['0_ORDER_INITIALIZED']:
             customer_fcm_device_qs = CustomerFcmDevice.objects.filter(
                 customer__food_orders__id=order_qs.pk
             )
 
             # customer_id = customer_fcm_device_qs.values_list('pk').last()
-            if send_fcm_push_notification_appointment(
+            send_fcm_push_notification_appointment(
                     tokens_list=list(
                         customer_fcm_device_qs.values_list('token', flat=True)),
                     status='OrderItemCancel', food_name=item_qs.food_option.food.name
 
-            ):
-                pass
+            )
 
         is_apps = request.path.__contains__('/apps/')
         calculate_price_with_initial_item = request.path.__contains__(
