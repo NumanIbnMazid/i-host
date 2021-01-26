@@ -88,7 +88,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           VersionUpdateSerializer, CustomerOrderDetailsSerializer,
                           FcmNotificationListSerializer, DiscountPopUpSerializer, DiscountSliderSerializer,
                           FoodOrderStatusSerializer, PrintNodeSerializer, TakeAwayOrderSerializer,
-                          ParentCompanyPromotionSerializer, RestaurantParentCompanyPromotionSerializer,FoodOrderPromoCodeSerializer)
+                          ParentCompanyPromotionSerializer, RestaurantParentCompanyPromotionSerializer, FoodOrderPromoCodeSerializer)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -890,12 +890,14 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
 
     def promo_code(self, request, order_id, *args, **kwargs):
         # serializer = self.get_serializer(data = request.data)
-        promo_code = ParentCompanyPromotion.objects.filter(code=request.data.get('applied_promo_code')).last()
+        promo_code = ParentCompanyPromotion.objects.filter(
+            code=request.data.get('applied_promo_code')).last()
         if not promo_code:
-            return ResponseWrapper(error_msg=['Promo code not valid'],msg='Promo code not valid', error_code=400)
+            return ResponseWrapper(error_msg=['Promo code not valid'], msg='Promo code not valid', error_code=400)
         food_order_qs = FoodOrder.objects.filter(pk=order_id).last()
         # promo_code = food_order_qs.applied_promo_code
-        food_order_qs.applied_promo_code = request.data.get('applied_promo_code')
+        food_order_qs.applied_promo_code = request.data.get(
+            'applied_promo_code')
         food_order_qs.save()
 
         return ResponseWrapper(msg='Promo Code Applied', status=200)
@@ -951,6 +953,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
                     status__in=['5_PAID', '6_CANCELLED']).last()
 
                 if food_order_qs:
+                    if table_qs.is_occupied and (table_qs.pk != food_order_qs.table.pk):
+                        return ResponseWrapper(error_msg=['table already occupied'], error_code=400)
+
                     running_order_table_qs = food_order_qs.table
                     running_order_table_qs.is_occupied = False
                     running_order_table_qs.save()
@@ -2032,9 +2037,6 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
-
-
-
 
 
 class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
@@ -3400,4 +3402,3 @@ class ParentCompanyPromotionViewSet(LoggingMixin, CustomViewSet):
         qs = ParentCompanyPromotion.objects.filter(restaurant=restaurant_id)
         serializer = ParentCompanyPromotionSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='Success')
-
