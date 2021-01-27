@@ -1701,6 +1701,11 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
 
         item_qs.status = '4_CANCELLED'
         item_qs.save()
+        order_id = item_qs.food_order
+        invoice_qs = order_id.invoices.last()
+        if invoice_qs:
+            invoice_qs = self.invoice_generator(
+                order_qs, payment_status=invoice_qs.payment_status)
 
         restaurant_id = order_qs.restaurant_id
         order_done_signal.send(
@@ -1739,6 +1744,11 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             qs = serializer.update(instance=self.get_object(
             ), validated_data=serializer.validated_data)
             order_qs = qs.food_order
+
+            invoice_qs = order_qs.invoices.last()
+            if invoice_qs:
+                invoice_qs = self.invoice_generator(
+                    order_qs, payment_status=invoice_qs.payment_status)
 
             restaurant_id = order_qs.restaurant_id
             order_done_signal.send(
@@ -1815,6 +1825,8 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             # order_order_qs= FoodOrder.objects.filter(status = '0_ORDER_INITIALIZED',pk=request.data.get('id'))
             # if order_order_qs:
             #     order_order_qs.update(status='0_ORDER_INITIALIZED')
+
+
 
             order_done_signal.send(
                 sender=self.__class__.create,
