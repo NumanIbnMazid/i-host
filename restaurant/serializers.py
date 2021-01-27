@@ -789,7 +789,7 @@ class TableStaffSerializer(serializers.ModelSerializer):
             temp_data_dict['total_served_items'] = total_served_items
             return temp_data_dict
         else:
-            return None
+            return {}
 
 
 class FoodExtraByFoodSerializer(serializers.ModelSerializer):
