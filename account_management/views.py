@@ -673,7 +673,7 @@ class CustomerNotificationViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['DELETE', 'POST', 'PATCH', 'GET']
     permission_classes = [permissions.IsAuthenticated,
                           custom_permissions.IsRestaurantManagementOrAdmin]
-    http_method_names = ('post', 'get')
+    http_method_names = ('post', 'get','delete')
 
     def create(self, request, *args, **kwargs):
         # if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
