@@ -1805,6 +1805,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             qs = serializer.save()
 
             restaurant_id = food_order_qs.restaurant_id
+            is_take_away_order= request.path.__contains__('take_away_order/cart/items/')
 
             if is_staff_order:
                 order_pk_list = list()
@@ -1812,6 +1813,8 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
                     order_pk_list.append(item.pk)
                 qs = OrderedItem.objects.filter(pk__in=order_pk_list)
                 qs.update(status='2_ORDER_CONFIRMED')
+                # if is_take_away_order:
+                #     qs.update(status='2_ORDER_CONFIRMED')
                 food_order_qs.status = '2_ORDER_CONFIRMED'
                 food_order_qs.save()
 
@@ -3396,6 +3399,8 @@ class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
 
     def take_away_order(self, request, restaurant_id, *args, **kwargs):
         qs = TakeAwayOrder.objects.filter(restaurant_id=restaurant_id).first()
+        if not qs:
+            return ResponseWrapper(msg='No Take Away Order is Available')
         serializer = FoodOrderByTableSerializer(instance=qs.running_order.exclude(
             status__in=['5_PAID', '6_CANCELLED']), many=True)
         return ResponseWrapper(data=serializer.data, msg='success')

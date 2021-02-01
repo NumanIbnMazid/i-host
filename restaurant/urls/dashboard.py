@@ -145,6 +145,9 @@ fake_dashboard_urls = [
     path('order/cart/items/',
          OrderedItemViewSet.as_view({'post': 'create'}, name='items')),
 
+    path('take_away_order/cart/items/',
+         OrderedItemViewSet.as_view({'post': 'create'}, name='items')),
+
 
     path('order/cart/items/<int:pk>/',
          OrderedItemViewSet.as_view({'patch': 'update', 'delete': 'destroy'}, name='items')),
