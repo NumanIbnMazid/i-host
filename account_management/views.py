@@ -697,7 +697,7 @@ class CustomerNotificationViewSet(LoggingMixin, CustomViewSet):
 
     def customer_notification_by_restaurant(self, request, restaurant, *args, **kwargs):
         restaurant_qs = FcmNotificationCustomer.objects.filter(
-            restaurant_id=restaurant)
+            restaurant_id=restaurant).order_by('-created_at')
         serializer = CustomerNotificationSerializer(
             instance=restaurant_qs, many=True)
         return ResponseWrapper(data=serializer.data)
