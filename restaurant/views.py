@@ -2022,6 +2022,9 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
         ):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=["can't get food list,  please consult with manager or owner of the hotel"])
         """
+        food_name = food_name
+        if food_name == ' ':
+            return ResponseWrapper(error_msg=['Food Name is not given'], status=400)
         food_name_qs = Food.objects.filter(
             Q(name__icontains=food_name) | Q(category__name__icontains=food_name), restaurant_id=restaurant_id)
         if is_dashboard:
