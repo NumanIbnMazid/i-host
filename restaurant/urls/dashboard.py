@@ -243,7 +243,7 @@ dashboard_urls = [
          DiscountViewSet.as_view({'post': 'create_discount'}), name='create_discount'),
     path('delete_discount/<int:discount_id>',
          DiscountViewSet.as_view({'delete': 'delete_discount'}), name='delete_discount'),
-    path('update_discount/<int:pk>',
+    path('discount/<int:pk>',
          DiscountViewSet.as_view({'patch': 'update_discount'}), name='update_discount'),
     path('food_discount/',
          DiscountViewSet.as_view({'post': 'food_discount'}), name='food_discount'),

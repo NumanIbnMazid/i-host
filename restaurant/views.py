@@ -2865,7 +2865,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
     serializer_class = DiscountSerializer
 
     def get_serializer_class(self):
-        if self.action in ['create_discount']:
+        if self.action in ['create_discount', 'update_discount']:
             self.serializer_class = DiscountPostSerializer
         if self.action in ['retrieve']:
             self.serializer_class = DiscountSerializer

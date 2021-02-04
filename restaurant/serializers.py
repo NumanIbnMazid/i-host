@@ -875,6 +875,9 @@ class DiscountPostSerializer(serializers.ModelSerializer):
         if image:
             instance.image = image
             instance.save()
+        discount_qs = instance.pk
+        # discount_qs = Discount.objects.filter(pk = discount_qs)
+        Food.objects.filter(pk__in=food_id_list).update(discount=discount_qs)
         return super(RestaurantPostSerialier, self).update(instance, validated_data)
 
 
