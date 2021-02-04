@@ -875,10 +875,13 @@ class DiscountPostSerializer(serializers.ModelSerializer):
         if image:
             instance.image = image
             instance.save()
-        discount_qs = instance.pk
-        # discount_qs = Discount.objects.filter(pk = discount_qs)
-        Food.objects.filter(pk__in=food_id_list).update(discount=discount_qs)
-        return super(RestaurantPostSerialier, self).update(instance, validated_data)
+        discount_id = instance.pk
+        discount_removal_food_qs = Food.objects.filter(discount_id=discount_id).exclude(pk__in=food_id_list).update(discount=None)
+        discount_addition_food_qs = Food.objects.filter(pk__in=food_id_list).exclude(discount_id=discount_id).update(
+            discount_id=discount_id)
+
+
+        return super(DiscountPostSerializer, self).update(instance, validated_data)
 
 
 
