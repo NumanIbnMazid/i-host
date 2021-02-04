@@ -852,7 +852,7 @@ class FoodOrderStatusSerializer(serializers.ModelSerializer):
 
 class DiscountPostSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
-    food_id_list = serializers.ListSerializer(child=serializers.IntegerField(),write_only=True)
+    food_id_list = serializers.ListSerializer(child=serializers.IntegerField(),write_only=True, required=False)
 
     class Meta:
         model = Discount
@@ -868,14 +868,14 @@ class DiscountPostSerializer(serializers.ModelSerializer):
         Food.objects.filter(pk__in=food_id_list).update(discount=discount_qs)
         return discount_qs
 
-    # def update(self, instance, validated_data):
-    #     image = validated_data.pop('image', None)
-    #     food_id_list = validated_data.pop('food_id_list', [])
-    #
-    #     if image:
-    #         instance.image = image
-    #         instance.save()
-    #     return super(RestaurantPostSerialier, self).update(instance, validated_data)
+    def update(self, instance, validated_data):
+        image = validated_data.pop('image', None)
+        food_id_list = validated_data.pop('food_id_list', [])
+
+        if image:
+            instance.image = image
+            instance.save()
+        return super(RestaurantPostSerialier, self).update(instance, validated_data)
 
 
 

@@ -2869,7 +2869,6 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = DiscountPostSerializer
         if self.action in ['retrieve']:
             self.serializer_class = DiscountSerializer
-
         elif self.action in ['food_discount']:
             self.serializer_class = DiscountByFoodSerializer
 
@@ -2877,10 +2876,12 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['discount_delete', 'delete_discount', 'create_discount','update_discount']:
+        if self.action in ['discount_delete', 'delete_discount', 'create_discount','update_discount','discount_list']:
             permission_classes = [permissions.IsAuthenticated]
-        # elif self.action in ['last_notification_list']:
-        #     permission_classes = [permissions.IsAuthenticated]
+        # elif self.action in ['discount_list']:
+        #     permission_classes = [
+        #         custom_permissions.IsRestaurantManagementOrAdmin]
+
         # else:
         #     permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
