@@ -56,8 +56,9 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
                              #  'image': "http://manager.i-host.com.bd/logo.png",
                              'body': f'Customer from table no {str(table_no)} is looking for you'},
             'data': {'title': 'Calling Waiter',
-                             #  'image': "http://manager.i-host.com.bd/logo.png",
-                             'body': f'Customer from table no {str(table_no)} is looking for you'}
+                     #  'image': "http://manager.i-host.com.bd/logo.png",
+                     'body': f'Customer from table no {str(table_no)} is looking for you'},
+
         },
         'CallStaffForPayment': {
             'notification': {'title': 'Calling Waiter for payment',
@@ -97,6 +98,16 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
         data = {
             "notification": status_value[status]['notification'],
             "data": status_value[status]['data'],
+            "apns": {
+                "headers": {
+                    'apns-priority': '10',
+                },
+                "payload": {
+                    "aps": {
+                        "sound": 'default',
+                    },
+                },
+            },
             "registration_ids": tokens_list
         }
         headers = {
