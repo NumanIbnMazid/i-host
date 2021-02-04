@@ -17,13 +17,15 @@ from uuid import uuid4
 import restaurant
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model, login
-from django.contrib.auth.signals import user_logged_in
+from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.shortcuts import render
 from django.utils import timezone
 from drf_yasg2.utils import swagger_auto_schema
 from knox.models import AuthToken
 # Create your views here.
 from knox.views import LoginView as KnoxLoginView
+from knox.views import LogoutView as KnoxLogOutView
+
 from rest_framework import permissions, status, viewsets
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.authtoken.serializers import AuthTokenSerializer
@@ -183,6 +185,20 @@ class LoginView(KnoxLoginView):
         customer_info, staff_info, user_serializer = login_related_info(user)
         return ResponseWrapper(data={'auth': data, 'user': user_serializer.data, 'staff_info': staff_info, 'customer_info': customer_info})
 
+
+class LogoutView(KnoxLogOutView):
+    def post(self, request, format=None):
+        is_waiter = request.path.__contains__('/apps/waiter/logout/')
+        is_customer = request.path.__contains__('/apps/customer/logout/')
+        if is_waiter:
+            StaffFcmDevice.objects.filter(hotel_staff__user_id = request.user.pk).delete()
+        if is_customer:
+            CustomerFcmDevice.objects.filter(customer__user_id=request.user.pk).delete()
+        request._auth.delete()
+        user_logged_out.send(sender=request.user.__class__,
+                             request=request, user=request.user)
+
+        return ResponseWrapper(status=200)
 
 class OtpSignUpView(KnoxLoginView):
     permission_classes = (permissions.AllowAny,)

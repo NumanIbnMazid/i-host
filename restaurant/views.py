@@ -88,7 +88,8 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           VersionUpdateSerializer, CustomerOrderDetailsSerializer,
                           FcmNotificationListSerializer, DiscountPopUpSerializer, DiscountSliderSerializer,
                           FoodOrderStatusSerializer, PrintNodeSerializer, TakeAwayOrderSerializer,
-                          ParentCompanyPromotionSerializer, RestaurantParentCompanyPromotionSerializer, FoodOrderPromoCodeSerializer)
+                          ParentCompanyPromotionSerializer, RestaurantParentCompanyPromotionSerializer,
+                          FoodOrderPromoCodeSerializer, DiscountPostSerializer)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -2864,7 +2865,9 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
     serializer_class = DiscountSerializer
 
     def get_serializer_class(self):
-        if self.action in ['retrieve', 'update_discount']:
+        if self.action in ['create_discount']:
+            self.serializer_class = DiscountPostSerializer
+        if self.action in ['retrieve']:
             self.serializer_class = DiscountSerializer
 
         elif self.action in ['food_discount']:
@@ -2874,7 +2877,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['discount_delete', 'delete_discount', 'create_discount']:
+        if self.action in ['discount_delete', 'delete_discount', 'create_discount','update_discount']:
             permission_classes = [permissions.IsAuthenticated]
         # elif self.action in ['last_notification_list']:
         #     permission_classes = [permissions.IsAuthenticated]
@@ -2943,6 +2946,13 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
                 return ResponseWrapper(error_msg=['Food is required'], status=404)
 
         qs = serializer.save()
+
+        # food_id_lists = request.data.get('food_id_list')
+        # if food_id_lists:
+        #     for food_id_list in food_id_lists:
+        #         food_qs = Food.objects.filter(pk=food_id_list)
+        #         food_qs.update(discount=qs.id)
+
         if food:
             food_qs = Food.objects.filter(pk=food)
             food_qs.update(discount=qs.id)
@@ -2979,8 +2989,9 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
         if not request.data:
             return ResponseWrapper(error_code=400, error_msg='empty request body')
+        discount_qs=Discount.objects.filter(pk=pk).last()
 
-        restaurant_id = request.data.get('restaurant')
+        restaurant_id = discount_qs.restaurant
         if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
                                                     restaurant_id=restaurant_id):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['user is not manager or owner'])

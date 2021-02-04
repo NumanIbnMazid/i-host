@@ -61,14 +61,14 @@ restaurant_account_management = [
     path("restaurant/<int:restaurant_id>/hotel_staff_logger", HotelStaffLogViewSet.as_view({
         "get": "hotel_staff_logger"
     }), name="hotel_staff_logger"),
+    path("apps/customer/logout/", LogoutView.as_view(), name="customer_knox_logout"),
+    path("apps/waiter/logout/", LogoutView.as_view(), name="knox_logout"),
 
     path('customer_notification_by_restaurant/<int:restaurant>/',
          CustomerNotificationViewSet.as_view({'get': 'customer_notification_by_restaurant'}), name='customer_notification_by_restaurant'),
 
     path('apps/check_fcm/',
          StaffFcmDeviceViewSet.as_view({'post': 'check_fcm'}), name='check_fcm'),
-
-
 ]
 
 auth_urlpatterns = [
@@ -79,6 +79,7 @@ auth_urlpatterns = [
          UserAccountManagerViewSet.as_view({'get': 'get_otp'}), name="get_otp"),
 
     path("logout/", knox_views.LogoutView.as_view(), name="knox_logout"),
+
     # path("reset_password/", reset_password),
     # path("change_password/",
     #      ChangePasswordViewSet.as_view({"post": "create"})),

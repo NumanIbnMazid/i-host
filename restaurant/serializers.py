@@ -850,10 +850,40 @@ class FoodOrderStatusSerializer(serializers.ModelSerializer):
         model = FoodOrder
         fields = ['status']
 
+class DiscountPostSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+    food_id_list = serializers.ListSerializer(child=serializers.IntegerField(),write_only=True)
+
+    class Meta:
+        model = Discount
+        fields = '__all__'
+
+    def create(self, validated_data):
+        image = validated_data.pop('image', None)
+        food_id_list = validated_data.pop('food_id_list',[])
+        if image:
+            discount_qs = Discount.objects.create(image=image, **validated_data)
+        else:
+            discount_qs = Discount.objects.create(**validated_data)
+        Food.objects.filter(pk__in=food_id_list).update(discount=discount_qs)
+        return discount_qs
+
+    # def update(self, instance, validated_data):
+    #     image = validated_data.pop('image', None)
+    #     food_id_list = validated_data.pop('food_id_list', [])
+    #
+    #     if image:
+    #         instance.image = image
+    #         instance.save()
+    #     return super(RestaurantPostSerialier, self).update(instance, validated_data)
+
+
+
 
 class DiscountSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     food_name = serializers.SerializerMethodField(read_only=True)
+    food_name_list = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Discount
@@ -866,11 +896,29 @@ class DiscountSerializer(serializers.ModelSerializer):
             return Discount.objects.create(image=image, **validated_data)
         return Discount.objects.create(**validated_data)
 
+
+    def get_food_name_list(self, obj):
+        if obj:
+            # food_name = obj.food.name
+            food_name_dict = {}
+            discount_id = obj.id
+            restaurant_id = obj.restaurant
+            food_qs_list = Food.objects.filter(discount_id=discount_id, restaurant_id=restaurant_id)
+
+            # for food_qs in food_qs_list:
+            #     food_name_dict['name'] = food_qs.name
+            # #     append
+
+            return food_qs_list.values_list('name', flat=True)
+            # return food_name
+
+        return None
     def get_food_name(self, obj):
         if obj.food:
             food_name = obj.food.name
             return food_name
-        return None
+        else:
+            return None
 
 
 class FoodDetailsByDiscountSerializer(serializers.ModelSerializer):

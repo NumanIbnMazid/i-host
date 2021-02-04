@@ -12,13 +12,16 @@ class ResponseWrapper(Response):
         Setting 'renderer' and 'media_type' will typically be deferred,
         For example being set automatically by the `APIView`.
         """
+        status_by_default_for_gz = 200
         if error_code is None and status is not None:
             if status > 299 or status < 200:
                 error_code = status
                 response_success = False
+            else:
+                status_by_default_for_gz = status
         if error_code is not None:
             response_success = False
-        status_by_default_for_gz = 200
+
 
         output_data = {
             "error": {"code": error_code, "error_details": error_msg},
