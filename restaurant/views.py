@@ -3177,7 +3177,6 @@ class SubscriptionViewset(LoggingMixin, CustomViewSet):
         serializer = SubscriptionSerializer(instance=restaurant_qs)
         return ResponseWrapper(data=serializer.data)
 
-
 class ReviewViewset(LoggingMixin, CustomViewSet):
     queryset = Review.objects.all()
     lookup_field = 'pk'
@@ -3252,7 +3251,6 @@ class RestaurantMessagesViewset(LoggingMixin, CustomViewSet):
         serializer = FcmNotificationListSerializer(
             instance=notification_list_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
-
 
 class PaymentTypeViewSet(LoggingMixin, CustomViewSet):
     queryset = PaymentType.objects.all()

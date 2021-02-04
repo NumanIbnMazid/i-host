@@ -902,7 +902,6 @@ class DiscountSerializer(serializers.ModelSerializer):
             return Discount.objects.create(image=image, **validated_data)
         return Discount.objects.create(**validated_data)
 
-
     def get_food_name_list(self, obj):
         if obj:
             # food_name = obj.food.name
@@ -950,7 +949,6 @@ class ReportByDateRangeSerializer(serializers.Serializer):
 
 class StaffFcmSerializer(serializers.Serializer):
     table_id = serializers.IntegerField()
-
 
 class OnlyFoodOrderIdSerializer(serializers.ModelSerializer):
     class Meta:
