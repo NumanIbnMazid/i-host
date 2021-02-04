@@ -2996,6 +2996,20 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
                                                     restaurant_id=restaurant_id):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['user is not manager or owner'])
+        food_id_list = request.data.get('food_id_list')
+        food_id = request.data.get('food')
+
+        if food_id_list:
+            food_qs = Food.objects.filter(pk__in=request.data.get('food_id_list')).first().restaurant
+
+            if food_qs != restaurant_id:
+                return ResponseWrapper(error_msg=['Food is not Valid'], status=400)
+
+        if food_id:
+            food_qs = Food.objects.filter(pk=request.data.get('food')).first().restaurant
+
+            if food_qs != restaurant_id:
+                return ResponseWrapper(error_msg=['Food is not Valid'], status=400)
 
         if serializer.is_valid():
             qs = serializer.update(instance=self.get_object(
