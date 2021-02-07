@@ -34,7 +34,8 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
         'Cooking': {
             'notification': {'title': 'Order Verified',
                              'body': f'Your food is preparing'},
-            'data': {'title': '2', 'body': str(datetime.datetime.now())}
+            'data': {'title': 'Order Verified',
+                             'body': f'Your food is preparing'}
         },
         'WaiterHand': {
             'notification': {'title': 'WaiterHand',

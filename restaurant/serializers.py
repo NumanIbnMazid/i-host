@@ -916,8 +916,8 @@ class DiscountSerializer(serializers.ModelSerializer):
             food_name_list = food_qs_list.values_list('name', flat=True)
             food_id_list = food_qs_list.values_list('id', flat=True)
 
-            return {'food_id_list':food_id_list
-                ,'food_name_list':food_name_list,
+            return {'food_id_list':food_id_list,
+                'food_name_list':food_name_list,
                     }
             # return food_name
 
