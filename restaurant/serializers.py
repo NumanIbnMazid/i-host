@@ -889,7 +889,7 @@ class DiscountPostSerializer(serializers.ModelSerializer):
 class DiscountSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     food_name = serializers.SerializerMethodField(read_only=True)
-    food_name_list = serializers.SerializerMethodField(read_only=True)
+    food_detail_list = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Discount
@@ -902,7 +902,7 @@ class DiscountSerializer(serializers.ModelSerializer):
             return Discount.objects.create(image=image, **validated_data)
         return Discount.objects.create(**validated_data)
 
-    def get_food_name_list(self, obj):
+    def get_food_detail_list(self, obj):
         if obj:
             # food_name = obj.food.name
             food_name_dict = {}
@@ -913,8 +913,12 @@ class DiscountSerializer(serializers.ModelSerializer):
             # for food_qs in food_qs_list:
             #     food_name_dict['name'] = food_qs.name
             # #     append
+            food_name_list = food_qs_list.values_list('name', flat=True)
+            food_id_list = food_qs_list.values_list('id', flat=True)
 
-            return food_qs_list.values_list('name', flat=True)
+            return {'food_id_list':food_id_list
+                ,'food_name_list':food_name_list,
+                    }
             # return food_name
 
         return None
