@@ -24,6 +24,7 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
     food_name = kwargs.get(('food_name'))
     food_name_list = kwargs.get('food_names', [])
     food_name_str = ' ,'.join(map(str, food_name_list))
+    tokens_list = list(set(tokens_list))
 
     status_value = {
         "Received": {
@@ -34,7 +35,8 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
         'Cooking': {
             'notification': {'title': 'Order Verified',
                              'body': f'Your food is preparing'},
-            'data': {'title': '2', 'body': str(datetime.datetime.now())}
+            'data': {'title': 'Order Verified',
+                             'body': f'Your food is preparing'}
         },
         'WaiterHand': {
             'notification': {'title': 'WaiterHand',

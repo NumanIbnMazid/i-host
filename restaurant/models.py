@@ -395,6 +395,7 @@ class VersionUpdate(models.Model):
     force_update = models.BooleanField(default=False)
     is_customer_app = models.BooleanField(default=False)
     is_waiter_app = models.BooleanField(default=False)
+    build_number = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
