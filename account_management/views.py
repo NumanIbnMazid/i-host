@@ -121,8 +121,6 @@ class StaffFcmDeviceViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(data={"exists": False})
 
 
-
-
 class UserFcmDeviceViewset(LoggingMixin, CustomViewSet):
     queryset = CustomerFcmDevice.objects.all()
     lookup_field = 'customer'
@@ -191,14 +189,17 @@ class LogoutView(KnoxLogOutView):
         is_waiter = request.path.__contains__('/apps/waiter/logout/')
         is_customer = request.path.__contains__('/apps/customer/logout/')
         if is_waiter:
-            StaffFcmDevice.objects.filter(hotel_staff__user_id = request.user.pk).delete()
+            StaffFcmDevice.objects.filter(
+                hotel_staff__user_id=request.user.pk).delete()
         if is_customer:
-            CustomerFcmDevice.objects.filter(customer__user_id=request.user.pk).delete()
+            CustomerFcmDevice.objects.filter(
+                customer__user_id=request.user.pk).delete()
         request._auth.delete()
         user_logged_out.send(sender=request.user.__class__,
                              request=request, user=request.user)
 
         return ResponseWrapper(status=200)
+
 
 class OtpSignUpView(KnoxLoginView):
     permission_classes = (permissions.AllowAny,)
@@ -209,14 +210,14 @@ class OtpSignUpView(KnoxLoginView):
     def post(self, request, format=None):
         phone = request.data.get('phone')
         otp_qs = OtpUser.objects.filter(phone=phone).last()
-        # if not settings.DEBUG:
-        if otp_qs.updated_at < (timezone.now() - timezone.timedelta(minutes=5)):
-            return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp timeout'])
-        if request.data.get('otp') != otp_qs.otp_code:
-            return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp mismatched'])
-        # else:
-        #     if request.data.get('otp') != 1234:
-        #         return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp mismatched'])
+        if not settings.JAPAN_SERVER:
+            if otp_qs.updated_at < (timezone.now() - timezone.timedelta(minutes=5)):
+                return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp timeout'])
+            if request.data.get('otp') != otp_qs.otp_code:
+                return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp mismatched'])
+        else:
+            if request.data.get('otp') != 1234:
+                return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp mismatched'])
 
         token_limit_per_user = self.get_token_limit_per_user()
         user_qs = User.objects.filter(phone=request.data.get('phone')).first()
@@ -689,7 +690,7 @@ class CustomerNotificationViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['DELETE', 'POST', 'PATCH', 'GET']
     permission_classes = [permissions.IsAuthenticated,
                           custom_permissions.IsRestaurantManagementOrAdmin]
-    http_method_names = ('post', 'get','delete')
+    http_method_names = ('post', 'get', 'delete')
 
     def create(self, request, *args, **kwargs):
         # if not HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
