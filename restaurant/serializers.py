@@ -1043,10 +1043,13 @@ class ReOrderedItemSerializer(serializers.Serializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     customer_info = serializers.SerializerMethodField(read_only=True)
+    order_id = serializers.IntegerField(source='order.id')
+    order_no = serializers.IntegerField(source='order.order_no')
+    # customer_info = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Review
-        fields = '__all__'
+        fields = ['id','order_id','order_no','customer_info','review_text','rating']
 
     def get_customer_info(self, obj):
         customer_qs = None
