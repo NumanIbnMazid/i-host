@@ -324,3 +324,5 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+JAPAN_SERVER = env.bool("JAPAN_SERVER", default=False)
