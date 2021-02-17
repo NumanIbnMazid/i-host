@@ -218,6 +218,10 @@ class FoodOrder(SoftDeleteModel):
     restaurant = models.ForeignKey(
         to=Restaurant, on_delete=models.SET_NULL, null=True, blank=True, related_name='food_orders')
     applied_promo_code = models.CharField(max_length=250,null=True,blank=True)
+    cash_received = models.FloatField(null=True, blank=True)
+    change_amount = models.FloatField(null=True, blank=True)
+    payment_method = models.ForeignKey(
+        to='restaurant.PaymentType', on_delete=models.SET_NULL, null=True,blank=True, related_name='food_orders')
 
     def __str__(self):
         if self.order_no:
