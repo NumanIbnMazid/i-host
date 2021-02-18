@@ -89,7 +89,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           FcmNotificationListSerializer, DiscountPopUpSerializer, DiscountSliderSerializer,
                           FoodOrderStatusSerializer, PrintNodeSerializer, TakeAwayOrderSerializer,
                           ParentCompanyPromotionSerializer, RestaurantParentCompanyPromotionSerializer,
-                          FoodOrderPromoCodeSerializer, DiscountPostSerializer)
+                          FoodOrderPromoCodeSerializer, DiscountPostSerializer, PaymentWithAmaountSerializer)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -837,8 +837,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             self.serializer_class = FoodOrderConfirmSerializer
         elif self.action in ['in_table_status']:
             self.serializer_class = FoodOrderConfirmSerializer
-        elif self.action in ['payment', 'create_invoice', ]:
+        elif self.action in ['payment' ]:
             self.serializer_class = PaymentSerializer
+        elif self.action in ['create_invoice_for_dashboard', 'create_invoice']:
+            self.serializer_class = PaymentWithAmaountSerializer
         elif self.action in ['retrieve']:
             self.serializer_class = FoodOrderByTableSerializer
         elif self.action in ['food_reorder_by_order_id', 'table_transfer']:
@@ -857,7 +859,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
         if self.action in ['create_take_away_order']:
             permission_classes = [
                 custom_permissions.IsRestaurantManagementOrAdmin]
-        if self.action in ['payment', 'table_transfer', 'confirm_status_without_cancel', 'revert_back_to_in_table']:
+        if self.action in ['payment', 'table_transfer', 'confirm_status_without_cancel', 'revert_back_to_in_table', 'create_invoice_for_dashboard']:
             permission_classes = [
                 custom_permissions.IsRestaurantStaff
             ]
@@ -1513,6 +1515,12 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
 
             else:
                 order_qs.status = '4_CREATE_INVOICE'
+                cash_received = request.data.get('cash_received')
+                if cash_received>0:
+                    if cash_received < order_qs.payable_amount and cash_received>0:
+                        return ResponseWrapper(error_msg=['You Cash Amount is less then You Bill'], status=400)
+                    order_qs.cash_received = cash_received
+
                 order_qs.save()
 
                 staff_qs = HotelStaffInformation.objects.filter(
@@ -1540,6 +1548,63 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             return ResponseWrapper(data=serializer.data.get('order_info'), msg='Invoice Created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+
+    def create_invoice_for_dashboard(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            """
+            making sure that food order is in "3_IN_TABLE", "4_CREATE_INVOICE", "5_PAID" state
+            because in other state there is no need to generate invoice because food state is required in other state
+            and merging will disrupt the flow.
+            """
+            order_qs = FoodOrder.objects.filter(pk=request.data.get("order_id"),
+                                                status__in=["3_IN_TABLE", "4_CREATE_INVOICE", "5_PAID"]).first()
+            if not order_qs:
+                return ResponseWrapper(error_msg=['please ask waiter to update to in table status or ask them to create invoice for you'], error_code=400)
+
+            remaining_item_counter = OrderedItem.objects.filter(
+                food_order=order_qs.pk).exclude(status__in=["3_IN_TABLE", '4_CANCELLED']).count()
+
+            if remaining_item_counter > 0:
+                return ResponseWrapper(error_msg=['Order is running. Please make sure all the order is either in table or is cancelled'], error_code=400)
+
+            else:
+                order_qs.status = '4_CREATE_INVOICE'
+                cash_received = request.data.get('cash_received')
+                if cash_received:
+                    if cash_received < order_qs.payable_amount:
+                        return ResponseWrapper(error_msg=['You Cash Amount is less then You Bill'], status=400)
+                    order_qs.cash_received = cash_received
+
+                order_qs.save()
+
+                staff_qs = HotelStaffInformation.objects.filter(
+                    user=request.user.pk, restaurant_id=order_qs.restaurant_id).first()
+                if staff_qs:
+                    action.send(staff_qs, verb=order_qs.status,
+                                action_object=order_qs, target=order_qs.restaurant, request_body=request.data, url=request.path)
+                    if staff_qs.is_waiter:
+                        food_order_log = FoodOrderLog.objects.create(
+                            order=order_qs, staff=staff_qs, order_status=order_qs.status)
+
+                invoice_qs = self.invoice_generator(
+                    order_qs, payment_status="0_UNPAID")
+
+                serializer = InvoiceSerializer(instance=invoice_qs)
+                # order_done_signal.send(
+                #     sender=self.__class__.create,
+                #     restaurant_id=order_qs.restaurant_id,
+                # )
+                order_done_signal.send(
+                    sender=self.__class__.create,
+                    restaurant_id=order_qs.restaurant_id,
+                    order_id=order_qs.pk,
+                )
+            return ResponseWrapper(data=serializer.data.get('order_info'), msg='Invoice Created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
 
     def payment(self, request,  *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -2435,6 +2500,8 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         yearly_sales_report = {}
         month_wise_income = []
         month_wise_order = []
+        payment_method_total_amount = []
+
 
         for first_date in all_months_upto_this_month.values():
             month_name = first_date.strftime("%B")
@@ -2463,6 +2530,14 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         last_month_payable_amount_list = last_month_invoice_qs.values_list(
             'payable_amount', flat=True)
         last_month_total = sum(last_month_payable_amount_list)
+        restaurant_qs = Restaurant.objects.filter(id = restaurant_id)
+        # payment_method_list = restaurant_qs.values_list('payment_type', flat=True)
+        payment_method_details_list = restaurant_qs.values_list('payment_type','payment_type__name')
+        for payment_method, payment_method_name  in payment_method_details_list:
+            order_qs = FoodOrder.objects.filter(payment_method =payment_method)
+            payment_method_payable_amount_list = order_qs.values_list('payable_amount', flat=True)
+            payment_method_amount = sum(payment_method_payable_amount_list)
+            payment_method_total_amount.append([payment_method, payment_method_name , payment_method_amount])
 
         return ResponseWrapper(data={'current_month_total_sell': round(this_month_total, 2),
                                      'current_month_total_order': this_month_order_qs,
@@ -2470,6 +2545,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                      'last_month_total_order': last_month_total_order,
                                      'week_data': {"day_wise_income": weekly_day_wise_income_list, "day_wise_order": weekly_day_wise_order_list},
                                      #  "yearly_sales_report": yearly_sales_report,
+                                     'total_amount_received_by_payment_method': payment_method_total_amount,
                                      "month_data": {"month_wise_income": month_wise_income, "month_wise_order": month_wise_order}
                                      }, msg="success")
 
@@ -3079,6 +3155,12 @@ class FcmCommunication(viewsets.GenericViewSet):
         table_qs = Table.objects.filter(pk=table_id).first()
         if not table_qs:
             return ResponseWrapper(error_msg=["no table found with this table id"], error_code=status.HTTP_404_NOT_FOUND)
+        if payment_method:
+            payment_qs = PaymentType.objects.filter(name = payment_method).last()
+            food_order_qs = FoodOrder.objects.filter(table_id = table_id).last()
+            food_order_qs.payment_method = payment_qs
+            food_order_qs.save()
+
 
         staff_fcm_device_qs = StaffFcmDevice.objects.filter(
             hotel_staff__tables=table_id)

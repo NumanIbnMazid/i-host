@@ -14,6 +14,7 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
 
     restaurant_qs = food_order_obj.restaurant
     promo_code = food_order_obj.applied_promo_code  # kwargs.get('promo_code')
+    cash_received = food_order_obj.cash_received
     if promo_code:
         parent_promo_qs = ParentCompanyPromotion.objects.filter(
             code=promo_code,  restaurant=restaurant_qs, start_date__lte=timezone.now(), end_date__gte=timezone.now()).first()
@@ -69,6 +70,16 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
     tax_amount = ((total_price * restaurant_qs.tax_percentage)/hundred)
     grand_total_price += tax_amount
     payable_amount = grand_total_price - discount_amount
+    if cash_received >= 0:
+        change_amount = 0.0
+        if cash_received>payable_amount:
+            change_amount = cash_received - payable_amount
+        food_order_obj.change_amount = change_amount
+        food_order_obj.save()
+    else:
+        cash_received = 0
+        change_amount = 0
+
     response_dict = {
         "grand_total_price": round(grand_total_price, 2),
         'discount_amount': round(discount_amount, 2),
@@ -79,6 +90,8 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
         "service_charge_is_percentage": restaurant_qs.service_charge_is_percentage,
         "service_charge_base_amount": restaurant_qs.service_charge,
         'total_price': round(total_price, 2),
+        'cash_received':cash_received,
+        'change_amount':round(change_amount,2),
     }
     food_order_obj.grand_total_price = response_dict.get('grand_total_price')
     food_order_obj.total_price = response_dict.get('total_price')

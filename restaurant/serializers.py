@@ -277,6 +277,9 @@ class FoodOrderConfirmSerializer(serializers.Serializer):
 class PaymentSerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
 
+class PaymentWithAmaountSerializer(serializers.Serializer):
+    order_id = serializers.IntegerField()
+    cash_received = serializers.IntegerField(required=False)
 
 class ReorderSerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
