@@ -349,7 +349,7 @@ class FreeTableSerializer(serializers.ModelSerializer):
 
 class FoodOrderByTableSerializer(serializers.ModelSerializer):
     status_details = serializers.CharField(source='get_status_display')
-    payment_method = serializers.CharField(source='payment_method.name')
+    # payment_method = serializers.CharField(source='payment_method.name')
     # table_name = serializers.CharField(source="table.name")
     table_name = serializers.SerializerMethodField(read_only=True)
     table_no = serializers.SerializerMethodField(read_only=True)
@@ -368,7 +368,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   "table",
                   "status",
                   'status_details',
-                  'payment_method',
+
                   "price",
                   'ordered_items',
                   'table_name',
