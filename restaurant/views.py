@@ -1552,6 +1552,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
 
     def create_invoice_for_dashboard(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
+        payment_method = request.data.get('payment_method')
+        payment_method_qs = PaymentType.objects.filter(id=payment_method).first()
+        payment_method_cash_qs = PaymentType.objects.filter(name='Cash').first()
         if serializer.is_valid():
             """
             making sure that food order is in "3_IN_TABLE", "4_CREATE_INVOICE", "5_PAID" state
@@ -1572,10 +1575,20 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             else:
                 order_qs.status = '4_CREATE_INVOICE'
                 cash_received = request.data.get('cash_received')
+
+                if payment_method == None or payment_method == 0:
+                    order_qs.payment_method = payment_method_cash_qs
+                else:
+                    order_qs.payment_method = payment_method_qs
+
+                if payment_method_qs.name =='Cash' and not cash_received:
+                    return ResponseWrapper(error_msg=[' Cash Amount is not Given'], status=400)
                 if cash_received:
                     if cash_received < order_qs.payable_amount:
                         return ResponseWrapper(error_msg=['You Cash Amount is less then You Bill'], status=400)
                     order_qs.cash_received = cash_received
+
+
 
                 order_qs.save()
 
@@ -1608,9 +1621,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
 
     def payment(self, request,  *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        payment_method = request.data.get('payment_method')
-        payment_method_qs = PaymentType.objects.filter(id = payment_method).first()
-        payment_method_cash_qs = PaymentType.objects.filter(name = 'Cash').first()
+
         if serializer.is_valid():
             order_qs = FoodOrder.objects.filter(pk=request.data.get("order_id"),
                                                 status__in=["4_CREATE_INVOICE"]).first()
@@ -1625,10 +1636,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
 
             else:
                 order_qs.status = '5_PAID'
-                if payment_method == None or payment_method == 0:
-                    order_qs.payment_method = payment_method_cash_qs
-                else:
-                    order_qs.payment_method = payment_method_qs
 
                 order_qs.save()
                 table_qs = order_qs.table
