@@ -89,6 +89,6 @@ admin.site.register(VersionUpdate)
 admin.site.register(PrintNode,PrintNodeAdmin)
 admin.site.register(TakeAwayOrder,TakeAwayOrderAdmin)
 admin.site.register(ParentCompanyPromotion)
-admin.site.register(CashLog, CasLogAdmin)
+admin.site.register(CashLog, CashLogAdmin)
 admin.site.register(WithdrawCash, WithdrawCashAdmin)
 
