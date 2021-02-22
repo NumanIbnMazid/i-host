@@ -55,6 +55,12 @@ class PrintNodeAdmin(admin.ModelAdmin):
 class TakeAwayOrderAdmin(admin.ModelAdmin):
     list_display = ['id','restaurant']
 
+class CashLogAdmin(admin.ModelAdmin):
+    list_display = ['id','restaurant','starting_time']
+
+class WithdrawCashAdmin(admin.ModelAdmin):
+    list_display = ['id','cash_log']
+
 admin.site.register(Restaurant)
 admin.site.register(FoodOrderLog,FoodOrderLogAdmin)
 admin.site.register(Subscription, SubscriptionAdmin)
@@ -82,5 +88,7 @@ admin.site.register(PaymentType)
 admin.site.register(VersionUpdate)
 admin.site.register(PrintNode,PrintNodeAdmin)
 admin.site.register(TakeAwayOrder,TakeAwayOrderAdmin)
-admin.site.register(ParentCompanyPromotion,)
+admin.site.register(ParentCompanyPromotion)
+admin.site.register(CashLog, CashLogAdmin)
+admin.site.register(WithdrawCash, WithdrawCashAdmin)
 
