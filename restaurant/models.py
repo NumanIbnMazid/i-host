@@ -428,7 +428,7 @@ class TakeAwayOrder(models.Model):
 
 class CashLog(models.Model):
     restaurant = models.ForeignKey(
-        to=Restaurant, on_delete=models.SET_NULL, null=True,related_name='cash_logs')
+        to=Restaurant, on_delete=models.SET_NULL, null=True, related_name='cash_logs')
     starting_time = models.DateTimeField(auto_now_add=True)
     ending_time = models.DateTimeField(null=True, blank=True)
     in_cash_while_opening = models.FloatField(null=True, blank=True)

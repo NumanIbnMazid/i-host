@@ -2558,7 +2558,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             payment_method_payable_amount_list = order_qs.values_list('payable_amount', flat=True)
             payment_method_amount = sum(payment_method_payable_amount_list)
             payment_method_total_amount.append({'id': payment_method,'name':payment_method_name,
-                                                'amaount':payment_method_amount,
+                                                'amount':payment_method_amount,
                                                 'total_order': total_order})
 
             this_month_food_order_qs = FoodOrder.objects.filter(status= '5_PAID', created_at__year=timezone.now().year,
@@ -2568,7 +2568,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             this_month_payment_method_payable_amount_list = this_month_food_order_qs.values_list('payable_amount', flat=True)
             this_month_payment_method_amount = sum(this_month_payment_method_payable_amount_list)
             this_month_total_payment_method_distribution.append({'id': payment_method,'name':payment_method_name,
-                                                'amaount':this_month_payment_method_amount,
+                                                'amount':this_month_payment_method_amount,
                                                 'total_order': current_month_total_order}
                                                                 )
 
@@ -2582,7 +2582,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             last_month_payment_method_amount = sum(last_month_payment_method_payable_amount_list)
             last_month_total_payment_method_distribution.append({
                 'id':payment_method, 'name':payment_method_name,
-                'amaount':last_month_payment_method_amount,
+                'amount':last_month_payment_method_amount,
                  'total_order': last_month_total_order})
 
 
@@ -2603,7 +2603,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                                                                              flat=True)
             weekly_payment_method_amount = sum(weekly_payment_method_payable_amount_list)
             weekly_total_payment_method_distribution.append(
-                {'id':payment_method,'name':payment_method_name,'amaount':weekly_payment_method_amount,
+                {'id':payment_method,'name':payment_method_name,'amount':weekly_payment_method_amount,
                  'total_order': weekly_total_order}
             )
 
