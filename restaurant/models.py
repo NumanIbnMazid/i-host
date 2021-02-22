@@ -425,3 +425,24 @@ class TakeAwayOrder(models.Model):
         to='account_management.HotelStaffInformation', blank=True, related_name='take_away_orders')
     # def __str__(self):
     #     return self.restaurant
+
+class CashLog(models.Model):
+    restaurant = models.ForeignKey(
+        to=Restaurant, on_delete=models.SET_NULL, null=True,related_name='cash_logs')
+    starting_time = models.DateTimeField(auto_now_add=True)
+    ending_time = models.DateTimeField(null=True, blank=True)
+    in_cash_while_opening = models.FloatField(null=True, blank=True)
+    in_cash_while_closing = models.FloatField(null=True, blank=True)
+    total_received_payment = models.FloatField(null=True, blank= True)
+    total_cash_received = models.FloatField(null=True, blank= True)
+    remarks = models.CharField(null=True, blank= True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+class WithdrawCash(models.Model):
+    cash_log = models.ForeignKey(
+        to=CashLog, on_delete=models.SET_NULL, null=True, related_name='withdraw_cashs')
+    amount = models.FloatField(null=True, blank=True)
+    withdraw_at = models.DateTimeField(auto_now=True)
+    details = models.CharField(null=True,blank=True)
+
+
