@@ -435,7 +435,7 @@ class CashLog(models.Model):
     in_cash_while_closing = models.FloatField(null=True, blank=True)
     total_received_payment = models.FloatField(null=True, blank= True)
     total_cash_received = models.FloatField(null=True, blank= True)
-    remarks = models.CharField(null=True, blank= True)
+    remarks = models.TextField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 class WithdrawCash(models.Model):
@@ -443,6 +443,6 @@ class WithdrawCash(models.Model):
         to=CashLog, on_delete=models.SET_NULL, null=True, related_name='withdraw_cashs')
     amount = models.FloatField(null=True, blank=True)
     withdraw_at = models.DateTimeField(auto_now=True)
-    details = models.CharField(null=True,blank=True)
+    details = models.TextField(null=True, blank=True)
 
 
