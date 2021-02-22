@@ -2557,8 +2557,9 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             total_order = order_qs.count()
             payment_method_payable_amount_list = order_qs.values_list('payable_amount', flat=True)
             payment_method_amount = sum(payment_method_payable_amount_list)
-            payment_method_total_amount.append([payment_method, payment_method_name , payment_method_amount,
-                                                {'total_order': total_order}])
+            payment_method_total_amount.append({'id': payment_method,'name':payment_method_name,
+                                                'amaount':payment_method_amount,
+                                                'total_order': total_order})
 
             this_month_food_order_qs = FoodOrder.objects.filter(status= '5_PAID', created_at__year=timezone.now().year,
                                                                 created_at__month=timezone.now().month, restaurant_id = restaurant_id,
@@ -2566,9 +2567,10 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             current_month_total_order = this_month_food_order_qs.count()
             this_month_payment_method_payable_amount_list = this_month_food_order_qs.values_list('payable_amount', flat=True)
             this_month_payment_method_amount = sum(this_month_payment_method_payable_amount_list)
-            this_month_total_payment_method_distribution.append([payment_method, payment_method_name,
-                                                                 this_month_payment_method_amount,
-                                                                 {'current_month_total_order': current_month_total_order}])
+            this_month_total_payment_method_distribution.append({'id': payment_method,'name':payment_method_name,
+                                                'amaount':this_month_payment_method_amount,
+                                                'total_order': current_month_total_order}
+                                                                )
 
             last_month_food_order_qs = FoodOrder.objects.filter(status='5_PAID', created_at__year=last_month.year,
                                                                 created_at__month=last_month.month,
@@ -2578,9 +2580,11 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             last_month_payment_method_payable_amount_list = last_month_food_order_qs.values_list('payable_amount',
                                                                                                  flat=True)
             last_month_payment_method_amount = sum(last_month_payment_method_payable_amount_list)
-            last_month_total_payment_method_distribution.append(
-                [payment_method, payment_method_name, last_month_payment_method_amount,
-                 {'last_month_total_order': last_month_total_order}])
+            last_month_total_payment_method_distribution.append({
+                'id':payment_method, 'name':payment_method_name,
+                'amaount':last_month_payment_method_amount,
+                 'total_order': last_month_total_order})
+
 
             # for day in range(week):
             #     # start_of_week = today + timedelta(days=day + (today.weekday() - 1))
@@ -2599,8 +2603,8 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                                                                              flat=True)
             weekly_payment_method_amount = sum(weekly_payment_method_payable_amount_list)
             weekly_total_payment_method_distribution.append(
-                [payment_method,payment_method_name,weekly_payment_method_amount,
-                 {'weekly_total_order': weekly_total_order}]
+                {'id':payment_method,'name':payment_method_name,'amaount':weekly_payment_method_amount,
+                 'total_order': weekly_total_order}
             )
 
 
