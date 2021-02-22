@@ -2501,6 +2501,9 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         month_wise_income = []
         month_wise_order = []
         payment_method_total_amount = []
+        this_month_total_payment_method_distribution = []
+        last_month_total_payment_method_distribution = []
+        weekly_total_payment_method_distribution = []
 
 
         for first_date in all_months_upto_this_month.values():
@@ -2533,11 +2536,58 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         restaurant_qs = Restaurant.objects.filter(id = restaurant_id)
         # payment_method_list = restaurant_qs.values_list('payment_type', flat=True)
         payment_method_details_list = restaurant_qs.values_list('payment_type','payment_type__name')
-        for payment_method, payment_method_name  in payment_method_details_list:
-            order_qs = FoodOrder.objects.filter(payment_method =payment_method)
+        for payment_method, payment_method_name in payment_method_details_list:
+            order_qs = FoodOrder.objects.filter(payment_method =payment_method, restaurant_id = restaurant_id,
+                                                status= '5_PAID')
+            total_order = order_qs.count()
             payment_method_payable_amount_list = order_qs.values_list('payable_amount', flat=True)
             payment_method_amount = sum(payment_method_payable_amount_list)
-            payment_method_total_amount.append([payment_method, payment_method_name , payment_method_amount])
+            payment_method_total_amount.append([payment_method, payment_method_name , payment_method_amount,
+                                                {'total_order': total_order}])
+
+            this_month_food_order_qs = FoodOrder.objects.filter(status= '5_PAID', created_at__year=timezone.now().year,
+                                                                created_at__month=timezone.now().month, restaurant_id = restaurant_id,
+                                                                payment_method =payment_method)
+            current_month_total_order = this_month_food_order_qs.count()
+            this_month_payment_method_payable_amount_list = this_month_food_order_qs.values_list('payable_amount', flat=True)
+            this_month_payment_method_amount = sum(this_month_payment_method_payable_amount_list)
+            this_month_total_payment_method_distribution.append([payment_method, payment_method_name,
+                                                                 this_month_payment_method_amount,
+                                                                 {'current_month_total_order': current_month_total_order}])
+
+            last_month_food_order_qs = FoodOrder.objects.filter(status='5_PAID', created_at__year=last_month.year,
+                                                                created_at__month=last_month.month,
+                                                                restaurant_id=restaurant_id,
+                                                                payment_method=payment_method)
+            last_month_total_order = last_month_food_order_qs.count()
+            last_month_payment_method_payable_amount_list = last_month_food_order_qs.values_list('payable_amount',
+                                                                                                 flat=True)
+            last_month_payment_method_amount = sum(last_month_payment_method_payable_amount_list)
+            last_month_total_payment_method_distribution.append(
+                [payment_method, payment_method_name, last_month_payment_method_amount,
+                 {'last_month_total_order': last_month_total_order}])
+
+            # for day in range(week):
+            #     # start_of_week = today + timedelta(days=day + (today.weekday() - 1))
+            #     day_int = (today.weekday() + 1) % 7
+            #     first_day_of_week = today - timezone.timedelta(day_int - day)
+            first_day_of_week = start_of_week- timedelta(days=7)
+            last_day_of_week = first_day_of_week + timedelta(days=6)
+
+
+            weekly_order_qs = FoodOrder.objects.filter(
+                created_at__gte=first_day_of_week.date(),
+                created_at__lte = last_day_of_week.date(), status='5_PAID',
+                restaurant_id=restaurant_id, payment_method = payment_method)
+            weekly_total_order = weekly_order_qs.count()
+            weekly_payment_method_payable_amount_list = weekly_order_qs.values_list('payable_amount',
+                                                                                             flat=True)
+            weekly_payment_method_amount = sum(weekly_payment_method_payable_amount_list)
+            weekly_total_payment_method_distribution.append(
+                [payment_method,payment_method_name,weekly_payment_method_amount,
+                 {'weekly_total_order': weekly_total_order}]
+            )
+
 
         return ResponseWrapper(data={'current_month_total_sell': round(this_month_total, 2),
                                      'current_month_total_order': this_month_order_qs,
@@ -2545,7 +2595,11 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                      'last_month_total_order': last_month_total_order,
                                      'week_data': {"day_wise_income": weekly_day_wise_income_list, "day_wise_order": weekly_day_wise_order_list},
                                      #  "yearly_sales_report": yearly_sales_report,
+                                     'payment_method_distribution':{
                                      'total_amount_received_by_payment_method': payment_method_total_amount,
+                                     'current_month_total_payment_method_distribution':this_month_total_payment_method_distribution,
+                                     'last_month_total_payment_method_distribution':last_month_total_payment_method_distribution,
+                                     'weekly_total_payment_method_distribution':weekly_total_payment_method_distribution},
                                      "month_data": {"month_wise_income": month_wise_income, "month_wise_order": month_wise_order}
                                      }, msg="success")
 
