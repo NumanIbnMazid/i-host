@@ -1608,6 +1608,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
 
     def payment(self, request,  *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
+        payment_method = request.data.get('payment_method')
+        payment_method_qs = PaymentType.objects.filter(id = payment_method).first()
+        payment_method_cash_qs = PaymentType.objects.filter(name = 'Cash').first()
         if serializer.is_valid():
             order_qs = FoodOrder.objects.filter(pk=request.data.get("order_id"),
                                                 status__in=["4_CREATE_INVOICE"]).first()
@@ -1622,6 +1625,11 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
 
             else:
                 order_qs.status = '5_PAID'
+                if payment_method == None or payment_method == 0:
+                    order_qs.payment_method = payment_method_cash_qs
+                else:
+                    order_qs.payment_method = payment_method_qs
+
                 order_qs.save()
                 table_qs = order_qs.table
                 if table_qs:
