@@ -19,7 +19,7 @@ class TableAdmin(admin.ModelAdmin):
 
 
 class FoodOrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'table', 'status','restaurant','cash_received','created_at']
+    list_display = ['id', 'table', 'status','restaurant','cash_received','payable_amount','created_at']
 
 class OrderedItemAdmin(admin.ModelAdmin):
     list_display = ['id','food_order', 'food_option', 'status']
@@ -83,7 +83,7 @@ admin.site.register(Discount, DiscountAdmin)
 admin.site.register(PopUp, PopUpAdmin)
 admin.site.register(Slider, SliderAdmin)
 admin.site.register(Review, ReviewAdmin)
-admin.site.register(RestaurantMessages, RestaurantMessagesAdmin)
+admin.site.register(RestaurantMessages,RestaurantMessagesAdmin)
 admin.site.register(PaymentType)
 admin.site.register(VersionUpdate)
 admin.site.register(PrintNode,PrintNodeAdmin)
