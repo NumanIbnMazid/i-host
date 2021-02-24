@@ -303,5 +303,12 @@ dashboard_urls = [
          ParentCompanyPromotionViewSet.as_view({'patch': 'update','delete':'destroy'}, name='parent_company_promotion')),
     path('parent_company_promotions/<int:restaurant_id>/',
          ParentCompanyPromotionViewSet.as_view({'get':'parent_company_promotions'}, name='parent_company_promotions')),
+    path('cash_log/',
+         CashLogViewSet.as_view({'post': 'restaurant_opening'}, name='restaurant_opening')),
+    path('cash_log/<int:pk>/',
+         CashLogViewSet.as_view({'patch': 'restaurant_closing'}, name='restaurant_closing')),
+
+    path('withdraw_create/',
+         WithdrawCashViewSet.as_view({'post': 'withdraw_create'}, name='withdraw_create')),
 
 ] + fake_dashboard_urls

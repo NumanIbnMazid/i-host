@@ -1246,3 +1246,26 @@ class FoodOrderPromoCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOrder
         fields = ['applied_promo_code']
+
+class CashLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CashLog
+        fields = '__all__'
+
+class RestaurantOpeningSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CashLog
+        fields = ['restaurant', 'in_cash_while_opening']
+
+class RestaurantClosingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CashLog
+        fields = ['ending_time','remarks','restaurant']
+
+class WithdrawCashSerializer(serializers.ModelSerializer):
+    # cash_log_id =  serializers.IntegerField(source="cash_log")
+    class Meta:
+        model = WithdrawCash
+        fields = '__all__'

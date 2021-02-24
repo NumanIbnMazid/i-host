@@ -40,7 +40,8 @@ from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
                                FoodOrder, FoodOrderLog, Invoice, OrderedItem,
                                PaymentType, PopUp, Restaurant,
                                RestaurantMessages, Review, Slider,
-                               Subscription, Table, VersionUpdate, PrintNode, TakeAwayOrder, ParentCompanyPromotion)
+                               Subscription, Table, VersionUpdate, PrintNode, TakeAwayOrder,
+                               ParentCompanyPromotion, CashLog,WithdrawCash )
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
@@ -89,7 +90,9 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           FcmNotificationListSerializer, DiscountPopUpSerializer, DiscountSliderSerializer,
                           FoodOrderStatusSerializer, PrintNodeSerializer, TakeAwayOrderSerializer,
                           ParentCompanyPromotionSerializer, RestaurantParentCompanyPromotionSerializer,
-                          FoodOrderPromoCodeSerializer, DiscountPostSerializer, PaymentWithAmaountSerializer)
+                          FoodOrderPromoCodeSerializer, DiscountPostSerializer, PaymentWithAmaountSerializer,
+                          CashLogSerializer, RestaurantOpeningSerializer, RestaurantClosingSerializer,
+                          WithdrawCashSerializer)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -3606,3 +3609,111 @@ class ParentCompanyPromotionViewSet(LoggingMixin, CustomViewSet):
         qs = ParentCompanyPromotion.objects.filter(restaurant=restaurant_id)
         serializer = ParentCompanyPromotionSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='Success')
+
+
+class CashLogViewSet(LoggingMixin, CustomViewSet):
+    serializer_class = CashLogSerializer
+    queryset = CashLog.objects.all()
+    lookup_field = 'pk'
+
+
+    def get_serializer_class(self):
+        if self.action in ['restaurant_opening']:
+            self.serializer_class = RestaurantOpeningSerializer
+        elif self.action in ['restaurant_closing']:
+            self.serializer_class = RestaurantClosingSerializer
+
+        return self.serializer_class
+
+    # def get_permissions(self):
+    #     if self.action in ['create', 'update', 'destroy', 'restaurant_opening']:
+    #         permission_classes = [
+    #             custom_permissions.IsRestaurantManagementOrAdmin]
+    #
+    #     return [permission() for permission in permission_classes]
+    http_method_names = ['post', 'patch', 'get', 'delete']
+
+    def restaurant_opening(self, request):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+        restaurant_id = request.data.get('restaurant')
+        in_cash_while_opening = request.data.get('in_cash_while_opening')
+        if serializer.is_valid():
+            cashlog_qs = CashLog.objects.create(restaurant_id = restaurant_id, in_cash_while_opening= in_cash_while_opening)
+            cashlog_qs.save()
+            serializer = CashLogSerializer(instance=cashlog_qs)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def restaurant_closing(self, request,pk, *args, **kwargs):
+        today_date = timezone.now().date()
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+
+        if serializer.is_valid():
+            cash_log_qs = CashLog.objects.filter(id = pk).last()
+            if not cash_log_qs.starting_time:
+                return ResponseWrapper(error_msg=['Restaurant is not opening'], error_code=400)
+
+            qs = serializer.update(instance=self.get_object(
+            ), validated_data=serializer.validated_data)
+
+            opening_time = qs.starting_time
+            closing_time = qs.ending_time
+            closing_time += timedelta(days =1)
+
+            # fs = FoodOrder.objects.filter(created_at__gte=opening_time, created_at__lte=closing_time)
+
+            invoice_qs = Invoice.objects.filter(
+                created_at__gte=opening_time, created_at__lte=closing_time, payment_status='1_PAID', restaurant_id=request.data.get('restaurant'))
+
+            payable_amount_list = invoice_qs.values_list('payable_amount', flat=True)
+            total = sum(payable_amount_list)
+            cash_log_qs.total_received_payment = total
+
+            food_order_qs = FoodOrder.objects.filter(created_at__gte=opening_time, created_at__lte=closing_time, status='5_PAID',
+                                                     restaurant_id=request.data.get('restaurant'), payment_method__name = 'Cash')
+            total_payable_amount = sum(food_order_qs.values_list('payable_amount', flat=True))
+            cash_log_qs.total_cash_received = total_payable_amount
+            withdraw_cash_qs = WithdrawCash.objects.filter(cash_log_id = cash_log_qs).last()
+            if not withdraw_cash_qs:
+                cash_log_qs.in_cash_while_closing = cash_log_qs.in_cash_while_opening + cash_log_qs.total_cash_received
+            else:
+                cash_log_qs.in_cash_while_closing = cash_log_qs.in_cash_while_opening + cash_log_qs.total_cash_received - withdraw_cash_qs.amount
+
+            cash_log_qs.save()
+
+            serializer = CashLogSerializer(instance=cash_log_qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+
+class WithdrawCashViewSet(LoggingMixin, CustomViewSet):
+    serializer_class = WithdrawCashSerializer
+    queryset = WithdrawCash.objects.all()
+    lookup_field = 'pk'
+
+
+    def get_serializer_class(self):
+        # if self.action in ['restaurant_opening']:
+        #     self.serializer_class = RestaurantOpeningSerializer
+        # elif self.action in ['restaurant_closing']:
+        #     self.serializer_class = RestaurantClosingSerializer
+
+        return self.serializer_class
+
+    http_method_names = ['post', 'patch', 'get', 'delete']
+
+    def withdraw_create(self, request):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+        if serializer.is_valid():
+            qs = serializer.save()
+            serializer = self.serializer_class(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+
