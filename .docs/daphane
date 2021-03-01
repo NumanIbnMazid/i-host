@@ -15,3 +15,6 @@ ExecStart=/root/i-host-backend/env/bin/daphne -p 9001  ihost.asgi:application
 [Install]
 WantedBy=multi-user.target
 
+
+
+

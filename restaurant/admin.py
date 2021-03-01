@@ -33,7 +33,7 @@ class FoodExtraAdmin(admin.ModelAdmin):
     list_display = ['id','name','food','price']
 
 class FoodAdmin(admin.ModelAdmin):
-    list_display = ['id','name','restaurant','category']
+    list_display = ['id','name','restaurant','category', 'discount']
 
 class FoodOptionAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'price', 'food']
