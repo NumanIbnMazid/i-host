@@ -359,7 +359,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
     ordered_items = serializers.SerializerMethodField(read_only=True)
     restaurant_info = serializers.SerializerMethodField(read_only=True)
     customer = serializers.SerializerMethodField(read_only=True)
-    payment_method = serializers.SerializerMethodField(read_only=True)
+    # payment_method = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = FoodOrder
@@ -369,7 +369,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   "table",
                   "status",
                   'status_details',
-                  'payment_method',
+                  # 'payment_method',
                   "price",
                   'ordered_items',
                   'table_name',
@@ -475,11 +475,11 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
             return obj.table.table_no
         else:
             return None
-    def get_payment_method(self,obj):
-        if obj.payment_method:
-            return {'id':obj.payment_method.pk, 'name':obj.payment_method.name}
-        else:
-            return {}
+    # def get_payment_method(self,obj):
+    #     if obj.payment_method:
+    #         return {'id':obj.payment_method.pk, 'name':obj.payment_method.name}
+    #     else:
+    #         return {}
 
 
 class FoodOrderSerializer(FoodOrderByTableSerializer):
