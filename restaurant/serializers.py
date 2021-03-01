@@ -476,7 +476,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
         else:
             return None
     def get_payment_method(self,obj):
-        if obj:
+        if obj.payment_method:
             return {'id':obj.payment_method.pk, 'name':obj.payment_method.name}
         else:
             return {}

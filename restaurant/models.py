@@ -196,6 +196,10 @@ class FoodOrder(SoftDeleteModel):
         ("6_CANCELLED", "Cancelled"),
 
     ]
+    # DISCOUNT_STATUS = [
+    #     ("Percentage","percentage"),
+    #     ("Amount","Amount"),
+    # ]
     order_no = models.CharField(max_length=200, null=True, blank=True)
     remarks = models.TextField(null=True, blank=True)
     table = models.ForeignKey(
@@ -222,6 +226,10 @@ class FoodOrder(SoftDeleteModel):
     change_amount = models.FloatField(null=True, blank=True)
     payment_method = models.ForeignKey(
         to='restaurant.PaymentType', on_delete=models.SET_NULL, null=True,blank=True, related_name='food_orders')
+    # discount_given = models.FloatField(null=True, blank=True)
+    # discount_amount_is_percentage = models.BooleanField(default=False)
+    # discount_base_amount = models.FloatField(default=False)
+
 
     def __str__(self):
         if self.order_no:
