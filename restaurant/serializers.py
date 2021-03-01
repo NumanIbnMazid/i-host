@@ -359,6 +359,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
     ordered_items = serializers.SerializerMethodField(read_only=True)
     restaurant_info = serializers.SerializerMethodField(read_only=True)
     customer = serializers.SerializerMethodField(read_only=True)
+    payment_method = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = FoodOrder
@@ -368,7 +369,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   "table",
                   "status",
                   'status_details',
-
+                  'payment_method',
                   "price",
                   'ordered_items',
                   'table_name',
@@ -474,6 +475,11 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
             return obj.table.table_no
         else:
             return None
+    def get_payment_method(self,obj):
+        if obj:
+            return {'id':obj.payment_method.pk, 'name':obj.payment_method.name}
+        else:
+            return {}
 
 
 class FoodOrderSerializer(FoodOrderByTableSerializer):
@@ -813,11 +819,13 @@ class TopRecommendedFoodListSerializer(serializers.Serializer):
 
 class InvoiceSerializer(serializers.ModelSerializer):
     order_info = serializers.SerializerMethodField(read_only=True)
+    # payment_method = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Invoice
         fields = ['order_info', 'id', 'order', 'grand_total',
-                  'payable_amount', 'updated_at', 'created_at', 'payment_status']
+                  'payable_amount', 'updated_at', 'created_at', 'payment_status'
+                  ]
 
     def get_order_info(self, obj):
         # data_dict = obj.__dict__
@@ -825,6 +833,8 @@ class InvoiceSerializer(serializers.ModelSerializer):
         order_info = obj.__dict__.pop('order_info', {})
         order_info['invoice'] = obj.__dict__
         return order_info
+
+
 
 
 class InvoiceGetSerializer(serializers.ModelSerializer):
