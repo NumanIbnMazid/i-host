@@ -1583,9 +1583,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
                 else:
                     order_qs.payment_method = payment_method_qs
 
-                if payment_method_qs:
-                    if payment_method_qs.name =='Cash' and not cash_received:
-                        return ResponseWrapper(error_msg=[' Cash Amount is not Given'], status=400)
+                # if payment_method_qs:
+                #     if payment_method_qs.name =='Cash' and not cash_received:
+                #         return ResponseWrapper(error_msg=[' Cash Amount is not Given'], status=400)
                 if cash_received:
                     if cash_received < order_qs.payable_amount:
                         return ResponseWrapper(error_msg=['You Cash Amount is less then You Bill'], status=400)
@@ -3192,6 +3192,8 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         qs.discount_given = discount_given
         qs.discount_amount_is_percentage = discount_amount_is_percentage
         qs.save
+        serializer = FoodOrderByTableSerializer(instance=qs)
+        return ResponseWrapper(data=serializer.data, msg='success')
 
 
 

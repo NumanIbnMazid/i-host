@@ -220,6 +220,8 @@ fake_dashboard_urls = [
          SliderViewset.as_view({'get': 'slider_list_by_restaurant'}), name='slider_list_by_restaurant'),
     path('restaurant_messages_list/<int:restaurant>/',
          RestaurantMessagesViewset.as_view({'get': 'restaurant_messages_list'}, name='restaurant_messages_list')),
+    path('force_discount/<int:order_id>',
+         DiscountViewSet.as_view({'post':'force_discount'},name='force_discount')),
 
 
 ]

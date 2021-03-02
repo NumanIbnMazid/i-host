@@ -68,9 +68,20 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
         if discount_amount > parent_promo_qs.max_amount:
             discount_amount = parent_promo_qs.max_amount
 
+    if discount_given:
+        discount_amount = 0
+
+        if food_order_obj.discount_amount_is_percentage:
+            discount_amount = grand_total_price * \
+                                    (discount_given / 100)
+        else:
+            discount_amount = discount_amount
+
     grand_total_price += service_charge
     tax_amount = ((total_price * restaurant_qs.tax_percentage)/hundred)
     grand_total_price += tax_amount
+    # if discount_given:
+    #     payable_amount = grand_total_price - discount_amount
     payable_amount = grand_total_price - discount_amount
     if cash_received==None or cash_received <=0:
         cash_received = 0
@@ -87,14 +98,7 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
     #     cash_received = 0
     #     change_amount = 0
 
-    # if discount_given:
-    #     discount_amount = 0
-    #
-    #     if food_order_obj.discount_amount_is_percentage:
-    #         discount_amount = grand_total_price * \
-    #                                 (discount_given / 100)
-    #     else:
-    #         discount_amount =grand_total_price* discount_amount
+
 
     response_dict = {
         "grand_total_price": round(grand_total_price, 2),
