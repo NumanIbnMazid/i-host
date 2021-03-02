@@ -3653,8 +3653,11 @@ class CashLogViewSet(LoggingMixin, CustomViewSet):
 
         if serializer.is_valid():
             cash_log_qs = CashLog.objects.filter(id = pk).last()
+
             if not cash_log_qs.starting_time:
                 return ResponseWrapper(error_msg=['Restaurant is not opening'], error_code=400)
+            if cash_log_qs.ending_time:
+                return ResponseWrapper(error_msg=['Restaurant is already closed'], error_code=400)
 
             qs = serializer.update(instance=self.get_object(
             ), validated_data=serializer.validated_data)
