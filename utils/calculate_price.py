@@ -15,6 +15,7 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
     restaurant_qs = food_order_obj.restaurant
     promo_code = food_order_obj.applied_promo_code  # kwargs.get('promo_code')
     cash_received = food_order_obj.cash_received
+    discount_given= food_order_obj.discount_given
     if promo_code:
         parent_promo_qs = ParentCompanyPromotion.objects.filter(
             code=promo_code,  restaurant=restaurant_qs, start_date__lte=timezone.now(), end_date__gte=timezone.now()).first()
@@ -29,6 +30,7 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
     service_charge = 0.0
     hundred = 100.0
     discount_amount = 0.0
+
     for ordered_item in ordered_items_qs:
 
         if not restaurant_qs:
@@ -84,6 +86,15 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
     # else:
     #     cash_received = 0
     #     change_amount = 0
+
+    # if discount_given:
+    #     discount_amount = 0
+    #
+    #     if food_order_obj.discount_amount_is_percentage:
+    #         discount_amount = grand_total_price * \
+    #                                 (discount_given / 100)
+    #     else:
+    #         discount_amount =grand_total_price* discount_amount
 
     response_dict = {
         "grand_total_price": round(grand_total_price, 2),

@@ -1279,3 +1279,10 @@ class WithdrawCashSerializer(serializers.ModelSerializer):
     class Meta:
         model = WithdrawCash
         fields = '__all__'
+
+
+class ForceDiscountSerializer(serializers.ModelSerializer):
+    force_discount_amount = serializers.FloatField(source='discount_given')
+    class Meta:
+        model = FoodOrder
+        fields = ['force_discount_amount', 'discount_amount_is_percentage']

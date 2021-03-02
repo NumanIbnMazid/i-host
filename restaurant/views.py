@@ -92,7 +92,7 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           ParentCompanyPromotionSerializer, RestaurantParentCompanyPromotionSerializer,
                           FoodOrderPromoCodeSerializer, DiscountPostSerializer, PaymentWithAmaountSerializer,
                           CashLogSerializer, RestaurantOpeningSerializer, RestaurantClosingSerializer,
-                          WithdrawCashSerializer)
+                          WithdrawCashSerializer, ForceDiscountSerializer)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -3024,6 +3024,8 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = DiscountSerializer
         elif self.action in ['food_discount']:
             self.serializer_class = DiscountByFoodSerializer
+        elif self.action in ['force_discount']:
+            self.serializer_class = ForceDiscountSerializer
 
         return self.serializer_class
 
@@ -3182,6 +3184,18 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(status=200, msg='deleted')
         else:
             return ResponseWrapper(error_msg="failed to delete", error_code=400)
+    def force_discount(self, request, order_id, *args, **kwargs):
+        qs = FoodOrder.objects.filter(pk = order_id).last()
+        if not qs:
+            return ResponseWrapper(error_msg=['Food order is not valid'], error_code=400)
+        discount_given = request.data.get('force_discount_amount')
+        discount_amount_is_percentage = request.data.get('discount_amount_is_percentage')
+        qs.discount_given = discount_given
+        qs.discount_amount_is_percentage = discount_amount_is_percentage
+        qs.save
+
+
+
 
 
 class FcmCommunication(viewsets.GenericViewSet):
