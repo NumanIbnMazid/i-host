@@ -1026,7 +1026,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
                     qs.save()
             except:
                 pass
-
     def create_take_away_order(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
