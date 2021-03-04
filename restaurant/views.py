@@ -3675,8 +3675,11 @@ class CashLogViewSet(LoggingMixin, CustomViewSet):
         restaurant_qs = Restaurant.objects.filter(pk = restaurant_id).last()
         if not restaurant_qs:
             return ResponseWrapper(error_msg=['Restaurant is not valid'], status=400)
-        elif restaurant_qs.cash_logs.last().ending_time:
+        cash_log = restaurant_qs.cash_logs.last()
+        if not cash_log:
             return ResponseWrapper(msg='Restaurant is not open', status=200)
+        elif cash_log.ending_time:
+            return ResponseWrapper(msg='Restaurant is already close', status=200)
         else:
             return ResponseWrapper(msg='Restaurant is open', status=200)
 
@@ -3697,6 +3700,9 @@ class CashLogViewSet(LoggingMixin, CustomViewSet):
         today_date = timezone.now().date()
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
+        ending_time = request.data.get('ending_time')
+        restaurant = request.data.get('restaurant')
+        remarks = request.data.get('remarks')
 
         if serializer.is_valid():
             cash_log_qs = CashLog.objects.filter(id = pk).last()
@@ -3721,6 +3727,9 @@ class CashLogViewSet(LoggingMixin, CustomViewSet):
             payable_amount_list = invoice_qs.values_list('payable_amount', flat=True)
             total = sum(payable_amount_list)
             cash_log_qs.total_received_payment = total
+            cash_log_qs.ending_time= ending_time
+            cash_log_qs.restaurant_id= restaurant
+            cash_log_qs.remarks= remarks
 
             food_order_qs = FoodOrder.objects.filter(created_at__gte=opening_time, created_at__lte=closing_time, status='5_PAID',
                                                      restaurant_id=request.data.get('restaurant'), payment_method__name = 'Cash')
@@ -3734,8 +3743,8 @@ class CashLogViewSet(LoggingMixin, CustomViewSet):
 
             cash_log_qs.save()
 
-            serializer = CashLogSerializer(instance=cash_log_qs)
-            return ResponseWrapper(data=serializer.data)
+            serializer = CashLogSerializer(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='success')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
