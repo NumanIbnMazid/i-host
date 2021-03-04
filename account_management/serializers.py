@@ -1,6 +1,6 @@
 from rest_framework_tracking.models import APIRequestLog
 
-from restaurant.models import Restaurant, Subscription, PaymentType
+from restaurant.models import Restaurant, Subscription, PaymentType, CashLog
 
 from django.http import request
 from rest_framework import fields
@@ -154,11 +154,17 @@ class PaymentTypeSerializer(serializers.ModelSerializer):
         model = PaymentType
         fields = '__all__'
 
+class CashLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CashLog
+        fields = '__all__'
+
 
 class RestaurantSerializer(serializers.ModelSerializer):
     review = serializers.SerializerMethodField(read_only=True)
     subscription = SubscriptionSerializer(read_only=True)
     payment_type = PaymentTypeSerializer(read_only=True, many=True)
+    cash_log = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Restaurant
@@ -173,6 +179,19 @@ class RestaurantSerializer(serializers.ModelSerializer):
             if reviews_list:
                 return {'value': sum(reviews_list) / reviews_list.__len__(), 'total_reviewers': reviews_list.__len__()}
         return {'value': None, 'total_reviewers': 0}
+    def get_cash_log(self,obj):
+        cash_log_qs = CashLog.objects.filter(restaurant_id = obj.id).last()
+        if cash_log_qs:
+            return {'starting_time': cash_log_qs.starting_time,
+                 'ending_time':cash_log_qs.ending_time,
+                 'in_cash_while_opening':cash_log_qs.in_cash_while_opening,
+                 'in_cash_while_closing':cash_log_qs.in_cash_while_closing,
+                 'total_received_payment':cash_log_qs.total_received_payment,
+                 'total_cash_received':cash_log_qs.total_cash_received,
+                 'remarks':cash_log_qs.remarks
+                 }
+
+        return {}
 
 
 class StaffLoginInfoGetSerializer(serializers.ModelSerializer):
