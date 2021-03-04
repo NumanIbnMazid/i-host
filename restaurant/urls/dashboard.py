@@ -310,6 +310,9 @@ dashboard_urls = [
     path('cash_log/<int:pk>/',
          CashLogViewSet.as_view({'patch': 'restaurant_closing'}, name='restaurant_closing')),
 
+    path('restaurant_log_status/<int:restaurant_id>/',
+         CashLogViewSet.as_view({'get': 'restaurant_log_status'}, name='restaurant_log_status')),
+
     path('withdraw_create/',
          WithdrawCashViewSet.as_view({'post': 'withdraw_create'}, name='withdraw_create')),
 

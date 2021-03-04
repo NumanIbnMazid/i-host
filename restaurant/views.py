@@ -1517,11 +1517,12 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
 
             else:
                 order_qs.status = '4_CREATE_INVOICE'
-                cash_received = request.data.get('cash_received')
-                if cash_received>0:
-                    if cash_received < order_qs.payable_amount and cash_received>0:
-                        return ResponseWrapper(error_msg=['You Cash Amount is less then You Bill'], status=400)
-                    order_qs.cash_received = cash_received
+
+                # cash_received = request.data.get('cash_received')
+                # if cash_received>0:
+                #     if cash_received < order_qs.payable_amount and cash_received>0:
+                #         return ResponseWrapper(error_msg=['You Cash Amount is less then You Bill'], status=400)
+                #     order_qs.cash_received = cash_received
 
                 order_qs.save()
 
@@ -3669,6 +3670,15 @@ class CashLogViewSet(LoggingMixin, CustomViewSet):
     #
     #     return [permission() for permission in permission_classes]
     http_method_names = ['post', 'patch', 'get', 'delete']
+
+    def restaurant_log_status(self,request, restaurant_id, *args,**kwargs):
+        restaurant_qs = Restaurant.objects.filter(pk = restaurant_id).last()
+        if not restaurant_qs:
+            return ResponseWrapper(error_msg=['Restaurant is not valid'], status=400)
+        elif restaurant_qs.cash_logs.last().ending_time:
+            return ResponseWrapper(msg='Restaurant is not open', status=200)
+        else:
+            return ResponseWrapper(msg='Restaurant is open', status=200)
 
     def restaurant_opening(self, request):
         serializer_class = self.get_serializer_class()
