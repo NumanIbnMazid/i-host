@@ -312,6 +312,8 @@ dashboard_urls = [
 
     path('restaurant_log_status/<int:restaurant_id>/',
          CashLogViewSet.as_view({'get': 'restaurant_log_status'}, name='restaurant_log_status')),
+    path('cash_log_list/<int:restaurant_id>/',
+         CashLogViewSet.as_view({'get': 'cash_log_list'}, name='cash_log_list')),
 
     path('withdraw_create/',
          WithdrawCashViewSet.as_view({'post': 'withdraw_create'}, name='withdraw_create')),

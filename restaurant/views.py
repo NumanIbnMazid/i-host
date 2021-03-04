@@ -3748,6 +3748,13 @@ class CashLogViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
+    def cash_log_list(self,request, restaurant_id, *args,**kwargs):
+        restaurant_qs = CashLog.objects.filter(restaurant_id = restaurant_id).order_by('id')
+        if not restaurant_qs:
+            return ResponseWrapper(error_msg=['Not Cash Log'], error_code=400)
+        serializer = CashLogSerializer(instance=restaurant_qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='Success')
+
 
 class WithdrawCashViewSet(LoggingMixin, CustomViewSet):
     serializer_class = WithdrawCashSerializer
