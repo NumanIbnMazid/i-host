@@ -2601,14 +2601,14 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                                                 created_at__month=last_month.month,
                                                                 restaurant_id=restaurant_id,
                                                                 payment_method=payment_method)
-            last_month_total_order = last_month_food_order_qs.count()
+            payment_method_last_month_total_order = last_month_food_order_qs.count()
             last_month_payment_method_payable_amount_list = last_month_food_order_qs.values_list('payable_amount',
                                                                                                  flat=True)
             last_month_payment_method_amount = sum(last_month_payment_method_payable_amount_list)
             last_month_total_payment_method_distribution.append({
                 'id':payment_method, 'name':payment_method_name,
                 'amount':last_month_payment_method_amount,
-                 'total_order': last_month_total_order})
+                 'total_order': payment_method_last_month_total_order})
 
 
             # for day in range(week):
