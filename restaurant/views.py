@@ -3053,9 +3053,9 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         permission_classes = []
         if self.action in ['discount_delete', 'delete_discount', 'create_discount','update_discount','discount_list']:
             permission_classes = [permissions.IsAuthenticated]
-        # elif self.action in ['discount_list']:
-        #     permission_classes = [
-        #         custom_permissions.IsRestaurantManagementOrAdmin]
+        elif self.action in ['force_discount']:
+            permission_classes = [
+                custom_permissions.IsRestaurantManagementOrAdmin]
 
         # else:
         #     permission_classes = [permissions.IsAdminUser]
@@ -3645,6 +3645,7 @@ class ParentCompanyPromotionViewSet(LoggingMixin, CustomViewSet):
         qs = ParentCompanyPromotion.objects.filter(restaurant=restaurant_id)
         serializer = ParentCompanyPromotionSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='Success')
+
 
 
 class CashLogViewSet(LoggingMixin, CustomViewSet):
