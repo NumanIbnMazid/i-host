@@ -71,11 +71,12 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
     if discount_given:
         discount_amount = 0
 
-        if food_order_obj.discount_amount_is_percentage:
+
+        if food_order_obj.discount_amount_is_percentage == True:
             discount_amount = grand_total_price * \
                                     (discount_given / 100)
         else:
-            discount_amount = discount_amount
+            discount_amount = discount_given
 
     grand_total_price += service_charge
     tax_amount = ((total_price * restaurant_qs.tax_percentage)/hundred)
