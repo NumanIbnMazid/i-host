@@ -1,5 +1,5 @@
 import decimal
-from restaurant.models import ParentCompanyPromotion
+from restaurant.models import *
 import restaurant
 from django.utils import timezone
 
@@ -17,8 +17,17 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
     cash_received = food_order_obj.cash_received
     discount_given= food_order_obj.discount_given
     if promo_code:
-        parent_promo_qs = ParentCompanyPromotion.objects.filter(
+        parent_promo_code_promotion_qs = ParentCompanyPromotion.objects.filter(
             code=promo_code,  restaurant=restaurant_qs, start_date__lte=timezone.now(), end_date__gte=timezone.now()).first()
+        if parent_promo_code_promotion_qs:
+            parent_promo_qs = parent_promo_code_promotion_qs
+        else:
+            promo_code_promotion_qs = PromoCodePromotion.objects.filter(
+                code=promo_code, restaurant=restaurant_qs, start_date__lte=timezone.now(),
+                end_date__gte=timezone.now()).first()
+            parent_promo_qs = promo_code_promotion_qs
+
+
     else:
         parent_promo_qs = None
     # if food_order_obj.table:

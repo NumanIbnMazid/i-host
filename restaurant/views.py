@@ -904,14 +904,34 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
         start_date = today - timedelta(days=1)
         food_order_qs = FoodOrder.objects.filter(pk=order_id).last()
         restaurant_id = food_order_qs.restaurant_id
-        promo_code = ParentCompanyPromotion.objects.filter(code=request.data.get('applied_promo_code'),restaurant__in = [restaurant_id],
+        parent_promo_code = ParentCompanyPromotion.objects.filter(code=request.data.get('applied_promo_code'),restaurant__in = [restaurant_id],
                                                            start_date__lte=start_date, end_date__gte=today).last()
-        if not promo_code:
-            return ResponseWrapper(msg='Promo code not valid', status=200)
+        promo_code = PromoCodePromotion.objects.filter(code = request.data.get('applied_promo_code'),
+                                                    restaurant_id = restaurant_id,start_date__gte=start_date, end_date__gte=today).last()
+        if not parent_promo_code == None:
+            if not parent_promo_code:
+                return ResponseWrapper(msg='Promo code not valid', status=200)
+
+        if not promo_code == None:
+            if not promo_code:
+                return ResponseWrapper(msg='Promo code not valid', status=200)
 
         # promo_code = food_order_qs.applied_promo_code
-        food_order_qs.applied_promo_code = request.data.get('applied_promo_code')
-        food_order_qs.save()
+        if parent_promo_code:
+            food_order_qs.applied_promo_code = request.data.get('applied_promo_code')
+            food_order_qs.save()
+        else:
+            promo_code_log_qs = PromoCodePromotionLog.objects.filter(customer_id=request.user.pk,
+                                                                  promo_code_id = promo_code)
+            total_promo_code = promo_code_log_qs.count()
+            if promo_code.max_limit <= total_promo_code:
+                return ResponseWrapper(msg='Maximum time Promo Code Already Used', status=200)
+            else:
+                promo_code_log = PromoCodePromotionLog.objects.create(customer_id = request.user.pk,
+                                                                      promo_code_id= promo_code.id
+                                                                    )
+                food_order_qs.applied_promo_code = request.data.get('applied_promo_code')
+                food_order_qs.save()
 
         return ResponseWrapper(msg='Promo Code Applied', status=200)
 
