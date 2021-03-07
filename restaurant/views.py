@@ -3793,7 +3793,7 @@ class PromoCodePromotionViewSet(LoggingMixin, CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['create', 'destroy', 'update', 'list','promo_code_list']:
+        if self.action in ['create', 'destroy', 'patch', 'list','promo_code_list']:
             permission_classes = [
                 custom_permissions.IsRestaurantManagementOrAdmin]
         return [permission() for permission in permission_classes]
@@ -3815,8 +3815,6 @@ class PromoCodePromotionViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def update(self, request, pk, **kwargs):
-        serializer_class = self.get_serializer_class()
-        serializer = serializer_class(data=request.data, partial=True)
 
         promo_code_qs = PromoCodePromotion.objects.filter(id = pk).first()
         restaurant_id = promo_code_qs.restaurant_id
@@ -3824,6 +3822,9 @@ class PromoCodePromotionViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_msg=['Restaurant is not valid'], error_code=400)
         self.check_object_permissions(request, obj=restaurant_id)
 
+
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data, partial=True)
         if serializer.is_valid():
             qs = serializer.update(instance=self.get_object(
             ), validated_data=serializer.validated_data)
