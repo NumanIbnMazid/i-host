@@ -364,6 +364,31 @@ class ParentCompanyPromotion(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     restaurant = models.ManyToManyField(Restaurant)
 
+class PromoCodePromotion(models.Model):
+    PROMO_TYPE = [
+        ("PERCENTAGE", "percentage"), ("AMOUNT", "amount")]
+    code = models.CharField(max_length=200, unique=True)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    promo_type = models.CharField(choices=PROMO_TYPE, max_length=50)
+    max_amount = models.FloatField(default=0)
+    minimum_purchase_amount = models.FloatField(default=0)
+    amount = models.FloatField(default=0)
+    max_limit = models.IntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    restaurant = models.ForeignKey(to=Restaurant,on_delete=models.CASCADE,
+                                   related_name='promo_code_promotions')
+
+class PromoCodePromotionLog(models.Model):
+    customer = models.ForeignKey(to='account_management.CustomerInfo',
+                                  on_delete=models.SET_NULL, null=True, blank=True,
+                                  related_name='promo_code_promotion_logs')
+    promo_code = models.ForeignKey(to='PromoCodePromotion',
+                                  on_delete=models.SET_NULL, null=True, blank=True,
+                                  related_name='promo_code_promotion_logs')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
 
 class PopUp(models.Model):
     restaurant = models.ForeignKey(to=Restaurant, on_delete=models.CASCADE)
