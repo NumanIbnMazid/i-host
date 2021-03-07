@@ -317,5 +317,11 @@ dashboard_urls = [
 
     path('withdraw_create/',
          WithdrawCashViewSet.as_view({'post': 'withdraw_create'}, name='withdraw_create')),
+    path('restaurant_promo_code/',
+         PromoCodePromotionViewSet.as_view({'post':'create'},name = 'promo_code_create')),
+    path('restaurant_promo_code/<int:pk>/',
+         PromoCodePromotionViewSet.as_view({'patch': 'update', 'delete':'destroy'}, name='promo_code_create')),
+    path('promo_code_list/<int:restaurant_id>/',
+         PromoCodePromotionViewSet.as_view({'get': 'promo_code_list'}, name='promo_code_list')),
 
-] + fake_dashboard_urls
+    ] + fake_dashboard_urls

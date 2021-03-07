@@ -1287,3 +1287,18 @@ class ForceDiscountSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOrder
         fields = ['force_discount_amount', 'discount_amount_is_percentage']
+
+
+class PromoCodePromotionSerializer(serializers.ModelSerializer):
+    # restaurant = RestaurantInfoSerializer(read_only=True)
+
+    class Meta:
+        model = PromoCodePromotion
+        fields = '__all__'
+
+class PromoCodePromotionDetailsSerializer(serializers.ModelSerializer):
+    restaurant = RestaurantInfoSerializer(read_only=True)
+
+    class Meta:
+        model = PromoCodePromotion
+        fields = '__all__'

@@ -35,13 +35,14 @@ from utils.response_wrapper import ResponseWrapper
 from actstream import action
 from actstream.models import Action
 
-from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
-                               FoodExtraType, FoodOption, FoodOptionType,
-                               FoodOrder, FoodOrderLog, Invoice, OrderedItem,
-                               PaymentType, PopUp, Restaurant,
-                               RestaurantMessages, Review, Slider,
-                               Subscription, Table, VersionUpdate, PrintNode, TakeAwayOrder,
-                               ParentCompanyPromotion, CashLog,WithdrawCash )
+# from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
+#                                FoodExtraType, FoodOption, FoodOptionType,
+#                                FoodOrder, FoodOrderLog, Invoice, OrderedItem,
+#                                PaymentType, PopUp, Restaurant,
+#                                RestaurantMessages, Review, Slider,
+#                                Subscription, Table, VersionUpdate, PrintNode, TakeAwayOrder,
+#                                ParentCompanyPromotion, CashLog,WithdrawCash,  )
+from restaurant.models import *
 
 from . import permissions as custom_permissions
 from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
@@ -92,7 +93,8 @@ from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
                           ParentCompanyPromotionSerializer, RestaurantParentCompanyPromotionSerializer,
                           FoodOrderPromoCodeSerializer, DiscountPostSerializer, PaymentWithAmaountSerializer,
                           CashLogSerializer, RestaurantOpeningSerializer, RestaurantClosingSerializer,
-                          WithdrawCashSerializer, ForceDiscountSerializer)
+                          WithdrawCashSerializer, ForceDiscountSerializer, PromoCodePromotionSerializer,
+                          PromoCodePromotionDetailsSerializer)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -3639,7 +3641,8 @@ class ParentCompanyPromotionViewSet(LoggingMixin, CustomViewSet):
         permission_classes = []
         if self.action in ['create', 'destroy', 'patch', 'list']:
             permission_classes = [
-                custom_permissions.IsRestaurantManagementOrAdmin]
+                # custom_permissions.IsRestaurantManagementOrAdmin]
+                permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
 
     def parent_company_promotions(self, request, restaurant_id, *args, **kwargs):
@@ -3782,4 +3785,78 @@ class WithdrawCashViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
+class PromoCodePromotionViewSet(LoggingMixin, CustomViewSet):
+    serializer_class = PromoCodePromotionSerializer
+    queryset = PromoCodePromotion.objects.all()
+    lookup_field = 'pk'
+    http_method_names = ['post', 'patch', 'get', 'delete']
 
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['create', 'destroy', 'update', 'list','promo_code_list']:
+            permission_classes = [
+                custom_permissions.IsRestaurantManagementOrAdmin]
+        return [permission() for permission in permission_classes]
+
+
+    def create(self, request):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+        restaurant_id=request.data.get('restaurant')
+        restaurant_qs = Restaurant.objects.filter(id = restaurant_id).first()
+        if not restaurant_qs:
+            return ResponseWrapper(error_msg=['Restaurant is not valid'], error_code=400)
+        self.check_object_permissions(request, obj=restaurant_id)
+        if serializer.is_valid():
+            qs = serializer.save()
+            serializer = PromoCodePromotionDetailsSerializer(instance=qs)
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def update(self, request, pk, **kwargs):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data, partial=True)
+
+        promo_code_qs = PromoCodePromotion.objects.filter(id = pk).first()
+        restaurant_id = promo_code_qs.restaurant_id
+        if not restaurant_id:
+            return ResponseWrapper(error_msg=['Restaurant is not valid'], error_code=400)
+        self.check_object_permissions(request, obj=restaurant_id)
+
+        if serializer.is_valid():
+            qs = serializer.update(instance=self.get_object(
+            ), validated_data=serializer.validated_data)
+            serializer = PromoCodePromotionDetailsSerializer(instance=qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def destroy(self, request,pk, **kwargs):
+        qs = self.queryset.filter(**kwargs).first()
+        restaurant_id = qs.restaurant_id
+        if not restaurant_id:
+            return ResponseWrapper(error_msg=['Restaurant is not valid'], error_code=400)
+        self.check_object_permissions(request, obj=restaurant_id)
+        if qs:
+            qs.delete()
+            return ResponseWrapper(status=200, msg='deleted')
+        else:
+            return ResponseWrapper(error_msg="failed to delete", error_code=400)
+    def promo_code_list(self,request,restaurant_id, *args,**kwargs):
+        restaurant_qs = Restaurant.objects.filter(pk = restaurant_id).first()
+        if not restaurant_qs:
+            return ResponseWrapper(error_msg=['Restaurant id is not valid'], error_code=400)
+        restaurant_id = restaurant_qs.pk
+        self.check_object_permissions(request, obj=restaurant_id)
+        promo_code_qs = restaurant_qs.promo_code_promotions
+
+        serializer = PromoCodePromotionDetailsSerializer(instance=promo_code_qs, many=True)
+        return ResponseWrapper(data=serializer.data, msg='Success')
+
+
+
+    # def parent_company_promotions(self, request, restaurant_id, *args, **kwargs):
+    #     qs = ParentCompanyPromotion.objects.filter(restaurant=restaurant_id)
+    #     serializer = ParentCompanyPromotionSerializer(instance=qs, many=True)
+    #     return ResponseWrapper(data=serializer.data, msg='Success')
