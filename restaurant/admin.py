@@ -61,6 +61,12 @@ class CashLogAdmin(admin.ModelAdmin):
 class WithdrawCashAdmin(admin.ModelAdmin):
     list_display = ['id','cash_log']
 
+class PromoCodePromotionAdmin(admin.ModelAdmin):
+    list_display = ['id','code','restaurant', 'created_at']
+
+class PromoCodePromotionLogAdmin(admin.ModelAdmin):
+    list_display = ['id','promo_code', 'customer']
+
 admin.site.register(Restaurant)
 admin.site.register(FoodOrderLog,FoodOrderLogAdmin)
 admin.site.register(Subscription, SubscriptionAdmin)
@@ -91,4 +97,6 @@ admin.site.register(TakeAwayOrder,TakeAwayOrderAdmin)
 admin.site.register(ParentCompanyPromotion)
 admin.site.register(CashLog, CashLogAdmin)
 admin.site.register(WithdrawCash, WithdrawCashAdmin)
+admin.site.register(PromoCodePromotion, PromoCodePromotionAdmin)
+admin.site.register(PromoCodePromotionLog, PromoCodePromotionLogAdmin)
 
