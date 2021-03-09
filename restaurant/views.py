@@ -837,7 +837,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
         elif self.action in ['cancel_order', 'apps_cancel_order']:
             self.serializer_class = FoodOrderCancelSerializer
         elif self.action in ['placed_status', 'revert_back_to_in_table']:
-            self.serializer_class = PaymentSerializer
+            self.serializer_class = PaymentWithAmaountSerializer
         elif self.action in ['confirm_status', 'cancel_items', 'confirm_status_without_cancel']:
             self.serializer_class = FoodOrderConfirmSerializer
         elif self.action in ['in_table_status']:
@@ -3864,7 +3864,7 @@ class PromoCodePromotionViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(status=200, msg='deleted')
         else:
             return ResponseWrapper(error_msg="failed to delete", error_code=400)
-    def promo_code_list(self,request,restaurant_id, *args,**kwargs):
+    def promo_code_list(self,request, restaurant_id, *args,**kwargs):
         restaurant_qs = Restaurant.objects.filter(pk = restaurant_id).first()
         if not restaurant_qs:
             return ResponseWrapper(error_msg=['Restaurant id is not valid'], error_code=400)
