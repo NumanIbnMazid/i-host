@@ -182,7 +182,8 @@ class RestaurantSerializer(serializers.ModelSerializer):
     def get_cash_log(self,obj):
         cash_log_qs = CashLog.objects.filter(restaurant_id = obj.id).last()
         if cash_log_qs:
-            return {'starting_time': cash_log_qs.starting_time,
+            return {'id': cash_log_qs.id,
+                    'starting_time': cash_log_qs.starting_time,
                  'ending_time':cash_log_qs.ending_time,
                  'in_cash_while_opening':cash_log_qs.in_cash_while_opening,
                  'in_cash_while_closing':cash_log_qs.in_cash_while_closing,
