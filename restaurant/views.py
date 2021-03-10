@@ -3724,6 +3724,8 @@ class CashLogViewSet(LoggingMixin, CustomViewSet):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         ending_time = request.data.get('ending_time')
+        if not ending_time:
+            ending_time = timezone.now()
         restaurant = request.data.get('restaurant')
         remarks = request.data.get('remarks')
 
@@ -3739,7 +3741,7 @@ class CashLogViewSet(LoggingMixin, CustomViewSet):
             ), validated_data=serializer.validated_data)
 
             opening_time = qs.starting_time
-            closing_time = qs.ending_time
+            closing_time = ending_time
             closing_time += timedelta(days =1)
 
             # fs = FoodOrder.objects.filter(created_at__gte=opening_time, created_at__lte=closing_time)
@@ -3751,6 +3753,8 @@ class CashLogViewSet(LoggingMixin, CustomViewSet):
             total = sum(payable_amount_list)
             cash_log_qs.total_received_payment = total
             cash_log_qs.ending_time= ending_time
+            # else:
+            #     cash_log_qs.ending_time = timezone.now()
             cash_log_qs.restaurant_id= restaurant
             cash_log_qs.remarks= remarks
 
@@ -3766,7 +3770,7 @@ class CashLogViewSet(LoggingMixin, CustomViewSet):
 
             cash_log_qs.save()
 
-            serializer = CashLogSerializer(instance=qs)
+            serializer = CashLogSerializer(instance=cash_log_qs)
             return ResponseWrapper(data=serializer.data, msg='success')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)

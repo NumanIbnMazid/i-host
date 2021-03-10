@@ -1270,7 +1270,7 @@ class RestaurantOpeningSerializer(serializers.ModelSerializer):
         fields = ['restaurant', 'in_cash_while_opening']
 
 class RestaurantClosingSerializer(serializers.ModelSerializer):
-
+    ending_time = serializers.DateTimeField(required=False)
     class Meta:
         model = CashLog
         fields = ['ending_time','remarks','restaurant']
