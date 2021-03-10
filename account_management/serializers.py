@@ -192,7 +192,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
                  'remarks':cash_log_qs.remarks
                  }
 
-        return {}
+        return None
 
 
 class StaffLoginInfoGetSerializer(serializers.ModelSerializer):
