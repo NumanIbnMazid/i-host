@@ -145,6 +145,7 @@ class FoodOrderCore:
                 temp_order_list = []
                 temp_extra_list = []
 
+
                 for order_items_qs in ordered_items_by_food_options_qs:
                     extras = list(
                         order_items_qs.food_extra.values_list('pk', flat=True))
