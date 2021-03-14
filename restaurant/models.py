@@ -69,8 +69,8 @@ class Restaurant(SoftDeleteModel):
     trade_licence_no = models.CharField(max_length=250, null=True, blank=True)
     payment_type = models.ManyToManyField(
         to='restaurant.PaymentType', blank=True)
-    is_service_charge_apply_in_original_food_price = models.BooleanField(default=False, null=True, blank=True)
-    is_vat_charge_apply_in_original_food_price = models.BooleanField(default=False, null=True, blank=True)
+    is_service_charge_apply_in_original_food_price = models.BooleanField(default=False)
+    is_vat_charge_apply_in_original_food_price = models.BooleanField(default=False)
 
     def __str__(self):
         if self.name:
