@@ -10,7 +10,7 @@ class InvoiceAdmin(admin.ModelAdmin):
     list_filter = ('restaurant','payment_status')
 
     def order_id(self,obj):
-        return obj.order.pk
+        return obj.order.id
 
     def discount_amount(self, obj):
         return obj.order.discount_amount
@@ -79,7 +79,10 @@ class PromoCodePromotionAdmin(admin.ModelAdmin):
 class PromoCodePromotionLogAdmin(admin.ModelAdmin):
     list_display = ['id','promo_code', 'customer']
 
-admin.site.register(Restaurant)
+class RestaurantAdmin(admin.ModelAdmin):
+    list_display = ['id','name']
+
+admin.site.register(Restaurant,RestaurantAdmin)
 admin.site.register(FoodOrderLog,FoodOrderLogAdmin)
 admin.site.register(Subscription, SubscriptionAdmin)
 admin.site.register(RestaurantContactPerson)
