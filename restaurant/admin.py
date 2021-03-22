@@ -6,7 +6,17 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ['id','code', 'title']
 
 class InvoiceAdmin(admin.ModelAdmin):
-    list_display = ['id', 'created_at', 'updated_at', 'restaurant']
+    list_display = ['id','order_id','order', 'restaurant','grand_total','tax_amount','discount_amount','payable_amount','created_at']
+    list_filter = ('restaurant','payment_status')
+
+    def order_id(self,obj):
+        return obj.order.pk
+
+    def discount_amount(self, obj):
+        return obj.order.discount_amount
+
+    def tax_amount(self, obj):
+        return obj.order.tax_amount
 
 class FoodOrderLogAdmin(admin.ModelAdmin):
     list_display = ['id', 'order', 'staff', 'order_status']
@@ -26,6 +36,8 @@ class OrderedItemAdmin(admin.ModelAdmin):
 
 class FoodCategoryAdmin(admin.ModelAdmin):
     list_display = ['id','name']
+
+
 class FoodExtraTypeAdmin(admin.ModelAdmin):
     list_display = ['id','name']
 

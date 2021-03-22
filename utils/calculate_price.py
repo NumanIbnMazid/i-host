@@ -116,9 +116,6 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
             change_amount = cash_received - payable_amount
         food_order_obj.change_amount = change_amount
         food_order_obj.save()
-    # else:
-    #     cash_received = 0
-    #     change_amount = 0
 
 
 
