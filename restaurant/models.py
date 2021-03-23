@@ -122,6 +122,8 @@ class Food(SoftDeleteModel):
     ingredients = models.TextField(null=True, blank=True)
     rating = models.FloatField(null=True, blank=True)
     order_counter = models.IntegerField(default=0)
+    is_available = models.BooleanField(default=True)
+    is_vat_applicable = models.BooleanField(default=False)
     discount = models.ForeignKey(
         to="restaurant.Discount", null=True, blank=True, on_delete=models.SET_NULL, related_name='foods')
 
@@ -276,8 +278,6 @@ class OrderedItem(models.Model):
         choices=ITEM_STATUS, default="0_ORDER_INITIALIZED", max_length=120)
 
     """
-    
-    
     order - > extra sort type wise
     food extra option type separate
     customer table separate
