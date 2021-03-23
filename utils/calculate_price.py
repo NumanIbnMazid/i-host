@@ -92,20 +92,24 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
 
     if discount_given:
         discount_amount = 0
-
-
         if food_order_obj.discount_amount_is_percentage == True:
             discount_amount = grand_total_price * \
                                     (discount_given / 100)
         else:
             discount_amount = discount_given
 
-    grand_total_price += service_charge
-    tax_amount = ((total_price * restaurant_qs.tax_percentage)/hundred)
-    grand_total_price += tax_amount
-    # if discount_given:
-    #     payable_amount = grand_total_price - discount_amount
-    payable_amount = grand_total_price - discount_amount
+    # Service charge and vat amount add
+    if food_order_obj.restaurant.is_vat_charge_apply_in_original_food_price \
+            and food_order_obj.restaurant.is_service_charge_apply_in_original_food_price:
+
+        grand_total_price += service_charge
+        tax_amount = ((total_price * restaurant_qs.tax_percentage)/hundred)
+        grand_total_price += tax_amount
+        # if discount_given:
+        #     payable_amount = grand_total_price - discount_amount
+        payable_amount = grand_total_price - discount_amount
+
+
     if cash_received==None or cash_received <=0:
         cash_received = 0
         change_amount = 0
