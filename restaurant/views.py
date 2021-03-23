@@ -2873,20 +2873,20 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         end_date += timedelta(days=1)
         if item_list:
             food_items_date_range_qs = Invoice.objects.filter(Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list), restaurant_id=restaurant,
-                                                              created_at__gte=start_date, created_at__lte=end_date).distinct()
+                                                              created_at__gte=start_date, created_at__lte=end_date).order_by('-created_at').distinct()
         elif category_list:
             food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
                                                               created_at__gte=start_date, created_at__lte=end_date,
                                                               order__ordered_items__food_option__food__category_id__in=category_list
-                                                              ).distinct()
+                                                              ).order_by('-created_at').distinct()
         elif waiter_list:
             food_items_date_range_qs = Invoice.objects.filter(order__restaurant_id=restaurant, created_at__gte=start_date, created_at__lte=end_date,
                                                               order__food_order_logs__staff_id__in=waiter_list
-                                                              ).distinct()
+                                                              ).order_by('-created_at').distinct()
         else:
             food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
                                                               created_at__gte=start_date, created_at__lte=end_date
-                                                              ).distinct()
+                                                              ).order_by('-created_at').distinct()
 
         total_order = food_items_date_range_qs.count()
         total_payable_amount = food_items_date_range_qs.values_list(
