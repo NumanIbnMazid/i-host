@@ -325,3 +325,4 @@ dashboard_urls = [
          PromoCodePromotionViewSet.as_view({'get': 'promo_code_list'}, name='promo_code_list')),
 
     ] + fake_dashboard_urls
+
