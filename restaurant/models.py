@@ -123,7 +123,7 @@ class Food(SoftDeleteModel):
     rating = models.FloatField(null=True, blank=True)
     order_counter = models.IntegerField(default=0)
     is_available = models.BooleanField(default=True)
-    is_vat_applicable = models.BooleanField(default=False)
+    is_vat_applicable = models.BooleanField(default=True)
     discount = models.ForeignKey(
         to="restaurant.Discount", null=True, blank=True, on_delete=models.SET_NULL, related_name='foods')
 
