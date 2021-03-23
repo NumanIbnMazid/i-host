@@ -587,6 +587,8 @@ class FoodPostSerializer(serializers.ModelSerializer):
             'category',
             'id',
             'discount',
+            'is_available',
+            'is_vat_applicable'
 
         ]
 
