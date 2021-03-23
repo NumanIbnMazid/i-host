@@ -223,7 +223,6 @@ fake_dashboard_urls = [
     path('force_discount/<int:order_id>',
          DiscountViewSet.as_view({'post':'force_discount'},name='force_discount')),
 
-
 ]
 
 dashboard_urls = [
