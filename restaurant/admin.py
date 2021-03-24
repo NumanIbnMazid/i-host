@@ -80,7 +80,7 @@ class PromoCodePromotionLogAdmin(admin.ModelAdmin):
     list_display = ['id','promo_code', 'customer']
 
 class RestaurantAdmin(admin.ModelAdmin):
-    list_display = ['id','name']
+    list_display = ['id','name','is_service_charge_apply_in_original_food_price','is_vat_charge_apply_in_original_food_price']
 
 admin.site.register(Restaurant,RestaurantAdmin)
 admin.site.register(FoodOrderLog,FoodOrderLogAdmin)

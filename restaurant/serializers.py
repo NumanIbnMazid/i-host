@@ -872,10 +872,13 @@ class FoodOrderStatusSerializer(serializers.ModelSerializer):
 
 class DiscountPostSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
+    discount_type = serializers.CharField(source='get_discount_schedule_type_display')
     food_id_list = serializers.ListSerializer(child=serializers.IntegerField(),write_only=True, required=False)
+
 
     class Meta:
         model = Discount
+        # fields = '__all__'
         fields = '__all__'
 
     def create(self, validated_data):
@@ -910,6 +913,7 @@ class DiscountSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     food_name = serializers.SerializerMethodField(read_only=True)
     food_detail_list = serializers.SerializerMethodField(read_only=True)
+    discount_type = serializers.CharField(source='get_discount_schedule_type_display')
 
     class Meta:
         model = Discount
@@ -1008,12 +1012,13 @@ class PopUpSerializer(serializers.ModelSerializer):
 
 class DiscountPopUpSerializer(serializers.ModelSerializer):
     #food = serializers.SerializerMethodField(read_only=True)
+    discount_type = serializers.CharField(source='get_discount_schedule_type_display')
     title = serializers.CharField(source='name')
 
     class Meta:
         model = Discount
         fields = ['id', 'image', 'food', 'title', 'description',
-                  'serial_no', 'clickable', 'foods', 'restaurant']
+                  'serial_no', 'clickable', 'foods', 'restaurant''discount_type']
         # fields = '__all__'
 
 
@@ -1042,11 +1047,14 @@ class SliderSerializer(serializers.ModelSerializer):
 class DiscountSliderSerializer(serializers.ModelSerializer):
     discoutn_percentage = serializers.SerializerMethodField(read_only=True)
     title = serializers.CharField(source='name')
+    discount_type = serializers.CharField(source='get_discount_schedule_type_display')
+
 
     class Meta:
         model = Discount
         fields = ['id', 'discoutn_percentage', 'image', 'title',
-                  'description', 'serial_no', 'clickable', 'restaurant', 'food']
+                  'description', 'serial_no', 'clickable',
+                  'restaurant', 'food','discount_type']
 
     def get_discoutn_percentage(self, obj):
         discount_percentage = 0.0
