@@ -60,9 +60,9 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
         discount_id = ordered_item.food_option.food.discount
         if discount_id:
             date_wise_discount_qs = Discount.objects.filter(pk = discount_id.id, restaurant=food_order_obj.restaurant_id,
-                                                  start_date__lte=start_date,end_date__gte=today,discount_schedule_type='Date_wise_offer').exclude(food=None, image=None)
+                                                  start_date__lte=start_date,end_date__gte=today,discount_schedule_type='Date_wise').exclude(food=None, image=None)
             time_wise_discount_qs = Discount.objects.filter(pk = discount_id.id, restaurant_id = food_order_obj.restaurant_id,discount_slot_closing_time__gte = current_time,
-                                                            discount_slot_start_time__lte =current_time, discount_schedule_type='Time_wise_offer').exclude(food=None, image=None)
+                                                            discount_slot_start_time__lte =current_time, discount_schedule_type='Time_wise').exclude(food=None, image=None)
             if date_wise_discount_qs or time_wise_discount_qs:
                 discount_amount += (ordered_item.food_option.food.discount.amount/100)*item_price
 
