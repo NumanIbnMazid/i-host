@@ -1012,13 +1012,13 @@ class PopUpSerializer(serializers.ModelSerializer):
 
 class DiscountPopUpSerializer(serializers.ModelSerializer):
     #food = serializers.SerializerMethodField(read_only=True)
-    discount_type = serializers.CharField(source='get_discount_schedule_type_display')
+    # discount_type = serializers.CharField(source='get_discount_schedule_type_display')
     title = serializers.CharField(source='name')
 
     class Meta:
         model = Discount
         fields = ['id', 'image', 'food', 'title', 'description',
-                  'serial_no', 'clickable', 'foods', 'restaurant''discount_type']
+                  'serial_no', 'clickable', 'foods', 'restaurant']
         # fields = '__all__'
 
 
@@ -1047,14 +1047,14 @@ class SliderSerializer(serializers.ModelSerializer):
 class DiscountSliderSerializer(serializers.ModelSerializer):
     discoutn_percentage = serializers.SerializerMethodField(read_only=True)
     title = serializers.CharField(source='name')
-    discount_type = serializers.CharField(source='get_discount_schedule_type_display')
+    # discount_type = serializers.CharField(source='get_discount_schedule_type_display')
 
 
     class Meta:
         model = Discount
         fields = ['id', 'discoutn_percentage', 'image', 'title',
                   'description', 'serial_no', 'clickable',
-                  'restaurant', 'food','discount_type']
+                  'restaurant', 'food']
 
     def get_discoutn_percentage(self, obj):
         discount_percentage = 0.0
