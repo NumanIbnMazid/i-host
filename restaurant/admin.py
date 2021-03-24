@@ -22,7 +22,7 @@ class FoodOrderLogAdmin(admin.ModelAdmin):
     list_display = ['id', 'order', 'staff', 'order_status']
 
 class DiscountAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name','restaurant']
+    list_display = ['id', 'name','restaurant','discount_schedule_type']
 
 class TableAdmin(admin.ModelAdmin):
     list_display = ['id', 'name','table_no', 'restaurant','is_occupied']
