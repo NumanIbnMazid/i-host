@@ -872,7 +872,7 @@ class FoodOrderStatusSerializer(serializers.ModelSerializer):
 
 class DiscountPostSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
-    discount_type = serializers.CharField(source='get_discount_schedule_type_display')
+    discount_type = serializers.CharField(source='get_discount_schedule_type_display', read_only=True)
     food_id_list = serializers.ListSerializer(child=serializers.IntegerField(),write_only=True, required=False)
 
 
