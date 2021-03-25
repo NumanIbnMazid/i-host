@@ -752,6 +752,9 @@ class FoodDetailSerializer(serializers.ModelSerializer):
             'discounted_price',
             'rating',
             'order_counter',
+            'is_available',
+            'is_vat_applicable',
+
 
 
         ]
