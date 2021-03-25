@@ -651,7 +651,7 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
                 if date_wise_discount_qs or  time_wise_discount_qs:
                     price = round(option_qs.price, 2)
                     discount_price = (discount_amount * price / 100)
-                    return discount_price
+                    return (price-discount_price)
         else:
             return None
 
@@ -760,7 +760,7 @@ class FoodDetailSerializer(serializers.ModelSerializer):
                 if date_wise_discount_qs or  time_wise_discount_qs:
                     price = round(option_qs.price, 2)
                     discount_price = (discount_amount * price / 100)
-                    return discount_price
+                    return (price-discount_price)
         else:
             return None
 
