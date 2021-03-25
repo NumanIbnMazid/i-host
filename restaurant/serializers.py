@@ -10,7 +10,8 @@ from utils.calculate_price import calculate_item_price_with_discount, calculate_
 
 from .models import *
 from actstream.models import Action
-
+from django.utils import timezone
+from datetime import date, datetime, timedelta
 
 class FoodOptionTypeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -595,6 +596,7 @@ class FoodPostSerializer(serializers.ModelSerializer):
 
 class FoodWithPriceSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField(read_only=True)
+    discounted_price = serializers.SerializerMethodField(read_only=True)
     image = Base64ImageField()
 
     class Meta:
@@ -607,12 +609,14 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
             "is_top",
             "is_recommended",
             'price',
+            'discounted_price',
             'ingredients',
             'category',
             'id',
             'discount',
             'rating',
             'order_counter',
+
 
         ]
 
@@ -624,6 +628,30 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
         option_qs = obj.food_options.order_by('price').first()
         if option_qs:
             return round(option_qs.price, 2)
+        else:
+            return None
+
+    def get_discounted_price(self, obj):
+        today = timezone.datetime.now().date()
+        start_date = today + timedelta(days=1)
+        current_time = timezone.now()
+        option_qs = obj.food_options.order_by('price').first()
+        if option_qs:
+            discount_id = obj.discount_id
+            if discount_id:
+                discount_qs = Discount.objects.filter(pk = discount_id).first()
+                discount_amount = discount_qs.amount
+                date_wise_discount_qs = Discount.objects.filter(pk = discount_id,restaurant_id = obj.restaurant_id,
+                                                                start_date__lte=start_date,end_date__gte=today,
+                                                                discount_schedule_type='Date_wise').exclude(image=None)
+                time_wise_discount_qs = Discount.objects.filter(pk=discount_id, restaurant_id=obj.restaurant_id,
+                                                                discount_slot_closing_time__gte=current_time,
+                                                                discount_slot_start_time__lte=current_time,
+                                                                discount_schedule_type='Time_wise').exclude(image=None)
+                if date_wise_discount_qs or  time_wise_discount_qs:
+                    price = round(option_qs.price, 2)
+                    discount_price = (discount_amount * price / 100)
+                    return discount_price
         else:
             return None
 
@@ -677,6 +705,7 @@ class FoodDetailSerializer(serializers.ModelSerializer):
     food_extras = FoodExtraGroupByTypeSerializer(read_only=True, many=True)
     food_options = serializers.SerializerMethodField(read_only=True)
     price = serializers.SerializerMethodField(read_only=True)
+    discounted_price = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Food
@@ -693,6 +722,7 @@ class FoodDetailSerializer(serializers.ModelSerializer):
             "food_options",
             'ingredients',
             'price',
+            'discounted_price',
             'rating',
             'order_counter',
 
@@ -709,6 +739,30 @@ class FoodDetailSerializer(serializers.ModelSerializer):
         serializer = FoodOptionSerializer(
             obj.food_options.order_by('price'), many=True)
         return serializer.data
+
+    def get_discounted_price(self, obj):
+        today = timezone.datetime.now().date()
+        start_date = today + timedelta(days=1)
+        current_time = timezone.now()
+        option_qs = obj.food_options.order_by('price').first()
+        if option_qs:
+            discount_id = obj.discount_id
+            if discount_id:
+                discount_qs = Discount.objects.filter(pk = discount_id).first()
+                discount_amount = discount_qs.amount
+                date_wise_discount_qs = Discount.objects.filter(pk = discount_id,restaurant_id = obj.restaurant_id,
+                                                                start_date__lte=start_date,end_date__gte=today,
+                                                                discount_schedule_type='Date_wise').exclude(image=None)
+                time_wise_discount_qs = Discount.objects.filter(pk=discount_id, restaurant_id=obj.restaurant_id,
+                                                                discount_slot_closing_time__gte=current_time,
+                                                                discount_slot_start_time__lte=current_time,
+                                                                discount_schedule_type='Time_wise').exclude(image=None)
+                if date_wise_discount_qs or  time_wise_discount_qs:
+                    price = round(option_qs.price, 2)
+                    discount_price = (discount_amount * price / 100)
+                    return discount_price
+        else:
+            return None
 
 
 class RestaurantPostSerialier(serializers.ModelSerializer):
