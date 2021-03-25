@@ -193,9 +193,26 @@ def calculate_item_price_with_discount(ordered_item_qs):
     total_price = 0.0
     discount_amount = 0.0
     item_price = ordered_item_qs.quantity*ordered_item_qs.food_option.price
+    # Discount is valid or not check
+    today = timezone.datetime.now().date()
+    start_date = today + timedelta(days=1)
+    current_time = timezone.now()
+
     if ordered_item_qs.food_option.food.discount:
-        discount_amount = (
-            ordered_item_qs.food_option.food.discount.amount/100)*item_price
+        discount_id = ordered_item_qs.food_option.food.discount_id
+        if discount_id:
+            date_wise_discount_qs = Discount.objects.filter(pk = discount_id, restaurant_id=ordered_item_qs.food_option.food.restaurant_id,
+                                                            start_date__lte=start_date, end_date__gte=today,
+                                                            discount_schedule_type='Date_wise').exclude(food=None,
+                                                                                                        image=None)
+            time_wise_discount_qs = Discount.objects.filter(pk = discount_id, restaurant_id=ordered_item_qs.food_option.food.restaurant_id,
+                                                            discount_slot_closing_time__gte=current_time,
+                                                            discount_slot_start_time__lte=current_time,
+                                                            discount_schedule_type='Time_wise').exclude(food=None,
+                                                                                                        image=None)
+            if date_wise_discount_qs or time_wise_discount_qs:
+                discount_amount = (
+                    ordered_item_qs.food_option.food.discount.amount/100)*item_price
     total_price += item_price
     total_price = total_price-discount_amount
     extra_price = ordered_item_qs.quantity*sum(
