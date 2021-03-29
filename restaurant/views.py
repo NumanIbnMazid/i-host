@@ -2554,13 +2554,21 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
         this_month_invoice_qs = Invoice.objects.filter(
             created_at__year=timezone.now().year, created_at__month=timezone.now().month, payment_status='1_PAID', restaurant_id=restaurant_id)
-        this_month_order_qs = FoodOrder.objects.filter(
-            created_at__year=timezone.now().year, created_at__month=timezone.now().month, status='5_PAID', restaurant_id=restaurant_id).count()
+        # this_month_order_qs = FoodOrder.objects.filter(
+        #     created_at__year=timezone.now().year, created_at__month=timezone.now().month, status='5_PAID', restaurant_id=restaurant_id).count()
+        this_month_order_qs = Invoice.objects.filter(
+            created_at__year=timezone.now().year, created_at__month=timezone.now().month, payment_status='1_PAID',
+            restaurant_id=restaurant_id).count()
 
         last_month_invoice_qs = Invoice.objects.filter(
             created_at__year=last_month.year, created_at__month=last_month.month, payment_status='1_PAID', restaurant_id=restaurant_id)
-        last_month_total_order = FoodOrder.objects.filter(
-            created_at__year=last_month.year, created_at__month=last_month.month, status='5_PAID', restaurant_id=restaurant_id).count()
+        # last_month_total_order = FoodOrder.objects.filter(
+        #     created_at__year=last_month.year, created_at__month=last_month.month, status='5_PAID', restaurant_id=restaurant_id).count()
+
+        last_month_total_order = Invoice.objects.filter(
+            created_at__year=last_month.year, created_at__month=last_month.month, payment_status='1_PAID',
+            restaurant_id=restaurant_id).count()
+
 
         all_months_upto_this_month = self.first_date_of_months_up_to_current_month_of_current_year()
         yearly_sales_report = {}
