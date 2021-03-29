@@ -2249,7 +2249,7 @@ class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
         #     foods__restaurant_id=restaurant,
         # ).prefetch_related('foods', 'foods__food_options').distinct()
         qs = Food.objects.filter(
-            restaurant_id=restaurant).select_related('category')
+            restaurant_id=restaurant,is_available = True).select_related('category')
 
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
@@ -2904,6 +2904,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
         order_details['total_amaount'] = round(total_amaount, 2)
         order_details['total_order'] = total_order
+
 
         return ResponseWrapper(data=order_details)
 
@@ -3844,16 +3845,17 @@ class PromoCodePromotionViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def update(self, request, pk, **kwargs):
-
         promo_code_qs = PromoCodePromotion.objects.filter(id = pk).first()
         restaurant_id = promo_code_qs.restaurant_id
         if not restaurant_id:
             return ResponseWrapper(error_msg=['Restaurant is not valid'], error_code=400)
         self.check_object_permissions(request, obj=restaurant_id)
 
-
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data, partial=True)
+        instance = self.get_object()
+        if instance.code == request.data.get('code'):
+            request.data.pop('code', None)
         if serializer.is_valid():
             qs = serializer.update(instance=self.get_object(
             ), validated_data=serializer.validated_data)

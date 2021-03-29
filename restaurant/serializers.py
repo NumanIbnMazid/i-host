@@ -262,6 +262,7 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
         source="food_option.food.image", read_only=True)
     # food_image = serializers.SerializerMethodField(read_only=True)
     price = serializers.SerializerMethodField(read_only=True)
+    # total_price = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OrderedItem
@@ -275,6 +276,7 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
             "food_option",
             "food_extra",
             "price",
+            # 'total_price',
             "category_name",
 
         ]
@@ -282,6 +284,12 @@ class OrderedItemGetDetailsSerializer(serializers.ModelSerializer):
 
     def get_price(self, obj):
         return calculate_item_price_with_discount(ordered_item_qs=obj)
+
+    # def get_total_price(self,obj):
+    #     if obj:
+    #         return obj.quantity*obj.price
+    #     else:
+    #         return None
 
     def get_category_name(self, obj):
         try:
