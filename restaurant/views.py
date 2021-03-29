@@ -3247,8 +3247,14 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         if not qs:
             return ResponseWrapper(error_msg=['Food order is not valid'], error_code=400)
         discount_given = request.data.get('force_discount_amount')
-        if discount_given <=0:
+        discount_amount_is_percentage = request.data.get('discount_amount_is_percentage')
+        if discount_given <0:
             return ResponseWrapper(error_msg=['Discount amount is not valid'], error_code=400)
+        if discount_given > qs.payable_amount:
+            return ResponseWrapper(error_msg=['Discount amount is grater then payable amount'], error_code=400)
+        if discount_amount_is_percentage == True and discount_given > 100:
+            return ResponseWrapper(error_msg=['Discount Amount is must less then 100'], error_code=400)
+
         discount_amount_is_percentage = request.data.get('discount_amount_is_percentage')
         qs.discount_given = discount_given
         qs.discount_amount_is_percentage = discount_amount_is_percentage
