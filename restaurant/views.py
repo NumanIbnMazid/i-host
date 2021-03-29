@@ -2020,10 +2020,13 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             # for item in re_order_item_qs:
             re_order_item_qs = OrderedItem.objects.create(quantity=new_quantity, food_option=re_order_item_qs.food_option,
                                                           food_order=re_order_item_qs.food_order, status='1_ORDER_PLACED')
+            re_order_item_qs.food_order.status = '1_ORDER_PLACED'
+            re_order_item_qs.save()
 
         elif re_order_item_qs.status in ['0_ORDER_INITIALIZED', '1_ORDER_PLACED']:
             update_quantity = re_order_item_qs.quantity + new_quantity
             re_order_item_qs.quantity = update_quantity
+            re_order_item_qs.food_order.status = '1_ORDER_PLACED'
             re_order_item_qs.save()
         else:
             return ResponseWrapper(error_msg=['Order Item is already Cancelled'], error_code=406)
@@ -3885,8 +3888,6 @@ class PromoCodePromotionViewSet(LoggingMixin, CustomViewSet):
 
         serializer = PromoCodePromotionDetailsSerializer(instance=promo_code_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='Success')
-
-
 
     # def parent_company_promotions(self, request, restaurant_id, *args, **kwargs):
     #     qs = ParentCompanyPromotion.objects.filter(restaurant=restaurant_id)

@@ -29,7 +29,8 @@ class TableAdmin(admin.ModelAdmin):
 
 
 class FoodOrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'table', 'status','restaurant','cash_received','payable_amount','created_at']
+    list_display = ['id','order_no', 'table', 'status','restaurant','cash_received','payable_amount','created_at']
+    list_filter = ('restaurant','status')
 
 class OrderedItemAdmin(admin.ModelAdmin):
     list_display = ['id','food_order', 'food_option', 'status']
