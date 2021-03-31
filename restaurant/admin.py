@@ -26,7 +26,7 @@ class DiscountAdmin(admin.ModelAdmin):
 
 class TableAdmin(admin.ModelAdmin):
     list_display = ['id', 'name','table_no', 'restaurant','is_occupied']
-
+    list_filter = ('restaurant','is_occupied')
 
 class FoodOrderAdmin(admin.ModelAdmin):
     list_display = ['id','order_no', 'table', 'status','restaurant','cash_received','payable_amount','created_at']
@@ -47,6 +47,7 @@ class FoodExtraAdmin(admin.ModelAdmin):
 
 class FoodAdmin(admin.ModelAdmin):
     list_display = ['id','name','restaurant','category', 'discount', 'is_available','is_vat_applicable']
+    list_filter = ('restaurant', 'discount','is_available')
 
 class FoodOptionAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'price', 'food']

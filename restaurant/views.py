@@ -2145,22 +2145,16 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
     def food_search(self, request, *args, food_name, **kwargs):
         restaurant_id = int(request.query_params.get('restaurant'))
         is_dashboard = request.path.__contains__('/dashboard/')
-        """
-        if not (
-            self.request.user.is_staff or HotelStaffInformation.objects.filter(
-                Q(is_owner=True) | Q(is_manager=True),
-                user_id=request.user.pk, restaurant_id=restaurant_id
-            )
-        ):
-            return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=["can't get food list,  please consult with manager or owner of the hotel"])
-        """
         food_name = food_name
         if food_name == ' ':
             return ResponseWrapper(error_msg=['Food Name is not given'], status=400)
         food_name_qs = Food.objects.filter(
+            Q(name__icontains=food_name) | Q(category__name__icontains=food_name), restaurant_id=restaurant_id,
+                is_available=True)
+        dashboard_food_name_qs = Food.objects.filter(
             Q(name__icontains=food_name) | Q(category__name__icontains=food_name), restaurant_id=restaurant_id)
         if is_dashboard:
-            serializer = FoodDetailSerializer(instance=food_name_qs, many=True)
+            serializer = FoodDetailSerializer(instance=dashboard_food_name_qs, many=True)
         else:
             serializer = FoodsByCategorySerializer(
                 instance=food_name_qs, many=True)
