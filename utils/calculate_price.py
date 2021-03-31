@@ -148,7 +148,7 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
         tax_amount = ((total_price * restaurant_qs.tax_percentage) / hundred)
         grand_total_price = total_price+tax_amount
         payable_amount = grand_total_price
-        total_price = total_food_price
+        total_price = total_food_price + discount_amount
 
 
     if cash_received==None or cash_received <=0:
