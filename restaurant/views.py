@@ -1993,6 +1993,15 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
                                                     restaurant_id=restaurant_id):
             return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg='not a valid manager or owner')
 
+        # order_details = request.data
+        # for order_detail in order_details:
+        #     food_option = order_detail.get('food_option')
+        #     food_qs = Food.objects.filter(food_options=food_option).first()
+        #     if not food_qs.is_available:
+        #         return ResponseWrapper(error_msg=['Food is not Available'], error_code=400)
+        # OrderedItem.objects.create(quantity=item.quantity, food_option=item.food_option,
+
+
         list_of_qs = serializer.save()
         invoice_qs = food_order_qs.invoices.last()
         if invoice_qs:
@@ -2163,7 +2172,6 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
 
     def food_extra_by_food(self, request, *args, **kwargs):
         instance = self.get_object()
-
         serializer = FoodExtraSerializer(instance.food_extras.all(), many=True)
         return ResponseWrapper(data=serializer.data)
 

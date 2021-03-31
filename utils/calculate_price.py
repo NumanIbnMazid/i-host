@@ -108,7 +108,7 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
         # if discount_given:
         #     payable_amount = grand_total_price - discount_amount
         payable_amount = grand_total_price - discount_amount
-        total_price-=discount_amount
+        # total_price-=discount_amount
 
 
     else:
