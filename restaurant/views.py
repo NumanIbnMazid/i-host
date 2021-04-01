@@ -2255,7 +2255,7 @@ class FoodByRestaurantViewSet(LoggingMixin, CustomViewSet):
         #     foods__restaurant_id=restaurant,
         # ).prefetch_related('foods', 'foods__food_options').distinct()
         qs = Food.objects.filter(
-            restaurant_id=restaurant,is_available = True).select_related('category')
+            restaurant_id=restaurant,is_available = True).order_by('category__name').select_related('category')
 
         serializer = FoodsByCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')

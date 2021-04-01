@@ -660,6 +660,8 @@ class FoodWithPriceSerializer(serializers.ModelSerializer):
 
         ]
 
+
+
         # extra_kwargs = {
         # 'price': {'max_digits': 16, 'decimal_places': 2}
 
@@ -794,7 +796,7 @@ class FoodDetailSerializer(serializers.ModelSerializer):
                 if date_wise_discount_qs or time_wise_discount_qs:
                     price = round(option_qs.price, 2)
                     discount_price = (discount_amount * price / 100)
-                    return (price - discount_price)
+                    return (price-discount_price)
         else:
             return None
 
