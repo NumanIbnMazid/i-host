@@ -725,7 +725,7 @@ class FoodGroupByCategoryListSerializer(serializers.ListSerializer):
                 # 'image': obj.image   .update(dict(FoodCategorySerializer(obj).data))
 
             }
-            for obj in FoodCategory.objects.filter(pk__in=list(data.values_list('category_id', flat=True)))
+            for obj in FoodCategory.objects.filter(pk__in=list(data.values_list('category_id', flat=True))).order_by('name')
         ]
 
 
