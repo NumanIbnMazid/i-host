@@ -746,6 +746,7 @@ class FoodDetailSerializer(serializers.ModelSerializer):
     food_options = serializers.SerializerMethodField(read_only=True)
     price = serializers.SerializerMethodField(read_only=True)
     discounted_price = serializers.SerializerMethodField(read_only=True)
+    discount_details= serializers.SerializerMethodField(read_only=True)
 
 
     class Meta:
@@ -768,6 +769,7 @@ class FoodDetailSerializer(serializers.ModelSerializer):
             'order_counter',
             'is_available',
             'is_vat_applicable',
+            'discount_details',
 
 
 
@@ -807,6 +809,12 @@ class FoodDetailSerializer(serializers.ModelSerializer):
         serializer = FoodOptionSerializer(
             obj.food_options.order_by('price'), many=True)
         return serializer.data
+
+    def get_discount_details(self,obj):
+        if obj.discount:
+            return {'id':obj.discount.id, 'name':obj.discount.name}
+        else:
+            return {}
 
 
 
