@@ -2121,7 +2121,7 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
 
     def category_list(self, request, *args, restaurant, **kwargs):
         qs = FoodCategory.objects.filter(
-            foods__restaurant_id=restaurant).distinct()
+            foods__restaurant_id=restaurant).distinct().order_by('name')
         serializer = FoodCategorySerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
