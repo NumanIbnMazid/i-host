@@ -2092,6 +2092,7 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
         if serializer.is_valid():
             qs = serializer.save()
             serializer = self.serializer_class(instance=qs)
+            # serializer = self.serializer_class(instance=qs)
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -3124,8 +3125,18 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
     def pop_up_list_by_restaurant(self, request, restaurant_id, *args, **kwargs):
         today = timezone.datetime.now().date()
         start_date = today - timedelta(days=1)
-        discount_qs = Discount.objects.filter(restaurant_id=restaurant_id, is_popup=True,
-                                              start_date__lte=today, end_date__gte=today).exclude(food=None, image=None)
+        current_time = timezone.now()
+        discount_qs = Discount.objects.filter(Q(restaurant_id=restaurant_id, is_popup=True,
+                                              start_date__lte=today, end_date__gte=today,
+                                              discount_schedule_type='Date_wise') | Q(restaurant_id = restaurant_id,is_popup=True,
+                                                                                      discount_slot_closing_time__gte=current_time,
+                                                                                      discount_slot_start_time__lte=current_time,
+                                                                                      discount_schedule_type='Time_wise')).exclude(food=None, image=None)
+        # time_wise_discount_qs = Discount.objects.filter(restaurant_id=restaurant_id,
+        #                                                 discount_slot_closing_time__gte=current_time,
+        #                                                 discount_slot_start_time__lte=current_time,
+        #                                                 discount_schedule_type='Time_wise').exclude(food=None)
+
         serializer = DiscountPopUpSerializer(instance=discount_qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
@@ -3388,8 +3399,13 @@ class SliderViewset(LoggingMixin, CustomViewSet):
         today = timezone.datetime.now().date()
         start_date = today - timedelta(days=1)
         # end_date = today + timedelta(days=1)
-        slider_qs = Discount.objects.filter(restaurant=restaurant_id, is_slider=True,
-                                            start_date__lte=today, end_date__gte=today).exclude(food=None, image=None)
+        current_time = timezone.now()
+        slider_qs = Discount.objects.filter(Q(restaurant_id=restaurant_id, is_slider=True,
+                                              start_date__lte=today, end_date__gte=today,
+                                              discount_schedule_type='Date_wise') | Q(restaurant_id = restaurant_id,is_slider=True,
+                                                                                      discount_slot_closing_time__gte=current_time,
+                                                                                      discount_slot_start_time__lte=current_time,
+                                                                                      discount_schedule_type='Time_wise')).exclude(food=None, image=None)
         serializer = DiscountSliderSerializer(instance=slider_qs, many=True)
         return ResponseWrapper(data=serializer.data)
 

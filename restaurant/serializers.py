@@ -608,6 +608,7 @@ class FoodSerializer(serializers.ModelSerializer):
 
 class FoodPostSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
+    discount_details = serializers.SerializerMethodField()
 
     class Meta:
         model = Food
@@ -624,8 +625,13 @@ class FoodPostSerializer(serializers.ModelSerializer):
             'discount',
             'is_available',
             'is_vat_applicable',
-            'discount'
+            'discount_details',
         ]
+    def get_discount_details(self,obj):
+        if obj.discount:
+            return {'id':obj.discount.id, 'name':obj.discount.name}
+        else:
+            return {}
 
 
 class FoodWithPriceSerializer(serializers.ModelSerializer):
