@@ -904,7 +904,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
         parent_promo_code = ParentCompanyPromotion.objects.filter(code=request.data.get('applied_promo_code'),restaurant__in = [restaurant_id],
                                                            start_date__lte=start_date, end_date__gte=today).last()
         promo_code = PromoCodePromotion.objects.filter(code = request.data.get('applied_promo_code'),
-                                                    restaurant_id = restaurant_id,start_date__gte=start_date, end_date__gte=today).last()
+                                                    restaurant_id = restaurant_id,start_date__lte=start_date, end_date__gte=today).last()
         if not parent_promo_code == None:
             if not parent_promo_code:
                 return ResponseWrapper(msg='Promo code not valid', status=200)

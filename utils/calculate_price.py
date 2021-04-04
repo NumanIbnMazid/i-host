@@ -91,7 +91,8 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
 
             discount_amount += promo_discount_amount
             if discount_amount > parent_promo_qs.max_amount:
-                discount_amount = parent_promo_qs.max_amount
+                discount_amount = parent_promo_qs.max_amount\
+
 
         if discount_given:
             discount_amount = 0
@@ -124,7 +125,7 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
             promo_discount_amount = 0
 
             if parent_promo_qs.promo_type == "PERCENTAGE":
-                promo_discount_amount = grand_total_price * \
+                promo_discount_amount = total_price * \
                                         (parent_promo_qs.amount / 100)
             else:
                 promo_discount_amount = parent_promo_qs.amount
