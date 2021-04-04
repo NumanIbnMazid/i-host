@@ -713,7 +713,6 @@ class TableViewSet(LoggingMixin, CustomViewSet):
     # @swagger_auto_schema(request_body=ListOfIdSerializer)
     def add_staff(self, request, table_id, *args, **kwargs):
         qs = self.get_queryset().filter(pk=table_id).first()
-
         restaurant_id = qs.restaurant_id
         if not restaurant_id:
             return ResponseWrapper(error_msg=['Restaurant is not valid'], error_code=404)
@@ -779,7 +778,6 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data, msg="success")
 
     def apps_running_order_item_list(self, request, table_id, *args, **kwargs):
-
         qs = FoodOrder.objects.filter(table=table_id).exclude(
             status__in=['5_PAID', '6_CANCELLED', '0_ORDER_INITIALIZED']).last()
         # qs =self.queryset.filter(pk=ordered_id).prefetch_realted('ordered_items')
@@ -805,10 +803,8 @@ class TableViewSet(LoggingMixin, CustomViewSet):
     def free_table_list(self, request, restaurant, *args, **kwargs):
 
         qs = Table.objects.filter(restaurant_id=restaurant, is_occupied=False)
-
         serializer = FreeTableSerializer(
             instance=qs, many=True)
-
         return ResponseWrapper(data=serializer.data, msg='success')
 
     def order_id_by_table(self, request, table_id, *args, **kwargs):
