@@ -774,6 +774,7 @@ class FoodDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             "name",
+            "code",
             "image",
             "description",
             "restaurant",
