@@ -741,7 +741,7 @@ class TableViewSet(LoggingMixin, CustomViewSet):
         # qs = qs.filter(is_top = True)
         serializer = self.get_serializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='successful')
-
+#r
     def remove_staff(self, request, table_id, *args, **kwargs):
         qs = self.get_queryset().filter(pk=table_id).first()
         restaurant_id = qs.restaurant_id
