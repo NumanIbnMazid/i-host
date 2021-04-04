@@ -608,12 +608,15 @@ class FoodSerializer(serializers.ModelSerializer):
 
 class FoodPostSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
+    discount = serializers.IntegerField(required=False)
+    code = serializers.CharField(required=False)
     discount_details = serializers.SerializerMethodField()
 
     class Meta:
         model = Food
         fields = [
             "name",
+            "code",
             "image",
             "description",
             "restaurant",
