@@ -1421,3 +1421,17 @@ class PromoCodePromotionDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = PromoCodePromotion
         fields = '__all__'
+
+
+class TakewayOrderTypeSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+
+    class Meta:
+        model = TakewayOrderType
+        fields = '__all__'
+    
+    def create(self, validated_data):
+        image = validated_data.pop('image', None)
+        if image:
+            return TakewayOrderType.objects.create(image=image, **validated_data)
+        return TakewayOrderType.objects.create(**validated_data)

@@ -499,3 +499,6 @@ class TakewayOrderType(models.Model):
         max_length=100, unique=True
     )
     image = models.ImageField()
+
+    def __str__(self):
+        return self.name

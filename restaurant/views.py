@@ -45,56 +45,58 @@ from actstream.models import Action
 from restaurant.models import *
 
 from . import permissions as custom_permissions
-from .serializers import (CollectPaymentSerializer, DiscountByFoodSerializer,
-                          DiscountSerializer, FcmNotificationStaffSerializer,
-                          FoodCategorySerializer,
-                          FoodDetailsByDiscountSerializer,
-                          FoodDetailSerializer, FoodExtraPostPatchSerializer,
-                          FoodExtraSerializer, FoodExtraTypeDetailSerializer,
-                          FoodExtraTypeSerializer, FoodOptionBaseSerializer,
-                          FoodOptionSerializer, FoodOptionTypeSerializer,
-                          FoodOrderByTableSerializer,
-                          FoodOrderCancelSerializer,
-                          FoodOrderConfirmSerializer, FoodOrderSerializer,
-                          FoodOrderUserPostSerializer, FoodPostSerializer,
-                          FoodsByCategorySerializer, FoodSerializer,
-                          FoodWithPriceSerializer, FreeTableSerializer,
-                          HotelStaffInformationSerializer,
-                          InvoiceGetSerializer, InvoiceSerializer,
-                          OnlyFoodOrderIdSerializer,
-                          OrderedItemDashboardPostSerializer,
-                          OrderedItemGetDetailsSerializer,
-                          OrderedItemSerializer, OrderedItemTemplateSerializer,
-                          OrderedItemUserPostSerializer, PaymentSerializer,
-                          PaymentTypeSerializer, PopUpSerializer,
-                          ReOrderedItemSerializer, ReorderSerializer,
-                          ReportByDateRangeSerializer,
-                          ReportDateRangeSerializer,
-                          ReportingDateRangeGraphSerializer,
-                          RestaurantContactPerson,
-                          RestaurantMessagesSerializer,
-                          RestaurantPostSerialier, RestaurantSerializer,
-                          RestaurantUpdateSerialier, ReviewSerializer,
-                          SliderSerializer, StaffFcmSerializer,
-                          StaffIdListSerializer, StaffTableSerializer,
-                          SubscriptionSerializer, TableSerializer,
-                          TableStaffSerializer,
-                          TakeAwayFoodOrderPostSerializer,
-                          TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer,
-                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,
+from .serializers import (
+    CollectPaymentSerializer, DiscountByFoodSerializer,
+    DiscountSerializer, FcmNotificationStaffSerializer,
+    FoodCategorySerializer,
+    FoodDetailsByDiscountSerializer,
+    FoodDetailSerializer, FoodExtraPostPatchSerializer,
+    FoodExtraSerializer, FoodExtraTypeDetailSerializer,
+    FoodExtraTypeSerializer, FoodOptionBaseSerializer,
+    FoodOptionSerializer, FoodOptionTypeSerializer,
+    FoodOrderByTableSerializer,
+    FoodOrderCancelSerializer,
+    FoodOrderConfirmSerializer, FoodOrderSerializer,
+    FoodOrderUserPostSerializer, FoodPostSerializer,
+    FoodsByCategorySerializer, FoodSerializer,
+    FoodWithPriceSerializer, FreeTableSerializer,
+    HotelStaffInformationSerializer,
+    InvoiceGetSerializer, InvoiceSerializer,
+    OnlyFoodOrderIdSerializer,
+    OrderedItemDashboardPostSerializer,
+    OrderedItemGetDetailsSerializer,
+    OrderedItemSerializer, OrderedItemTemplateSerializer,
+    OrderedItemUserPostSerializer, PaymentSerializer,
+    PaymentTypeSerializer, PopUpSerializer,
+    ReOrderedItemSerializer, ReorderSerializer,
+    ReportByDateRangeSerializer,
+    ReportDateRangeSerializer,
+    ReportingDateRangeGraphSerializer,
+    RestaurantContactPerson,
+    RestaurantMessagesSerializer,
+    RestaurantPostSerialier, RestaurantSerializer,
+    RestaurantUpdateSerialier, ReviewSerializer,
+    SliderSerializer, StaffFcmSerializer,
+    StaffIdListSerializer, StaffTableSerializer,
+    SubscriptionSerializer, TableSerializer,
+    TableStaffSerializer,
+    TakeAwayFoodOrderPostSerializer,
+    TopRecommendedFoodListSerializer, ReOrderedItemSerializer, SliderSerializer,
+    SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer,
 
-                          SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer, FoodPostSerializer,
-                          ReportByDateRangeSerializer, VersionUpdateSerializer, HotelStaffInformationSerializer,
-                          ServedOrderSerializer,
-                          TopRecommendedFoodListSerializer,
-                          VersionUpdateSerializer, CustomerOrderDetailsSerializer,
-                          FcmNotificationListSerializer, DiscountPopUpSerializer, DiscountSliderSerializer,
-                          FoodOrderStatusSerializer, PrintNodeSerializer, TakeAwayOrderSerializer,
-                          ParentCompanyPromotionSerializer, RestaurantParentCompanyPromotionSerializer,
-                          FoodOrderPromoCodeSerializer, DiscountPostSerializer, PaymentWithAmaountSerializer,
-                          CashLogSerializer, RestaurantOpeningSerializer, RestaurantClosingSerializer,
-                          WithdrawCashSerializer, ForceDiscountSerializer, PromoCodePromotionSerializer,
-                          PromoCodePromotionDetailsSerializer)
+    SubscriptionSerializer, ReviewSerializer, RestaurantMessagesSerializer, FoodPostSerializer,
+    ReportByDateRangeSerializer, VersionUpdateSerializer, HotelStaffInformationSerializer,
+    ServedOrderSerializer,
+    TopRecommendedFoodListSerializer,
+    VersionUpdateSerializer, CustomerOrderDetailsSerializer,
+    FcmNotificationListSerializer, DiscountPopUpSerializer, DiscountSliderSerializer,
+    FoodOrderStatusSerializer, PrintNodeSerializer, TakeAwayOrderSerializer,
+    ParentCompanyPromotionSerializer, RestaurantParentCompanyPromotionSerializer,
+    FoodOrderPromoCodeSerializer, DiscountPostSerializer, PaymentWithAmaountSerializer,
+    CashLogSerializer, RestaurantOpeningSerializer, RestaurantClosingSerializer,
+    WithdrawCashSerializer, ForceDiscountSerializer, PromoCodePromotionSerializer,
+    PromoCodePromotionDetailsSerializer, TakewayOrderTypeSerializer
+)
 from .signals import order_done_signal, kitchen_items_print_signal
 
 
@@ -3921,3 +3923,67 @@ class PromoCodePromotionViewSet(LoggingMixin, CustomViewSet):
     #     qs = ParentCompanyPromotion.objects.filter(restaurant=restaurant_id)
     #     serializer = ParentCompanyPromotionSerializer(instance=qs, many=True)
     #     return ResponseWrapper(data=serializer.data, msg='Success')
+
+
+# TakewayOrderType Viewset
+
+class TakewayOrderTypeViewSet(LoggingMixin, CustomViewSet):
+    serializer_class = TakewayOrderTypeSerializer
+    queryset = TakewayOrderType.objects.all()
+    lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+    # http_method_names = ['post', 'patch', 'get', 'delete']
+
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['create', 'update', 'destroy', 'list']:
+            permission_classes = [
+                permissions.IsAdminUser
+            ]
+        return [permission() for permission in permission_classes]
+
+
+    def create(self, request):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+        print("XXXXXXXXXXXX")
+        if serializer.is_valid():
+            print("YYYYYYYYYYYY")
+            qs = serializer.save()
+            serializer = TakewayOrderTypeSerializer(instance=qs)
+            print("ZZZZZZZZZZ")
+            return ResponseWrapper(data=serializer.data, msg='created')
+        else:
+            print("EEEEEEEEEEEEEE")
+            return ResponseWrapper(error_code=400, error_msg=serializer.errors, msg='failed to create Takeway Order Type')
+
+    def update(self, request, pk, **kwargs):
+        takeway_order_type_qs = TakewayOrderType.objects.filter(id=pk).first()
+        # self.check_object_permissions(request, obj=restaurant_id)
+
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data, partial=True)
+        instance = self.get_object()
+        if instance.name == request.data.get('name'):
+            request.data.pop('name', None)
+        if serializer.is_valid():
+            qs = serializer.update(instance=self.get_object(
+            ), validated_data=serializer.validated_data)
+            serializer = TakewayOrderTypeSerializer(instance=qs)
+            return ResponseWrapper(data=serializer.data)
+        else:
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
+    def destroy(self, request,pk, **kwargs):
+        qs = self.queryset.filter(**kwargs).first()
+        # self.check_object_permissions(request, obj=restaurant_id)
+        if qs:
+            qs.delete()
+            return ResponseWrapper(status=200, msg='deleted')
+        else:
+            return ResponseWrapper(error_msg="failed to delete", error_code=400)
+
+    def list(self, request, *args, **kwargs):
+        qs = TakewayOrderType.objects.all()
+        serializer = TakewayOrderTypeSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data)

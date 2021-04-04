@@ -119,7 +119,7 @@ fake_dashboard_urls = [
          FoodByRestaurantViewSet.as_view({'get': 'recommended_foods'}), name='recommended_foods'),
 
     path('restaurant/<int:restaurant>/foods_by_category/',
-         FoodByRestaurantViewSet.as_view({'get':'list_by_category'}), name='foods_by_category'),
+         FoodByRestaurantViewSet.as_view({'get': 'list_by_category'}), name='foods_by_category'),
 
     #     path('restaurant/quantity/',
     #          FoodByRestaurantViewSet.as_view({'get': 'quantity'}), name='quantity'),
@@ -221,7 +221,7 @@ fake_dashboard_urls = [
     path('restaurant_messages_list/<int:restaurant>/',
          RestaurantMessagesViewset.as_view({'get': 'restaurant_messages_list'}, name='restaurant_messages_list')),
     path('force_discount/<int:order_id>',
-         DiscountViewSet.as_view({'post':'force_discount'},name='force_discount')),
+         DiscountViewSet.as_view({'post': 'force_discount'}, name='force_discount')),
 
 ]
 
@@ -290,20 +290,20 @@ dashboard_urls = [
          ReviewViewset.as_view({'get': 'review_list'}, name='review_list')),
 
     path('print_node/',
-         PrintNodeViewSet.as_view({'get': 'list', 'post':'print_node_create'}, name='all_print_node')),
+         PrintNodeViewSet.as_view({'get': 'list', 'post': 'print_node_create'}, name='all_print_node')),
 
     path('print_node/<int:pk>/',
-         PrintNodeViewSet.as_view({'patch': 'print_node_update','delete':'print_node_destroy','get':'retrieve'}, name='print_node')),
+         PrintNodeViewSet.as_view({'patch': 'print_node_update', 'delete': 'print_node_destroy', 'get': 'retrieve'}, name='print_node')),
     path('print_node_list/<int:restaurant_id>/',
          PrintNodeViewSet.as_view({'get': 'print_node_list'}, name='print_node_list')),
     path('take_away_order/<int:restaurant_id>/',
          TakeAwayOrderViewSet.as_view({'get': 'take_away_order'}, name='take_away_order')),
     path('parent_company_promotion/',
-         ParentCompanyPromotionViewSet.as_view({'get': 'list','post':'create'}, name='parent_company_promotion')),
+         ParentCompanyPromotionViewSet.as_view({'get': 'list', 'post': 'create'}, name='parent_company_promotion')),
     path('parent_company_promotion/<int:pk>/',
-         ParentCompanyPromotionViewSet.as_view({'patch': 'update','delete':'destroy'}, name='parent_company_promotion')),
+         ParentCompanyPromotionViewSet.as_view({'patch': 'update', 'delete': 'destroy'}, name='parent_company_promotion')),
     path('parent_company_promotions/<int:restaurant_id>/',
-         ParentCompanyPromotionViewSet.as_view({'get':'parent_company_promotions'}, name='parent_company_promotions')),
+         ParentCompanyPromotionViewSet.as_view({'get': 'parent_company_promotions'}, name='parent_company_promotions')),
     path('cash_log/',
          CashLogViewSet.as_view({'post': 'restaurant_opening'}, name='restaurant_opening')),
     path('cash_log/<int:pk>/',
@@ -317,11 +317,24 @@ dashboard_urls = [
     path('withdraw_create/',
          WithdrawCashViewSet.as_view({'post': 'withdraw_create'}, name='withdraw_create')),
     path('restaurant_promo_code/',
-         PromoCodePromotionViewSet.as_view({'post':'create'},name = 'promo_code_create')),
+         PromoCodePromotionViewSet.as_view({'post': 'create'}, name='promo_code_create')),
     path('restaurant_promo_code/<int:pk>/',
-         PromoCodePromotionViewSet.as_view({'patch': 'update', 'delete':'destroy'}, name='promo_code_create')),
+         PromoCodePromotionViewSet.as_view({'patch': 'update', 'delete': 'destroy'}, name='promo_code_create')),
     path('promo_code_list/<int:restaurant_id>/',
          PromoCodePromotionViewSet.as_view({'get': 'promo_code_list'}, name='promo_code_list')),
+    # # -------------------------------------------------------------------
+    # #                           TakewayOrderType
+    # # -------------------------------------------------------------------
+    # create
+    path(
+        'takeway_order_type_create/', TakewayOrderTypeViewSet.as_view({'post': 'create'}, name='takeway_order_type_create')
+    ),
+    # update/delete
+    path(
+         'takeway_order_type/<int:pk>/', TakewayOrderTypeViewSet.as_view({'patch': 'update', 'delete': 'destroy'}, name='takeway_order_type_create')
+     ),
+     # list
+    path('takeway_order_type_list/', TakewayOrderTypeViewSet.as_view({'get': 'list'}, name='takeway_order_type_list')
+    ),
 
-    ] + fake_dashboard_urls
-
+] + fake_dashboard_urls
