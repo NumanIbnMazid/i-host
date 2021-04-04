@@ -84,6 +84,9 @@ class PromoCodePromotionLogAdmin(admin.ModelAdmin):
 class RestaurantAdmin(admin.ModelAdmin):
     list_display = ['id','name','is_service_charge_apply_in_original_food_price','is_vat_charge_apply_in_original_food_price']
 
+class TakewayOrderTypeAdmin(admin.ModelAdmin):
+    list_filter = ['id','name']
+
 admin.site.register(Restaurant,RestaurantAdmin)
 admin.site.register(FoodOrderLog,FoodOrderLogAdmin)
 admin.site.register(Subscription, SubscriptionAdmin)
@@ -116,4 +119,5 @@ admin.site.register(CashLog, CashLogAdmin)
 admin.site.register(WithdrawCash, WithdrawCashAdmin)
 admin.site.register(PromoCodePromotion, PromoCodePromotionAdmin)
 admin.site.register(PromoCodePromotionLog, PromoCodePromotionLogAdmin)
+admin.site.register(TakewayOrderType, TakewayOrderTypeAdmin)
 
