@@ -69,6 +69,9 @@ class Restaurant(SoftDeleteModel):
     trade_licence_no = models.CharField(max_length=250, null=True, blank=True)
     payment_type = models.ManyToManyField(
         to='restaurant.PaymentType', blank=True)
+    takeway_order_type = models.ManyToManyField(
+        to='restaurant.TakewayOrderType', blank=True
+    )
     is_service_charge_apply_in_original_food_price = models.BooleanField(default=False)
     is_vat_charge_apply_in_original_food_price = models.BooleanField(default=False)
 
@@ -109,6 +112,7 @@ class FoodCategory(SoftDeleteModel):
 
 class Food(SoftDeleteModel):
     name = models.CharField(max_length=200)
+    code = models.CharField(max_length=20, null=True, blank=True)
     image = models.ImageField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     restaurant = models.ForeignKey(
@@ -490,3 +494,8 @@ class WithdrawCash(models.Model):
 
 
 # take away order
+class TakewayOrderType(models.Model):
+    name = models.CharField(
+        max_length=100, unique=True
+    )
+    image = models.ImageField()
