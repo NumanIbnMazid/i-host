@@ -2059,6 +2059,8 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = FoodDetailSerializer
         elif self.action in ['food_search']:
             self.serializer_class = FoodSerializer
+        elif self.action in ['food_search_code']:
+            self.serializer_class = FoodSerializer
         elif self.action in ['create', 'update', 'destroy']:
             self.serializer_class = FoodPostSerializer
 
@@ -2066,7 +2068,7 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
     # permission_classes = [permissions.IsAuthenticated]
 
     def get_permissions(self):
-        if self.action in ['food_search', 'food_list']:
+        if self.action in ['food_search', 'food_search_code', 'food_list']:
             permission_classes = [permissions.IsAuthenticated]
         elif self.action in ['create', 'update', 'destroy']:
             permission_classes = [
@@ -2166,6 +2168,32 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
         else:
             serializer = FoodsByCategorySerializer(
                 instance=food_name_qs, many=True)
+
+        return ResponseWrapper(data=serializer.data, msg='success')
+
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter("restaurant", openapi.IN_QUERY,
+                          type=openapi.TYPE_INTEGER)
+    ])
+    def food_search_code(self, request, *args, food_code, **kwargs):
+        """
+        food_search_code() => Search Food By Code
+        """
+        restaurant_id = int(request.query_params.get('restaurant'))
+        is_dashboard = request.path.__contains__('/dashboard/')
+        food_code = food_code
+        if food_code == ' ':
+            return ResponseWrapper(error_msg=['Food Name is not given'], status=400)
+        food_code_qs = Food.objects.filter(
+            Q(code__icontains=food_code) | Q(category__name__icontains=food_code), restaurant_id=restaurant_id,
+                is_available=True)
+        dashboard_food_code_qs = Food.objects.filter(
+            Q(code__icontains=food_code) | Q(category__name__icontains=food_code), restaurant_id=restaurant_id)
+        if is_dashboard:
+            serializer = FoodDetailSerializer(instance=dashboard_food_code_qs, many=True)
+        else:
+            serializer = FoodsByCategorySerializer(
+                instance=food_code_qs, many=True)
 
         return ResponseWrapper(data=serializer.data, msg='success')
 
@@ -3946,15 +3974,11 @@ class TakewayOrderTypeViewSet(LoggingMixin, CustomViewSet):
     def create(self, request):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
-        print("XXXXXXXXXXXX")
         if serializer.is_valid():
-            print("YYYYYYYYYYYY")
             qs = serializer.save()
             serializer = TakewayOrderTypeSerializer(instance=qs)
-            print("ZZZZZZZZZZ")
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
-            print("EEEEEEEEEEEEEE")
             return ResponseWrapper(error_code=400, error_msg=serializer.errors, msg='failed to create Takeway Order Type')
 
     def update(self, request, pk, **kwargs):

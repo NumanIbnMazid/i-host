@@ -46,7 +46,7 @@ class FoodExtraAdmin(admin.ModelAdmin):
     list_display = ['id','name','food','price']
 
 class FoodAdmin(admin.ModelAdmin):
-    list_display = ['id','name','restaurant','category', 'discount', 'is_available','is_vat_applicable']
+    list_display = ['id','name','code','restaurant','category', 'discount', 'is_available','is_vat_applicable']
     list_filter = ('restaurant', 'discount','is_available')
 
 class FoodOptionAdmin(admin.ModelAdmin):
