@@ -177,11 +177,26 @@ class PaymentTypeSerializer(serializers.ModelSerializer):
         model = PaymentType
         fields = '__all__'
 
+    
+class TakewayOrderTypeSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+
+    class Meta:
+        model = TakewayOrderType
+        fields = '__all__'
+
+    def create(self, validated_data):
+        image = validated_data.pop('image', None)
+        if image:
+            return TakewayOrderType.objects.create(image=image, **validated_data)
+        return TakewayOrderType.objects.create(**validated_data)
+
 
 class RestaurantSerializer(serializers.ModelSerializer):
     review = serializers.SerializerMethodField(read_only=True)
     subscription = SubscriptionSerializer(read_only=True)
     payment_type = PaymentTypeSerializer(read_only=True, many=True)
+    takeway_order_type = TakewayOrderTypeSerializer(read_only=True, many=True)
 
     class Meta:
         model = Restaurant
@@ -833,6 +848,7 @@ class RestaurantPostSerialier(serializers.ModelSerializer):
     def create(self, validated_data):
         logo = validated_data.pop('logo', None)
         payment_type = validated_data.pop('payment_type', [])
+        takeway_order_type = validated_data.pop('takeway_order_type', [])
 
         if logo:
             qs = Restaurant.objects.create(logo=logo, **validated_data)

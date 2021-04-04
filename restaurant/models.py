@@ -234,6 +234,8 @@ class FoodOrder(SoftDeleteModel):
     change_amount = models.FloatField(null=True, blank=True)
     payment_method = models.ForeignKey(
         to='restaurant.PaymentType', on_delete=models.SET_NULL, null=True,blank=True, related_name='food_orders')
+    takeway_order_type = models.ForeignKey(
+        to='restaurant.TakewayOrderType', on_delete=models.SET_NULL, null=True, blank=True, related_name='food_order_takeway_order_type')
     discount_given = models.FloatField(null=True, blank=True)
     discount_amount_is_percentage = models.BooleanField(default=False)
     discount_base_amount = models.FloatField(default=False)
@@ -499,3 +501,6 @@ class TakewayOrderType(models.Model):
         max_length=100, unique=True
     )
     image = models.ImageField()
+
+    def __str__(self):
+        return self.name
