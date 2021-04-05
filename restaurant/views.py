@@ -1052,10 +1052,17 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
         if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
         restaurant_id = request.data.get('restaurant')
+        takeway_order_type_id = request.data.get('takeway_order_type')
         self.check_object_permissions(request, obj=restaurant_id)
         food_order_dict = {}
         if restaurant_id:
             food_order_dict['restaurant_id'] = restaurant_id
+        if takeway_order_type_id:
+            food_order_dict['takeway_order_type_id'] = takeway_order_type_id
+            takeway_order_type_qs = TakewayOrderType.objects.filter(
+                id=takeway_order_type_id)
+            if not takeway_order_type_qs.exists():
+                return ResponseWrapper(error_msg=['Invalid Takeway Order Type Given!'], error_code=400)
         if request.data.get('table'):
             food_order_dict['table_id'] = request.data.get('table')
 

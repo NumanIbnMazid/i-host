@@ -191,6 +191,16 @@ class TakewayOrderTypeSerializer(serializers.ModelSerializer):
             return TakewayOrderType.objects.create(image=image, **validated_data)
         return TakewayOrderType.objects.create(**validated_data)
 
+    def update(self, instance, validated_data):
+        # image data
+        image = validated_data.pop('image', None)
+        # check if image exists
+        if image:
+            instance.image = image
+            # save the instance
+            instance.save()
+        return super(TakewayOrderTypeSerializer, self).update(instance, validated_data)
+
 
 class RestaurantSerializer(serializers.ModelSerializer):
     review = serializers.SerializerMethodField(read_only=True)
@@ -586,7 +596,7 @@ class FoodOrderUserPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOrder
         fields = ['ordered_items', 'table',
-                  'remarks', 'status', 'id', 'order_no']
+                  'remarks', 'status', 'id', 'order_no', 'takeway_order_type']
         read_only_fields = ('order_no',)
 
 
@@ -598,6 +608,7 @@ class RequestBodyOfFoodOrderUserPostSerializer(FoodOrderUserPostSerializer):
 class TakeAwayFoodOrderPostSerializer(serializers.Serializer):
     restaurant = serializers.IntegerField()
     table = serializers.IntegerField(required=False)
+    takeway_order_type = serializers.IntegerField(required=False)
 
 
 class AddItemsSerializer(serializers.Serializer):
