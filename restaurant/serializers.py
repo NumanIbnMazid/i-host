@@ -191,6 +191,14 @@ class TakewayOrderTypeSerializer(serializers.ModelSerializer):
             return TakewayOrderType.objects.create(image=image, **validated_data)
         return TakewayOrderType.objects.create(**validated_data)
 
+    def update(self, instance, validated_data):
+        image = validated_data.pop('image', None)
+
+        if image:
+            instance.image = image
+            instance.save()
+        return super(TakewayOrderTypeSerializer, self).update(instance, validated_data)
+
 
 class RestaurantSerializer(serializers.ModelSerializer):
     review = serializers.SerializerMethodField(read_only=True)
