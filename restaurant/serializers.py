@@ -596,7 +596,7 @@ class FoodOrderUserPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodOrder
         fields = ['ordered_items', 'table',
-                  'remarks', 'status', 'id', 'order_no', 'takeway_order_type']
+                  'remarks', 'status', 'id', 'order_no']
         read_only_fields = ('order_no',)
 
 
