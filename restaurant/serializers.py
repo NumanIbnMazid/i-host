@@ -192,10 +192,12 @@ class TakewayOrderTypeSerializer(serializers.ModelSerializer):
         return TakewayOrderType.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
+        # image data
         image = validated_data.pop('image', None)
-
+        # check if image exists
         if image:
             instance.image = image
+            # save the instance
             instance.save()
         return super(TakewayOrderTypeSerializer, self).update(instance, validated_data)
 
