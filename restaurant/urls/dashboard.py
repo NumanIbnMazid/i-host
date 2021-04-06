@@ -335,7 +335,7 @@ dashboard_urls = [
     path(
          'takeway_order_type/<int:pk>/', TakewayOrderTypeViewSet.as_view({'patch': 'update', 'delete': 'destroy'}, name='takeway_order_type_create')
      ),
-     # list
+     # list (get all takeway order types)
     path('takeway_order_type_list/', TakewayOrderTypeViewSet.as_view({'get': 'list'}, name='takeway_order_type_list')
     ),
 

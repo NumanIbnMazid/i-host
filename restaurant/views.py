@@ -4040,6 +4040,10 @@ class TakewayOrderTypeViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_msg="failed to delete", error_code=400)
 
     def list(self, request, *args, **kwargs):
+        """
+        Fetch all takeway order types
+        return => list [obj{ id(int), image(str), name(str) }]
+        """
         qs = TakewayOrderType.objects.all()
         serializer = TakewayOrderTypeSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
