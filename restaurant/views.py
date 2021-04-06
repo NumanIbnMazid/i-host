@@ -95,7 +95,7 @@ from .serializers import (
     FoodOrderPromoCodeSerializer, DiscountPostSerializer, PaymentWithAmaountSerializer,
     CashLogSerializer, RestaurantOpeningSerializer, RestaurantClosingSerializer,
     WithdrawCashSerializer, ForceDiscountSerializer, PromoCodePromotionSerializer,
-    PromoCodePromotionDetailsSerializer, TakewayOrderTypeSerializer, FoodDiscountCheckerSerializer
+    PromoCodePromotionDetailsSerializer, TakewayOrderTypeSerializer
 )
 from .signals import order_done_signal, kitchen_items_print_signal
 
@@ -2092,9 +2092,26 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
     # http_method_names = ['post', 'patch', 'get', 'delete']
 
     def check_food_discount(self, request, order_id, *args, **kwargs):
-        qs = FoodOrder.objects.filter(id=order_id).last()
-        serializer = FoodDiscountCheckerSerializer(instance=qs)
-        return ResponseWrapper(data=serializer.data, msg='success')
+        qs = FoodOrder.objects.filter(id=order_id)
+
+        if not qs:
+            return ResponseWrapper(msg='Invalid order id', error_code=400)
+
+        if qs.last().discount_amount:
+            return ResponseWrapper(data={
+                "is_discount": True,
+                "msg": "Discount is given"
+            }, msg='success')
+        else:
+            return ResponseWrapper(data={
+                "is_discount": False,
+                "msg": "Discount is not given"
+            }, msg='success')
+
+
+        # serializer = FoodDiscountCheckerSerializer(instance=qs.last())
+
+        # return ResponseWrapper(data=serializer.data, msg='success')
 
     def create(self, request):
         staff_qs = HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
@@ -4025,21 +4042,3 @@ class TakewayOrderTypeViewSet(LoggingMixin, CustomViewSet):
         qs = TakewayOrderType.objects.all()
         serializer = TakewayOrderTypeSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
-
-
-# FoodDiscountCheckViewset
-
-class FoodDiscountCheckerViewSet(LoggingMixin, CustomViewSet):
-    serializer_class = FoodDiscountCheckerSerializer
-    # queryset = TakewayOrderType.objects.all()
-    lookup_field = 'pk'
-    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
-    # http_method_names = ['post', 'patch', 'get', 'delete']
-
-    def get_permissions(self):
-        permission_classes = []
-        if self.action in ['create', 'update', 'destroy', 'list']:
-            permission_classes = [
-                permissions.IsAdminUser
-            ]
-        return [permission() for permission in permission_classes]
