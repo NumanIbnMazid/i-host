@@ -1489,6 +1489,6 @@ class FoodDiscountCheckerSerializer(serializers.ModelSerializer):
 
     def get_msg(self, obj):
         if obj:
-            if obj.discount_amount >= 0 and obj.discount_amount is not None:
+            if self.get_is_discount(obj) == True:
                 return "Discount is given"
         return "Discount is not given"
