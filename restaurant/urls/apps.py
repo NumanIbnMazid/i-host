@@ -271,5 +271,7 @@ apps_url = [
         ReportingViewset.as_view({'get': 'waiter_served_report'}), name='waiter_served_report'),
     path('cancel_order_report/<int:waiter_id>/',
         ReportingViewset.as_view({'get': 'waiter_cancel_report'}), name='waiter_cancel_report'),
+    path('check_food_discount/<int:order_id>/',
+         FoodViewSet.as_view({'get': 'check_food_discount'}), name='check_food_discount'),
 
     ]+apps_fake
