@@ -197,8 +197,9 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            qs = serializer.save()
-            serializer = RestaurantSerializer(instance=qs)
+            serializer.save()
+            # qs = serializer
+            serializer = RestaurantSerializer(instance=serializer.save())
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
             return ResponseWrapper(error_code=400, error_msg=serializer.errors, msg='failed to create restaurant')
