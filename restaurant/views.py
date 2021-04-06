@@ -95,7 +95,7 @@ from .serializers import (
     FoodOrderPromoCodeSerializer, DiscountPostSerializer, PaymentWithAmaountSerializer,
     CashLogSerializer, RestaurantOpeningSerializer, RestaurantClosingSerializer,
     WithdrawCashSerializer, ForceDiscountSerializer, PromoCodePromotionSerializer,
-    PromoCodePromotionDetailsSerializer, TakewayOrderTypeSerializer
+    PromoCodePromotionDetailsSerializer, TakewayOrderTypeSerializer, FoodDiscountCheckerSerializer
 )
 from .signals import order_done_signal, kitchen_items_print_signal
 
@@ -2068,6 +2068,8 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = FoodSerializer
         elif self.action in ['food_search_code']:
             self.serializer_class = FoodSerializer
+        elif self.action in ['check_food_discount']:
+            self.serializer_class = FoodDiscountCheckerSerializer
         elif self.action in ['create', 'update', 'destroy']:
             self.serializer_class = FoodPostSerializer
 
@@ -2075,7 +2077,7 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
     # permission_classes = [permissions.IsAuthenticated]
 
     def get_permissions(self):
-        if self.action in ['food_search', 'food_search_code', 'food_list']:
+        if self.action in ['food_search', 'food_search_code', 'food_list', 'check_food_discount']:
             permission_classes = [permissions.IsAuthenticated]
         elif self.action in ['create', 'update', 'destroy']:
             permission_classes = [
@@ -2088,6 +2090,11 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     # http_method_names = ['post', 'patch', 'get', 'delete']
+
+    def check_food_discount(self, request, order_id, *args, **kwargs):
+        qs = FoodOrder.objects.filter(id=order_id).last()
+        serializer = FoodDiscountCheckerSerializer(instance=qs)
+        return ResponseWrapper(data=serializer.data, msg='success')
 
     def create(self, request):
         staff_qs = HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
@@ -2190,7 +2197,7 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
         is_dashboard = request.path.__contains__('/dashboard/')
         food_code = food_code
         if food_code == ' ':
-            return ResponseWrapper(error_msg=['Food Name is not given'], status=400)
+            return ResponseWrapper(error_msg=['Food Code is not given'], status=400)
         food_code_qs = Food.objects.filter(
             Q(code__icontains=food_code) | Q(category__name__icontains=food_code), restaurant_id=restaurant_id,
                 is_available=True)
@@ -4018,3 +4025,21 @@ class TakewayOrderTypeViewSet(LoggingMixin, CustomViewSet):
         qs = TakewayOrderType.objects.all()
         serializer = TakewayOrderTypeSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
+
+
+# FoodDiscountCheckViewset
+
+class FoodDiscountCheckerViewSet(LoggingMixin, CustomViewSet):
+    serializer_class = FoodDiscountCheckerSerializer
+    # queryset = TakewayOrderType.objects.all()
+    lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+    # http_method_names = ['post', 'patch', 'get', 'delete']
+
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['create', 'update', 'destroy', 'list']:
+            permission_classes = [
+                permissions.IsAdminUser
+            ]
+        return [permission() for permission in permission_classes]

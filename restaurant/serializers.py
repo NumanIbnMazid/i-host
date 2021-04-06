@@ -1452,3 +1452,43 @@ class PromoCodePromotionDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = PromoCodePromotion
         fields = '__all__'
+
+
+class FoodDiscountCheckerSerializer(serializers.ModelSerializer):
+    is_discount = serializers.SerializerMethodField(read_only=True)
+    msg = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = FoodOrder
+        fields = ['is_discount', 'msg']
+
+    def get_is_discount(self, obj):
+        if obj:
+            if obj.discount_amount >= 0 and obj.discount_amount is not None:
+                return True
+            # # food id placeholder
+            # food_ids = []
+            # restaurant_id = None
+
+            # for index, ordered_item in enumerate(obj):
+            #     if index == 0:
+            #         restaurant_id = ordered_item.food_order.restaurant.id
+            #     food_id = ordered_item.food_option.food.id
+            #     if food_id not in food_ids:
+            #         food_ids.append(food_id)
+
+            # if len(food_ids) >= 1:
+            #     for food_id in food_ids:
+            #         # print(food_id, "IIDD")
+            #         discount_qs = Discount.objects.filter(
+            #             food_id=food_id
+            #         )
+            #         print(discount_qs, "QSSSSSSSSSSSS")
+
+        return False
+
+    def get_msg(self, obj):
+        if obj:
+            if obj.discount_amount >= 0 and obj.discount_amount is not None:
+                return "Discount is given"
+        return "Discount is not given"
