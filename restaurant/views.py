@@ -4047,3 +4047,9 @@ class TakewayOrderTypeViewSet(LoggingMixin, CustomViewSet):
         qs = TakewayOrderType.objects.all()
         serializer = TakewayOrderTypeSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
+
+    def restaurant_takeway_order_type(self, request, restaurant, *args, **kwargs):
+        restaurant = Restaurant.objects.filter(id=restaurant).last()
+        qs = restaurant.takeway_order_type.all()
+        serializer = TakewayOrderTypeSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data)
