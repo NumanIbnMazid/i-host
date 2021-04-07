@@ -211,7 +211,7 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg='invalid restaurant id', error_code=400)
-#
+
     def update(self, request, pk, *args, **kwargs):
         if not (
             self.request.user.is_staff or HotelStaffInformation.objects.filter(
@@ -2110,10 +2110,6 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             }, msg='success')
 
 
-        # serializer = FoodDiscountCheckerSerializer(instance=qs.last())
-
-        # return ResponseWrapper(data=serializer.data, msg='success')
-
     def create(self, request):
         staff_qs = HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
                                                         restaurant_id=request.data.get('restaurant'))
@@ -2587,6 +2583,132 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
         return first_day_of_all_month
 
+
+    def get_takeway_order_type_report_data(self, restaurant_id=None):
+        """
+        Generates Takeway Order Type Report Data
+        parameter => restaurant_id(int)
+        return => object {
+            'total_amount_received_by_takeway_order_type': list[object],
+            'current_month_total_takeway_order_type_distribution': list[object],
+            'last_month_total_takeway_order_type_distribution': list[object],
+            'weekly_total_takeway_order_type_distribution': list[object],
+            'daily_total_takeway_order_type_distribution': list[object],
+        }
+        """
+
+        # report data placeholder
+        tw_report_data = {
+            'total_amount_received_by_takeway_order_type': None,
+            'current_month_total_takeway_order_type_distribution': None,
+            'last_month_total_takeway_order_type_distribution': None,
+            'weekly_total_takeway_order_type_distribution': None,
+            'daily_total_takeway_order_type_distribution': None,
+        }
+
+        # takeway order type report
+        takeway_order_type_total_amount = []
+        this_month_total_takeway_order_type_distribution = []
+        last_month_total_takeway_order_type_distribution = []
+        weekly_total_takeway_order_type_distribution = []
+        daily_total_takeway_order_type_distribution = []
+
+        restaurant_qs = Restaurant.objects.filter(id = restaurant_id)
+
+        today = timezone.datetime.now()
+        this_month = timezone.now().date().replace(day=1)
+        last_month = (this_month - timedelta(days=1)).replace(day=1)
+
+        week = 7
+
+        for day in range(week):
+            day_int = (today.weekday() + 1) % 7
+            start_of_week = today - timezone.timedelta(day_int-day)
+
+        takeway_order_type_details_list = restaurant_qs.values_list(
+            'takeway_order_type', 'takeway_order_type__name', 'takeway_order_type__image'
+        )
+
+        for takeway_order_type, takeway_order_type_name, takeway_order_type_image in takeway_order_type_details_list:
+            tw_order_qs = FoodOrder.objects.filter(takeway_order_type=takeway_order_type, restaurant_id=restaurant_id,
+                                                   status='5_PAID')
+            total_order = tw_order_qs.count()
+            takeway_order_type_payable_amount_list = tw_order_qs.values_list(
+                'payable_amount', flat=True)
+            takeway_order_type_amount = sum(
+                takeway_order_type_payable_amount_list)
+            takeway_order_type_total_amount.append({'id': takeway_order_type, 'name': takeway_order_type_name, 'image': takeway_order_type_image,
+                                                    'amount': takeway_order_type_amount,
+                                                    'total_order': total_order})
+
+            this_month_food_tw_order_qs = FoodOrder.objects.filter(status='5_PAID', created_at__year=timezone.now().year,
+                                                                   created_at__month=timezone.now().month, restaurant_id=restaurant_id,
+                                                                   takeway_order_type=takeway_order_type)
+            current_month_total_order = this_month_food_tw_order_qs.count()
+            this_month_takeway_order_type_payable_amount_list = this_month_food_tw_order_qs.values_list(
+                'payable_amount', flat=True)
+            this_month_takeway_order_type_amount = sum(
+                this_month_takeway_order_type_payable_amount_list)
+            this_month_total_takeway_order_type_distribution.append({'id': takeway_order_type, 'name': takeway_order_type_name, 'image': takeway_order_type_image,
+                                                                     'amount': this_month_takeway_order_type_amount,
+                                                                     'total_order': current_month_total_order}
+                                                                    )
+
+            last_month_food_tw_order_qs = FoodOrder.objects.filter(status='5_PAID', created_at__year=last_month.year,
+                                                                   created_at__month=last_month.month,
+                                                                   restaurant_id=restaurant_id,
+                                                                   takeway_order_type=takeway_order_type)
+            takeway_order_type_last_month_total_order = last_month_food_tw_order_qs.count()
+            last_month_takeway_order_type_payable_amount_list = last_month_food_tw_order_qs.values_list('payable_amount',
+                                                                                                        flat=True)
+            last_month_takeway_order_type_amount = sum(
+                last_month_takeway_order_type_payable_amount_list)
+            last_month_total_takeway_order_type_distribution.append({
+                'id': takeway_order_type, 'name': takeway_order_type_name, 'image': takeway_order_type_image,
+                'amount': last_month_takeway_order_type_amount,
+                'total_order': takeway_order_type_last_month_total_order})
+
+            first_day_of_week = start_of_week - timedelta(days=7)
+            last_day_of_week = first_day_of_week + timedelta(days=6)
+
+            # Weekly takeway Order Type Report
+            weekly_tw_order_qs = FoodOrder.objects.filter(
+                created_at__gte=first_day_of_week.date(),
+                created_at__lte=last_day_of_week.date(), status='5_PAID',
+                restaurant_id=restaurant_id, takeway_order_type=takeway_order_type)
+            weekly_total_order = weekly_tw_order_qs.count()
+            weekly_takeway_order_type_payable_amount_list = weekly_tw_order_qs.values_list('payable_amount',
+                                                                                           flat=True)
+            weekly_takeway_order_type_amount = sum(
+                weekly_takeway_order_type_payable_amount_list)
+            weekly_total_takeway_order_type_distribution.append(
+                {'id': takeway_order_type, 'name': takeway_order_type_name, 'image': takeway_order_type_image, 'amount': weekly_takeway_order_type_amount,
+                    'total_order': weekly_total_order}
+            )
+
+            # Daily Takeway Order Type Report
+            daily_tw_order_qs = FoodOrder.objects.filter(
+                created_at=today.date(), status='5_PAID',
+                restaurant_id=restaurant_id, takeway_order_type=takeway_order_type)
+            daily_total_order = daily_tw_order_qs.count()
+            daily_takeway_order_type_payable_amount_list = daily_tw_order_qs.values_list('payable_amount',
+                                                                                           flat=True)
+            daily_takeway_order_type_amount = sum(
+                daily_takeway_order_type_payable_amount_list)
+            daily_total_takeway_order_type_distribution.append(
+                {'id': takeway_order_type, 'name': takeway_order_type_name, 'image': takeway_order_type_image, 'amount': daily_takeway_order_type_amount,
+                    'total_order': daily_total_order}
+            )
+
+        # assign to data nodes
+        tw_report_data["total_amount_received_by_takeway_order_type"] = takeway_order_type_total_amount
+        tw_report_data["current_month_total_takeway_order_type_distribution"] = this_month_total_takeway_order_type_distribution
+        tw_report_data["last_month_total_takeway_order_type_distribution"] = last_month_total_takeway_order_type_distribution
+        tw_report_data["weekly_total_takeway_order_type_distribution"] = weekly_total_takeway_order_type_distribution
+        tw_report_data["daily_total_takeway_order_type_distribution"] = daily_total_takeway_order_type_distribution
+
+        return tw_report_data
+
     def dashboard_total_report(self, request, restaurant_id, *args, **kwargs):
         today = timezone.datetime.now()
         this_month = timezone.now().date().replace(day=1)
@@ -2639,7 +2761,6 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         this_month_total_payment_method_distribution = []
         last_month_total_payment_method_distribution = []
         weekly_total_payment_method_distribution = []
-
 
         for first_date in all_months_upto_this_month.values():
             month_name = first_date.strftime("%B")
@@ -2727,20 +2848,35 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                  'total_order': weekly_total_order}
             )
 
+        # Get takeway Order Type report
+        takeway_order_type_report_data = self.get_takeway_order_type_report_data(restaurant_id=restaurant_id)
 
-        return ResponseWrapper(data={'current_month_total_sell': round(this_month_total, 2),
-                                     'current_month_total_order': this_month_order_qs,
-                                     'last_month_total_sell': round(last_month_total, 2),
-                                     'last_month_total_order': last_month_total_order,
-                                     'week_data': {"day_wise_income": weekly_day_wise_income_list, "day_wise_order": weekly_day_wise_order_list},
-                                     #  "yearly_sales_report": yearly_sales_report,
-                                     'payment_method_distribution':{
-                                     'total_amount_received_by_payment_method': payment_method_total_amount,
-                                     'current_month_total_payment_method_distribution':this_month_total_payment_method_distribution,
-                                     'last_month_total_payment_method_distribution':last_month_total_payment_method_distribution,
-                                     'weekly_total_payment_method_distribution':weekly_total_payment_method_distribution},
-                                     "month_data": {"month_wise_income": month_wise_income, "month_wise_order": month_wise_order}
-                                     }, msg="success")
+
+        return ResponseWrapper(
+            data={
+                'current_month_total_sell': round(this_month_total, 2),
+                'current_month_total_order': this_month_order_qs,
+                'last_month_total_sell': round(last_month_total, 2),
+                'last_month_total_order': last_month_total_order,
+                'week_data': {"day_wise_income": weekly_day_wise_income_list, "day_wise_order": weekly_day_wise_order_list},
+                #  "yearly_sales_report": yearly_sales_report,
+                'payment_method_distribution':{
+                    'total_amount_received_by_payment_method': payment_method_total_amount,
+                    'current_month_total_payment_method_distribution':this_month_total_payment_method_distribution,
+                    'last_month_total_payment_method_distribution':last_month_total_payment_method_distribution,
+                    'weekly_total_payment_method_distribution':weekly_total_payment_method_distribution
+                },
+                'takeway_order_type_distribution': {
+                    'total_amount_received_by_takeway_order_type': takeway_order_type_report_data.get("total_amount_received_by_takeway_order_type", None),
+                    'current_month_total_takeway_order_type_distribution': takeway_order_type_report_data.get("current_month_total_takeway_order_type_distribution", None),
+                    'last_month_total_takeway_order_type_distribution': takeway_order_type_report_data.get("last_month_total_takeway_order_type_distribution", None),
+                    'weekly_total_takeway_order_type_distribution': takeway_order_type_report_data.get("weekly_total_takeway_order_type_distribution", None),
+                    'daily_total_takeway_order_type_distribution': takeway_order_type_report_data.get("daily_total_takeway_order_type_distribution", None),
+                },
+                "month_data": {"month_wise_income": month_wise_income, "month_wise_order": month_wise_order}
+            },
+            msg="success"
+        )
 
     def waiter_served_report(self, request, waiter_id, *args, **kwargs):
 
@@ -4045,5 +4181,14 @@ class TakewayOrderTypeViewSet(LoggingMixin, CustomViewSet):
         return => list [obj{ id(int), image(str), name(str) }]
         """
         qs = TakewayOrderType.objects.all()
+        serializer = TakewayOrderTypeSerializer(instance=qs, many=True)
+        return ResponseWrapper(data=serializer.data)
+
+    def restaurant_takeway_order_type(self, request, restaurant, *args, **kwargs):
+        """
+        Get all takeway order types for specific restaurant.
+        """
+        restaurant = Restaurant.objects.filter(id=restaurant).last()
+        qs = restaurant.takeway_order_type.all()
         serializer = TakewayOrderTypeSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
