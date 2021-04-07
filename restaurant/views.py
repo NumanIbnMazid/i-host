@@ -211,7 +211,7 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(data=serializer.data)
         else:
             return ResponseWrapper(error_msg='invalid restaurant id', error_code=400)
-#
+
     def update(self, request, pk, *args, **kwargs):
         if not (
             self.request.user.is_staff or HotelStaffInformation.objects.filter(
@@ -4049,6 +4049,9 @@ class TakewayOrderTypeViewSet(LoggingMixin, CustomViewSet):
         return ResponseWrapper(data=serializer.data)
 
     def restaurant_takeway_order_type(self, request, restaurant, *args, **kwargs):
+        """
+        Get all takeway order types for specific restaurant.
+        """
         restaurant = Restaurant.objects.filter(id=restaurant).last()
         qs = restaurant.takeway_order_type.all()
         serializer = TakewayOrderTypeSerializer(instance=qs, many=True)

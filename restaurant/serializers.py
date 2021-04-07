@@ -206,6 +206,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
     review = serializers.SerializerMethodField(read_only=True)
     subscription = SubscriptionSerializer(read_only=True)
     payment_type = PaymentTypeSerializer(read_only=True, many=True)
+    # takeway order type
     takeway_order_type = TakewayOrderTypeSerializer(read_only=True, many=True)
 
     class Meta:
