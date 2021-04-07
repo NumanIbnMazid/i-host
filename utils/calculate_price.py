@@ -52,19 +52,36 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
             )
         )
 
-        today = timezone.datetime.now().date()
-        start_date = today + timedelta(days=1)
 
-        current_time = timezone.now()
 
         discount_id = ordered_item.food_option.food.discount
         if discount_id:
+            today = timezone.datetime.now().date()
+            start_date = today + timedelta(days=1)
+
+            current_time = timezone.now()
+
             date_wise_discount_qs = Discount.objects.filter(pk = discount_id.id, restaurant=food_order_obj.restaurant_id,
                                                   start_date__lte=start_date,end_date__gte=today,discount_schedule_type='Date_wise').exclude(food=None, image=None)
             time_wise_discount_qs = Discount.objects.filter(pk = discount_id.id, restaurant_id = food_order_obj.restaurant_id,discount_slot_closing_time__gte = current_time,
                                                             discount_slot_start_time__lte =current_time, discount_schedule_type='Time_wise').exclude(food=None, image=None)
             if date_wise_discount_qs or time_wise_discount_qs:
                 discount_amount += (ordered_item.food_option.food.discount.amount/100)*item_price
+        if discount_given and not discount_id:
+            if food_order_obj.discount_amount_is_percentage:
+                discount_amount +=(discount_given/100)*item_price
+            else:
+                discount_amount += discount_given
+
+
+        if parent_promo_qs and not discount_id:
+            promo_discount_amount = 0
+            if parent_promo_qs.promo_type == "PERCENTAGE":
+                promo_discount_amount = item_price * (parent_promo_qs.amount / 100)
+            else:
+                promo_discount_amount = parent_promo_qs.amount
+            discount_amount += promo_discount_amount
+
 
         total_price += item_price+extra_price
     grand_total_price += total_price
@@ -76,31 +93,6 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
             service_charge = (restaurant_qs.service_charge*total_price / hundred)
         else:
             service_charge = restaurant_qs.service_charge
-
-        if parent_promo_qs:
-            promo_discount_amount = 0
-
-            if parent_promo_qs.promo_type == "PERCENTAGE":
-                promo_discount_amount = grand_total_price * \
-                    (parent_promo_qs.amount/100)
-            else:
-                promo_discount_amount = parent_promo_qs.amount
-
-            if grand_total_price < parent_promo_qs.minimum_purchase_amount:
-                promo_discount_amount = 0
-
-            discount_amount += promo_discount_amount
-            if discount_amount > parent_promo_qs.max_amount:
-                discount_amount = parent_promo_qs.max_amount\
-
-
-        if discount_given:
-            discount_amount = 0
-            if food_order_obj.discount_amount_is_percentage == True:
-                discount_amount = grand_total_price * \
-                                        (discount_given / 100)
-            else:
-                discount_amount = discount_given
 
 
         grand_total_price += service_charge
