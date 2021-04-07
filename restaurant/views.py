@@ -2069,6 +2069,8 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = FoodSerializer
         elif self.action in ['food_search_code']:
             self.serializer_class = FoodSerializer
+        # elif self.action in ['check_food_discount']:
+        #     self.serializer_class = FoodDiscountCheckerSerializer
         elif self.action in ['create', 'update', 'destroy']:
             self.serializer_class = FoodPostSerializer
 
@@ -2874,7 +2876,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                     'daily_total_takeway_order_type_distribution': takeway_order_type_report_data.get("daily_total_takeway_order_type_distribution", None),
                 },
                 "month_data": {"month_wise_income": month_wise_income, "month_wise_order": month_wise_order}
-            }, 
+            },
             msg="success"
         )
 
