@@ -2611,7 +2611,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         weekly_total_takeway_order_type_distribution = []
         daily_total_takeway_order_type_distribution = []
 
-        restaurant_qs = Restaurant.objects.filter(id = restaurant_id)
+        restaurant_qs = Restaurant.objects.filter(id=restaurant_id)
 
         today = timezone.datetime.now()
         this_month = timezone.now().date().replace(day=1)
@@ -2639,6 +2639,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                                     'amount': takeway_order_type_amount,
                                                     'total_order': total_order})
 
+            # Current Month takeway Order report
             this_month_food_tw_order_qs = FoodOrder.objects.filter(status='5_PAID', created_at__year=timezone.now().year,
                                                                    created_at__month=timezone.now().month, restaurant_id=restaurant_id,
                                                                    takeway_order_type=takeway_order_type)
@@ -2652,6 +2653,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                                                      'total_order': current_month_total_order}
                                                                     )
 
+            # Last month Takeway Order Report
             last_month_food_tw_order_qs = FoodOrder.objects.filter(status='5_PAID', created_at__year=last_month.year,
                                                                    created_at__month=last_month.month,
                                                                    restaurant_id=restaurant_id,
@@ -2666,10 +2668,10 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                 'amount': last_month_takeway_order_type_amount,
                 'total_order': takeway_order_type_last_month_total_order})
 
+            # Weekly takeway Order Type Report
             first_day_of_week = start_of_week - timedelta(days=7)
             last_day_of_week = first_day_of_week + timedelta(days=6)
 
-            # Weekly takeway Order Type Report
             weekly_tw_order_qs = FoodOrder.objects.filter(
                 created_at__gte=first_day_of_week.date(),
                 created_at__lte=last_day_of_week.date(), status='5_PAID',
