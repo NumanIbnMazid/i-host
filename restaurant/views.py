@@ -904,6 +904,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
         today = timezone.datetime.now().date()
         start_date = today - timedelta(days=1)
         food_order_qs = FoodOrder.objects.filter(pk=order_id).last()
+        if food_order_qs.discount_given:
+            return ResponseWrapper(error_msg=['Force Discount Already Applied'], error_code=400)
+
         restaurant_id = food_order_qs.restaurant_id
         parent_promo_code = ParentCompanyPromotion.objects.filter(code=request.data.get('applied_promo_code'),restaurant__in = [restaurant_id],
                                                            start_date__lte=start_date, end_date__gte=today).last()
@@ -3527,6 +3530,9 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         qs = FoodOrder.objects.filter(pk = order_id).last()
         if not qs:
             return ResponseWrapper(error_msg=['Food order is not valid'], error_code=400)
+
+        if qs.applied_promo_code:
+            return ResponseWrapper(error_msg= 'Promo code is already applied',error_code=400)
         discount_given = request.data.get('force_discount_amount')
         discount_amount_is_percentage = request.data.get('discount_amount_is_percentage')
         if discount_given <0:

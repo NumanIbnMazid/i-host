@@ -52,8 +52,6 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
             )
         )
 
-
-
         discount_id = ordered_item.food_option.food.discount
         if discount_id:
             today = timezone.datetime.now().date()
