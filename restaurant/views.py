@@ -933,14 +933,14 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
 
             amount = food_order_qs.payable_amount
 
-            if promo_code.minimum_purchase_amount > amount and promo_code.max_amount < amount:
+            if not (promo_code.minimum_purchase_amount < amount and promo_code.max_amount > amount):
                 return ResponseWrapper(msg='promo code not valid for this order', status=200)
-            else:
-                promo_code_log = PromoCodePromotionLog.objects.create(customer_id = request.user.pk,
-                                                                      promo_code_id= promo_code.id
-                                                                    )
-                food_order_qs.applied_promo_code = request.data.get('applied_promo_code')
-                food_order_qs.save()
+
+            promo_code_log = PromoCodePromotionLog.objects.create(customer_id = request.user.pk,
+                                                                  promo_code_id= promo_code.id
+                                                                )
+            food_order_qs.applied_promo_code = request.data.get('applied_promo_code')
+            food_order_qs.save()
 
         return ResponseWrapper(msg='Promo Code Applied', status=200)
 
