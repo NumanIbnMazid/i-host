@@ -2960,6 +2960,129 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             msg="success"
         )
 
+    def get_dashboard_daily_report(self, request, restaurant_id, *args, **kwargs):
+
+        # define daily report data schema
+        daily_report_data_schema = {
+            "payment_method_summary": {},
+            "dining_order_summary": {},
+            "takeway_order_summary": {},
+            "takeway_order_details_summary": {}
+        }
+
+        today = timezone.datetime.now()
+        # (******* Uncomment after testing *******)
+        datetime_today = datetime.strptime(str(today.date()) + " 00:00:00", '%Y-%m-%d %H:%M:%S')
+        # tester datetime today (******* Comment after after testing *******)
+        # datetime_today = datetime.strptime("2021-03-01" + " 00:00:00", '%Y-%m-%d %H:%M:%S')
+
+        # check validity of restaurant
+        restaurant_qs = Restaurant.objects.filter(id=restaurant_id)
+        if restaurant_qs.exists():
+            # grab the restaurant object
+            restaurant = restaurant_qs.last()
+
+            # invoice filter
+            invoice_qs = Invoice.objects.filter(
+                created_at__gte=datetime_today, payment_status__iexact="1_PAID", restaurant_id=restaurant_id
+            )
+
+            # ------- Overall Order Summary -------
+            total_order_count_overall = invoice_qs.count()
+            payable_amount_overall = sum(invoice_qs.values_list('payable_amount', flat=True))
+            tax_overall = sum(invoice_qs.values_list('order__tax_amount', flat=True))
+            discount_overall = sum(invoice_qs.values_list('order__discount_amount', flat=True))
+            # => assign to data schema
+            daily_report_data_schema["total_order"] = total_order_count_overall
+            daily_report_data_schema["total_sell"] = round(payable_amount_overall, 2)
+            daily_report_data_schema["total_tax"] = round(tax_overall, 2)
+            daily_report_data_schema["total_discount"] = round(discount_overall, 2)
+
+            # ------- Payment Method Summary -------
+            payment_method_details_list = restaurant_qs.values_list('payment_type', 'payment_type__name')
+
+            for payment_method, payment_method_name in payment_method_details_list:
+                order_invoice_qs = Invoice.objects.filter(
+                    order__payment_method=payment_method, restaurant_id=restaurant_id, payment_status__iexact="1_PAID", created_at__gte=datetime_today
+                )
+                payment_method_total_order = order_invoice_qs.count()
+                payment_method_amount = sum(order_invoice_qs.values_list('payable_amount', flat=True))
+                payment_method_total_tax = sum(order_invoice_qs.values_list("order__tax_amount", flat=True))
+                payment_method_total_discount = sum(order_invoice_qs.values_list("order__discount_amount", flat=True))
+                payment_method_sell_percentage = (payment_method_amount / payable_amount_overall) * 100
+                # => assign to data schema
+                daily_report_data_schema["payment_method_summary"][payment_method_name] = {
+                    "total_order": payment_method_total_order,
+                    "total_sell": round(payment_method_amount, 2),
+                    "total_tax": round(payment_method_total_tax, 2),
+                    "total_discount": round(payment_method_total_discount, 2),
+                    "sell_percentage": round(payment_method_sell_percentage, 2)
+                }
+
+            # ------- Dining Order Summary -------
+            dining_invoice_qs = Invoice.objects.filter(
+                ~Q(order__table=None),
+                Q(payment_status__iexact="1_PAID", restaurant_id=restaurant_id, created_at__gte=datetime_today
+            ))
+            dining_total_order = dining_invoice_qs.count()
+            dining_total_sell = sum(dining_invoice_qs.values_list("payable_amount", flat=True))
+            dining_total_tax = sum(dining_invoice_qs.values_list("order__tax_amount", flat=True))
+            dining_total_discount = sum(dining_invoice_qs.values_list("order__discount_amount", flat=True))
+            dining_total_sell_percentage = (dining_total_sell / payable_amount_overall) * 100
+            # => assign to data schema
+            daily_report_data_schema["dining_order_summary"] = {
+                "total_order": dining_total_order,
+                "total_sell": round(dining_total_sell, 2),
+                "total_tax": round(dining_total_tax, 2),
+                "total_discount": round(dining_total_discount, 2),
+                "sell_percentage": round(dining_total_sell_percentage, 2)
+            }
+            # ------- Takeway Order Summary -------
+            takeway_invoice_qs = Invoice.objects.filter(
+                Q(order__table=None),
+                Q(payment_status__iexact="1_PAID", restaurant_id=restaurant_id, created_at__gte=datetime_today
+            ))
+            takeway_total_order = takeway_invoice_qs.count()
+            takeway_total_sell = sum(takeway_invoice_qs.values_list("payable_amount", flat=True))
+            takeway_total_tax = sum(takeway_invoice_qs.values_list("order__tax_amount", flat=True))
+            takeway_total_discount = sum(takeway_invoice_qs.values_list("order__discount_amount", flat=True))
+            takeway_total_sell_percentage = (takeway_total_sell / payable_amount_overall) * 100
+            # => assign to data schema
+            daily_report_data_schema["takeway_order_summary"] = {
+                "total_order": takeway_total_order,
+                "total_sell": round(takeway_total_sell, 2),
+                "total_tax": round(takeway_total_tax, 2),
+                "total_discount": round(takeway_total_discount, 2),
+                "sell_percentage": round(takeway_total_sell_percentage, 2)
+            }
+
+            # ------- Takeway Order Details Summary -------
+            takeway_order_type_details_list = restaurant_qs.values_list(
+                'takeway_order_type', 'takeway_order_type__name'
+            )
+
+            for takeway_order_type, takeway_order_type_name in takeway_order_type_details_list:
+                takeway_order_type_invoice_qs = takeway_invoice_qs.filter(
+                    order__takeway_order_type=takeway_order_type
+                )
+                takeway_order_type_total_order = takeway_order_type_invoice_qs.count()
+                takeway_order_type_amount = sum(takeway_order_type_invoice_qs.values_list('payable_amount', flat=True))
+                takeway_order_type_total_tax = sum(takeway_order_type_invoice_qs.values_list("order__tax_amount", flat=True))
+                takeway_order_type_total_discount = sum(takeway_order_type_invoice_qs.values_list("order__discount_amount", flat=True))
+                takeway_order_type_sell_percentage = (takeway_order_type_amount / payable_amount_overall) * 100
+                # => assign to data schema
+                daily_report_data_schema["takeway_order_details_summary"][takeway_order_type_name] = {
+                    "total_order": takeway_order_type_total_order,
+                    "total_sell": round(takeway_order_type_amount, 2),
+                    "total_tax": round(takeway_order_type_total_tax, 2),
+                    "total_discount": round(takeway_order_type_total_discount, 2),
+                    "sell_percentage": round(takeway_order_type_sell_percentage, 2)
+                }
+
+            return ResponseWrapper(data=daily_report_data_schema, msg="success")
+        else:
+            return ResponseWrapper(error_msg="Invalid Restaurant ID", error_code=400)
+
     def waiter_served_report(self, request, waiter_id, *args, **kwargs):
 
         waiter_qs = HotelStaffInformation.objects.filter(id=waiter_id).first()
