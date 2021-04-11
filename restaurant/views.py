@@ -916,9 +916,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             if not parent_promo_code:
                 return ResponseWrapper(msg='Promo code not valid', status=200)
 
-        if not promo_code == None:
-            if not promo_code:
-                return ResponseWrapper(msg='Promo code not valid', status=200)
+        # if not promo_code == None:
+        if not promo_code:
+            return ResponseWrapper(msg='Promo code not valid', status=200)
 
         # promo_code = food_order_qs.applied_promo_code
         if parent_promo_code:
@@ -930,6 +930,11 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             total_promo_code = promo_code_log_qs.count()
             if promo_code.max_limit <= total_promo_code:
                 return ResponseWrapper(msg='Maximum time Promo Code Already Used', status=200)
+
+            amount = food_order_qs.payable_amount
+
+            if promo_code.minimum_purchase_amount > amount and promo_code.max_amount < amount:
+                return ResponseWrapper(msg='promo code not valid for this order', status=200)
             else:
                 promo_code_log = PromoCodePromotionLog.objects.create(customer_id = request.user.pk,
                                                                       promo_code_id= promo_code.id
