@@ -67,6 +67,7 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
                                                             discount_slot_start_time__lte =current_time, discount_schedule_type='Time_wise').exclude(food=None, image=None)
             if date_wise_discount_qs or time_wise_discount_qs:
                 discount_amount += (ordered_item.food_option.food.discount.amount/100)*item_price
+
         if discount_given and not discount_id:
             if food_order_obj.discount_amount_is_percentage:
                 discount_amount +=(discount_given/100)*item_price
@@ -80,7 +81,7 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
                 promo_discount_amount = item_price * (parent_promo_qs.amount / 100)
             else:
                 promo_discount_amount = parent_promo_qs.amount
-            discount_amount += promo_discount_amount
+            discount_amount += promo_discount_amount*ordered_item.quantity
 
 
         total_price += item_price+extra_price
@@ -93,7 +94,6 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
             service_charge = (restaurant_qs.service_charge*total_price / hundred)
         else:
             service_charge = restaurant_qs.service_charge
-
 
         grand_total_price += service_charge
         tax_amount = ((total_price * restaurant_qs.tax_percentage)/hundred)
