@@ -904,6 +904,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
         today = timezone.datetime.now().date()
         start_date = today - timedelta(days=1)
         food_order_qs = FoodOrder.objects.filter(pk=order_id).last()
+        if food_order_qs.discount_given:
+            return ResponseWrapper(error_msg=['Force Discount Already Applied'], error_code=400)
+
         restaurant_id = food_order_qs.restaurant_id
         parent_promo_code = ParentCompanyPromotion.objects.filter(code=request.data.get('applied_promo_code'),restaurant__in = [restaurant_id],
                                                            start_date__lte=start_date, end_date__gte=today).last()
@@ -913,9 +916,9 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             if not parent_promo_code:
                 return ResponseWrapper(msg='Promo code not valid', status=200)
 
-        if not promo_code == None:
-            if not promo_code:
-                return ResponseWrapper(msg='Promo code not valid', status=200)
+        # if not promo_code == None:
+        if not promo_code:
+            return ResponseWrapper(msg='Promo code not valid', status=200)
 
         # promo_code = food_order_qs.applied_promo_code
         if parent_promo_code:
@@ -927,6 +930,11 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             total_promo_code = promo_code_log_qs.count()
             if promo_code.max_limit <= total_promo_code:
                 return ResponseWrapper(msg='Maximum time Promo Code Already Used', status=200)
+
+            amount = food_order_qs.payable_amount
+
+            if promo_code.minimum_purchase_amount > amount and promo_code.max_amount < amount:
+                return ResponseWrapper(msg='promo code not valid for this order', status=200)
             else:
                 promo_code_log = PromoCodePromotionLog.objects.create(customer_id = request.user.pk,
                                                                       promo_code_id= promo_code.id
@@ -3650,6 +3658,9 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         qs = FoodOrder.objects.filter(pk = order_id).last()
         if not qs:
             return ResponseWrapper(error_msg=['Food order is not valid'], error_code=400)
+
+        if qs.applied_promo_code:
+            return ResponseWrapper(error_msg= 'Promo code is already applied',error_code=400)
         discount_given = request.data.get('force_discount_amount')
         discount_amount_is_percentage = request.data.get('discount_amount_is_percentage')
         if discount_given <0:
@@ -4078,7 +4089,7 @@ class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
         qs = TakeAwayOrder.objects.filter(restaurant_id=restaurant_id).first()
         if not qs:
             return ResponseWrapper(msg='No Take Away Order is Available')
-        serializer = FoodOrderByTableSerializer(instance=qs.running_order.exclude(
+        serializer = TakeAwayOrderSerializer(instance=qs.running_order.exclude(
             status__in=['5_PAID', '6_CANCELLED']), many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 

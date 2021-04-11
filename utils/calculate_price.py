@@ -52,8 +52,6 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
             )
         )
 
-
-
         discount_id = ordered_item.food_option.food.discount
         if discount_id:
             today = timezone.datetime.now().date()
@@ -67,6 +65,7 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
                                                             discount_slot_start_time__lte =current_time, discount_schedule_type='Time_wise').exclude(food=None, image=None)
             if date_wise_discount_qs or time_wise_discount_qs:
                 discount_amount += (ordered_item.food_option.food.discount.amount/100)*item_price
+
         if discount_given and not discount_id:
             if food_order_obj.discount_amount_is_percentage:
                 discount_amount +=(discount_given/100)*item_price
@@ -80,7 +79,7 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
                 promo_discount_amount = item_price * (parent_promo_qs.amount / 100)
             else:
                 promo_discount_amount = parent_promo_qs.amount
-            discount_amount += promo_discount_amount
+            discount_amount += promo_discount_amount*ordered_item.quantity
 
 
         total_price += item_price+extra_price
@@ -94,7 +93,6 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
         else:
             service_charge = restaurant_qs.service_charge
 
-
         grand_total_price += service_charge
         tax_amount = ((total_price * restaurant_qs.tax_percentage)/hundred)
         grand_total_price += tax_amount
@@ -105,43 +103,49 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
 
 
     else:
-        total_price -= discount_amount
         total_food_price = total_price
+        total_price -= discount_amount
+
 
         if restaurant_qs.service_charge_is_percentage:
             service_charge = (restaurant_qs.service_charge * total_price / hundred)
         else:
             service_charge = restaurant_qs.service_charge
 
-        if parent_promo_qs:
-            promo_discount_amount = 0
-
-            if parent_promo_qs.promo_type == "PERCENTAGE":
-                promo_discount_amount = total_price * \
-                                        (parent_promo_qs.amount / 100)
-            else:
-                promo_discount_amount = parent_promo_qs.amount
-
-            if grand_total_price < parent_promo_qs.minimum_purchase_amount:
-                promo_discount_amount = 0
-
-            discount_amount += promo_discount_amount
-            if discount_amount > parent_promo_qs.max_amount:
-                discount_amount = parent_promo_qs.max_amount
-
-        if discount_given:
-            discount_amount = 0
-            if food_order_obj.discount_amount_is_percentage == True:
-                discount_amount = grand_total_price * \
-                                  (discount_given / 100)
-            else:
-                discount_amount = discount_given
+        # if parent_promo_qs:
+        #     promo_discount_amount = 0
+        #
+        #     if parent_promo_qs.promo_type == "PERCENTAGE":
+        #         promo_discount_amount = total_price * \
+        #                                 (parent_promo_qs.amount / 100)
+        #     else:
+        #         promo_discount_amount = parent_promo_qs.amount
+        #
+        #     if grand_total_price < parent_promo_qs.minimum_purchase_amount:
+        #         promo_discount_amount = 0
+        #
+        #     discount_amount += promo_discount_amount
+        #     if discount_amount > parent_promo_qs.max_amount:
+        #         discount_amount = parent_promo_qs.max_amount
+        #
+        # if discount_given:
+        #     discount_amount = 0
+        #     if food_order_obj.discount_amount_is_percentage == True:
+        #         discount_amount = grand_total_price * \
+        #                           (discount_given / 100)
+        #     else:
+        #         discount_amount = discount_given
 
         total_price += service_charge
         tax_amount = ((total_price * restaurant_qs.tax_percentage) / hundred)
-        grand_total_price = total_price+tax_amount
-        payable_amount = grand_total_price
-        total_price = total_food_price + discount_amount
+        # grand_total_price = total_price+tax_amount
+        # payable_amount = grand_total_price
+        # total_price = total_food_price
+        # grand_total_price  = payable_amount + discount_amount
+
+        payable_amount = total_price+ tax_amount
+        total_price = total_food_price
+        grand_total_price = payable_amount + discount_amount
 
 
     if cash_received==None or cash_received <=0:
