@@ -40,6 +40,8 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
     service_charge = 0.0
     hundred = 100.0
     discount_amount = 0.0
+    total_price_without_vat=0.0
+    total_price_with_vat=0.0
 
     for ordered_item in ordered_items_qs:
 
@@ -83,6 +85,12 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
 
 
         total_price += item_price+extra_price
+
+        if ordered_item.food_option.food.is_vat_applicable:
+            total_price_with_vat += item_price+extra_price
+        else:
+            total_price_without_vat+= item_price+extra_price
+
     grand_total_price += total_price
 
     if food_order_obj.restaurant.is_vat_charge_apply_in_original_food_price \
@@ -94,7 +102,10 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
             service_charge = restaurant_qs.service_charge
 
         grand_total_price += service_charge
-        tax_amount = ((total_price * restaurant_qs.tax_percentage)/hundred)
+
+        # ------!!!!!!-----Vat Apply Only Vat Applicable Food ------!!!!!!-----
+
+        tax_amount = ((total_price_with_vat * restaurant_qs.tax_percentage)/hundred)
         grand_total_price += tax_amount
         # if discount_given:
         #     payable_amount = grand_total_price - discount_amount
@@ -112,36 +123,12 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
         else:
             service_charge = restaurant_qs.service_charge
 
-        # if parent_promo_qs:
-        #     promo_discount_amount = 0
-        #
-        #     if parent_promo_qs.promo_type == "PERCENTAGE":
-        #         promo_discount_amount = total_price * \
-        #                                 (parent_promo_qs.amount / 100)
-        #     else:
-        #         promo_discount_amount = parent_promo_qs.amount
-        #
-        #     if grand_total_price < parent_promo_qs.minimum_purchase_amount:
-        #         promo_discount_amount = 0
-        #
-        #     discount_amount += promo_discount_amount
-        #     if discount_amount > parent_promo_qs.max_amount:
-        #         discount_amount = parent_promo_qs.max_amount
-        #
-        # if discount_given:
-        #     discount_amount = 0
-        #     if food_order_obj.discount_amount_is_percentage == True:
-        #         discount_amount = grand_total_price * \
-        #                           (discount_given / 100)
-        #     else:
-        #         discount_amount = discount_given
 
         total_price += service_charge
-        tax_amount = ((total_price * restaurant_qs.tax_percentage) / hundred)
-        # grand_total_price = total_price+tax_amount
-        # payable_amount = grand_total_price
-        # total_price = total_food_price
-        # grand_total_price  = payable_amount + discount_amount
+        # tax_amount = ((total_price * restaurant_qs.tax_percentage) / hundred)
+        total_price_with_vat +=service_charge
+        tax_amount = total_price_with_vat * restaurant_qs.tax_percentage / hundred
+
 
         payable_amount = total_price+ tax_amount
         total_price = total_food_price

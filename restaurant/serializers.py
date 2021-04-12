@@ -1116,6 +1116,7 @@ class ReportByDateRangeSerializer(serializers.Serializer):
     waiter = serializers.ListSerializer(child=serializers.IntegerField())
 
 
+
 class StaffFcmSerializer(serializers.Serializer):
     table_id = serializers.IntegerField()
 

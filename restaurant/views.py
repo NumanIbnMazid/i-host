@@ -1102,7 +1102,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             sender=self.__class__.create,
             restaurant_id=restaurant_id,
             order_id=qs.id
-
         )
         return ResponseWrapper(data=serializer.data, msg='created')
 
