@@ -2768,7 +2768,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
     def dashboard_total_report(self, request, restaurant_id, *args, **kwargs):
         # Set Decimal Precision
-        getcontext().prec = 3
+        # getcontext().prec = 3
 
         today = timezone.datetime.now()
         this_month = timezone.now().date().replace(day=1)
@@ -2788,20 +2788,24 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             invoice_qs = Invoice.objects.filter(
                 created_at__contains=start_of_week.date(), payment_status='1_PAID', restaurant_id=restaurant_id)
             total_list = invoice_qs.values_list('payable_amount', flat=True)
-            this_day_total_order = FoodOrder.objects.filter(
-                created_at__contains=start_of_week.date(), status='5_PAID', restaurant_id=restaurant_id).count()
+            # this_day_total_order = FoodOrder.objects.filter(
+            #     created_at__contains=start_of_week.date(), status='5_PAID', restaurant_id=restaurant_id).count()
+
+            this_day_total_order = Invoice.objects.filter(
+                created_at__contains=start_of_week.date(), payment_status='1_PAID', restaurant_id=restaurant_id).count()
 
             this_day_total = round(sum(total_list), 2)
             weekly_day_wise_income_list.append(this_day_total)
             weekly_day_wise_order_list.append(this_day_total_order)
 
         this_month_invoice_qs = Invoice.objects.filter(
-            created_at__year=timezone.now().year, created_at__month=timezone.now().month, payment_status='1_PAID', restaurant_id=restaurant_id)
+            created_at__year=timezone.now().year, created_at__month=timezone.now().month,
+            payment_status='1_PAID', restaurant_id=restaurant_id)
         # this_month_order_qs = FoodOrder.objects.filter(
         #     created_at__year=timezone.now().year, created_at__month=timezone.now().month, status='5_PAID', restaurant_id=restaurant_id).count()
         this_month_order_qs = Invoice.objects.filter(
-            created_at__year=timezone.now().year, created_at__month=timezone.now().month, payment_status='1_PAID',
-            restaurant_id=restaurant_id).count()
+            created_at__year=timezone.now().year, created_at__month=timezone.now().month,
+            payment_status='1_PAID', restaurant_id=restaurant_id).count()
 
         last_month_invoice_qs = Invoice.objects.filter(
             created_at__year=last_month.year, created_at__month=last_month.month, payment_status='1_PAID', restaurant_id=restaurant_id)
@@ -2830,8 +2834,12 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             payable_amount_list = invoice_qs.values_list(
                 'payable_amount', flat=True)
             monthly_total_payable = round(sum(payable_amount_list), 2)
-            order_count = FoodOrder.objects.filter(
-                created_at__year=first_date.year, created_at__month=first_date.month, status='5_PAID', restaurant_id=restaurant_id).count()
+            # order_count = FoodOrder.objects.filter(
+            #     created_at__year=first_date.year, created_at__month=first_date.month, status='5_PAID', restaurant_id=restaurant_id).count()
+
+            order_count = Invoice.objects.filter(
+                created_at__year=first_date.year, created_at__month=first_date.month, payment_status='1_PAID',
+                restaurant_id=restaurant_id).count()
 
             yearly_sales_report[month_name] = {
                 'total_payable_amount': monthly_total_payable, 'order_count': order_count}
@@ -2850,38 +2858,51 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         last_month_payable_amount_list = last_month_invoice_qs.values_list(
             'payable_amount', flat=True)
         last_month_total = sum(last_month_payable_amount_list)
+
+
         restaurant_qs = Restaurant.objects.filter(id = restaurant_id)
         # payment_method_list = restaurant_qs.values_list('payment_type', flat=True)
         payment_method_details_list = restaurant_qs.values_list('payment_type','payment_type__name')
         for payment_method, payment_method_name in payment_method_details_list:
-            order_qs = FoodOrder.objects.filter(payment_method =payment_method, restaurant_id = restaurant_id,
-                                                status= '5_PAID')
+            # order_qs = FoodOrder.objects.filter(payment_method =payment_method, restaurant_id = restaurant_id,
+            #                                     status= '5_PAID')
+            order_qs = Invoice.objects.filter(order__payment_method=payment_method, restaurant_id=restaurant_id,
+                                                payment_status='1_PAID')
             total_order = order_qs.count()
             payment_method_payable_amount_list = order_qs.values_list('payable_amount', flat=True)
-            payment_method_amount = sum(payment_method_payable_amount_list)
+            payment_method_amount = round(sum(payment_method_payable_amount_list),2)
             payment_method_total_amount.append({'id': payment_method,'name':payment_method_name,
                                                 'amount':payment_method_amount,
                                                 'total_order': total_order})
 
-            this_month_food_order_qs = FoodOrder.objects.filter(status= '5_PAID', created_at__year=timezone.now().year,
+            # this_month_food_order_qs = FoodOrder.objects.filter(status= '5_PAID', created_at__year=timezone.now().year,
+            #                                                     created_at__month=timezone.now().month, restaurant_id = restaurant_id,
+            #                                                     payment_method =payment_method)
+
+            this_month_food_order_qs = Invoice.objects.filter(payment_status= '1_PAID', created_at__year=timezone.now().year,
                                                                 created_at__month=timezone.now().month, restaurant_id = restaurant_id,
-                                                                payment_method =payment_method)
+                                                                order__payment_method =payment_method)
             current_month_total_order = this_month_food_order_qs.count()
             this_month_payment_method_payable_amount_list = this_month_food_order_qs.values_list('payable_amount', flat=True)
-            this_month_payment_method_amount = sum(this_month_payment_method_payable_amount_list)
+            this_month_payment_method_amount = round(sum(this_month_payment_method_payable_amount_list),2)
             this_month_total_payment_method_distribution.append({'id': payment_method,'name':payment_method_name,
                                                 'amount':this_month_payment_method_amount,
                                                 'total_order': current_month_total_order}
                                                                 )
 
-            last_month_food_order_qs = FoodOrder.objects.filter(status='5_PAID', created_at__year=last_month.year,
+            # last_month_food_order_qs = FoodOrder.objects.filter(status='5_PAID', created_at__year=last_month.year,
+            #                                                     created_at__month=last_month.month,
+            #                                                     restaurant_id=restaurant_id,
+            #                                                     payment_method=payment_method)
+            last_month_food_order_qs = Invoice.objects.filter(payment_status='1_PAID', created_at__year=last_month.year,
                                                                 created_at__month=last_month.month,
                                                                 restaurant_id=restaurant_id,
-                                                                payment_method=payment_method)
+                                                                order__payment_method=payment_method)
+
             payment_method_last_month_total_order = last_month_food_order_qs.count()
             last_month_payment_method_payable_amount_list = last_month_food_order_qs.values_list('payable_amount',
                                                                                                  flat=True)
-            last_month_payment_method_amount = sum(last_month_payment_method_payable_amount_list)
+            last_month_payment_method_amount = round(sum(last_month_payment_method_payable_amount_list),2)
             last_month_total_payment_method_distribution.append({
                 'id':payment_method, 'name':payment_method_name,
                 'amount':last_month_payment_method_amount,
@@ -2896,14 +2917,21 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             last_day_of_week = first_day_of_week + timedelta(days=6)
 
 
-            weekly_order_qs = FoodOrder.objects.filter(
+            # weekly_order_qs = FoodOrder.objects.filter(
+            #     created_at__gte=first_day_of_week.date(),
+            #     created_at__lte = last_day_of_week.date(), status='5_PAID',
+            #     restaurant_id=restaurant_id, payment_method = payment_method)
+
+
+            weekly_order_qs = Invoice.objects.filter(
                 created_at__gte=first_day_of_week.date(),
-                created_at__lte = last_day_of_week.date(), status='5_PAID',
-                restaurant_id=restaurant_id, payment_method = payment_method)
+                created_at__lte = last_day_of_week.date(), payment_status='5_PAID',
+                restaurant_id=restaurant_id, order__payment_method = payment_method)
+
             weekly_total_order = weekly_order_qs.count()
             weekly_payment_method_payable_amount_list = weekly_order_qs.values_list('payable_amount',
                                                                                              flat=True)
-            weekly_payment_method_amount = sum(weekly_payment_method_payable_amount_list)
+            weekly_payment_method_amount = round(sum(weekly_payment_method_payable_amount_list),2)
             weekly_total_payment_method_distribution.append(
                 {'id':payment_method,'name':payment_method_name,'amount':weekly_payment_method_amount,
                  'total_order': weekly_total_order}
@@ -2911,11 +2939,15 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
             # Daily payment Type Report
             datetime_today = datetime.strptime(str(today.date()) + " 00:00:00", '%Y-%m-%d %H:%M:%S')
-            daily_order_qs = FoodOrder.objects.filter(
-                created_at__gte=datetime_today, 
-                status='5_PAID',
-                restaurant_id=restaurant_id, 
-                payment_method=payment_method
+            # daily_order_qs = FoodOrder.objects.filter(
+            #     created_at__gte=datetime_today,
+            #     status='5_PAID',
+            #     restaurant_id=restaurant_id,
+            #     payment_method=payment_method
+            # )
+            daily_order_qs = Invoice.objects.filter(created_at__gte=datetime_today,
+                payment_status='1_PAID',restaurant_id=restaurant_id,
+                order__payment_method=payment_method
             )
             daily_total_order = daily_order_qs.count()
             daily_payment_method_payable_amount_list = daily_order_qs.values_list('payable_amount', flat=True)
@@ -2924,7 +2956,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                 {
                     'id': payment_method, 
                     'name': payment_method_name, 
-                    'amount': Decimal(daily_payment_method_amount),
+                    'amount': round(daily_payment_method_amount, 2),
                     'total_order': daily_total_order
                 }
             )
