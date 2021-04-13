@@ -2668,13 +2668,22 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             )
 
             # Current Month takeway Order report
-            this_month_food_tw_order_qs = FoodOrder.objects.filter(
-                status='5_PAID', 
+            # this_month_food_tw_order_qs = FoodOrder.objects.filter(
+            #     status='5_PAID',
+            #     created_at__year=timezone.now().year,
+            #     created_at__month=timezone.now().month,
+            #     restaurant_id=restaurant_id,
+            #     takeway_order_type=takeway_order_type
+            # )
+
+            this_month_food_tw_order_qs = Invoice.objects.filter(
+                payment_status='1_PAID',
                 created_at__year=timezone.now().year,
-                created_at__month=timezone.now().month, 
+                created_at__month=timezone.now().month,
                 restaurant_id=restaurant_id,
-                takeway_order_type=takeway_order_type
+                order__takeway_order_type=takeway_order_type
             )
+
             current_month_total_order = this_month_food_tw_order_qs.count()
             this_month_takeway_order_type_payable_amount_list = this_month_food_tw_order_qs.values_list(
                 'payable_amount', flat=True
@@ -2691,12 +2700,19 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             )
 
             # Last month Takeway Order Report
-            last_month_food_tw_order_qs = FoodOrder.objects.filter(
-                status='5_PAID', 
+            # last_month_food_tw_order_qs = FoodOrder.objects.filter(
+            #     status='5_PAID',
+            #     created_at__year=last_month.year,
+            #     created_at__month=last_month.month,
+            #     restaurant_id=restaurant_id,
+            #     takeway_order_type=takeway_order_type
+            # )
+            last_month_food_tw_order_qs = Invoice.objects.filter(
+                payment_status='1_PAID',
                 created_at__year=last_month.year,
                 created_at__month=last_month.month,
                 restaurant_id=restaurant_id,
-                takeway_order_type=takeway_order_type
+                order__takeway_order_type=takeway_order_type
             )
             takeway_order_type_last_month_total_order = last_month_food_tw_order_qs.count()
             last_month_takeway_order_type_payable_amount_list = last_month_food_tw_order_qs.values_list(
@@ -2717,12 +2733,12 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             first_day_of_week = start_of_week - timedelta(days=7)
             last_day_of_week = first_day_of_week + timedelta(days=6)
 
-            weekly_tw_order_qs = FoodOrder.objects.filter(
+            weekly_tw_order_qs = Invoice.objects.filter(
                 created_at__gte=first_day_of_week.date(),
                 created_at__lte=last_day_of_week.date(), 
-                status='5_PAID',
+                payment_status='1_PAID',
                 restaurant_id=restaurant_id, 
-                takeway_order_type=takeway_order_type
+                order__takeway_order_type=takeway_order_type
             )
             weekly_total_order = weekly_tw_order_qs.count()
             weekly_takeway_order_type_payable_amount_list = weekly_tw_order_qs.values_list(
