@@ -3010,8 +3010,8 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         # }
 
         payment_method_summary = []
-        dining_order_summary = []
-        takeway_order_summary = []
+        dining_order_summary = {}
+        takeway_order_summary = {}
         takeway_order_details_summary = []
 
         today = timezone.datetime.now()
@@ -3107,13 +3107,17 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             #     "total_discount": round(dining_total_discount, 2),
             #     "sell_percentage": round(dining_total_sell_percentage, 2)
             # }
-            dining_order_summary.append({
+
+
+
+
+            dining_order_summary = {
                 "total_order": dining_total_order,
                 "total_sell": round(dining_total_sell, 2),
                 "total_tax": round(dining_total_tax, 2),
                 "total_discount": round(dining_total_discount, 2),
                 "sell_percentage": round(dining_total_sell_percentage, 2)
-            })
+            }
 
             # ------- Takeway Order Summary -------
             takeway_invoice_qs = Invoice.objects.filter(
@@ -3136,15 +3140,18 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             #     "total_discount": round(takeway_total_discount, 2),
             #     "sell_percentage": round(takeway_total_sell_percentage, 2)
             # }
-            takeway_order_summary.append(
-                {
-                "total_order": takeway_total_order,
-                "total_sell": round(takeway_total_sell, 2),
-                "total_tax": round(takeway_total_tax, 2),
-                "total_discount": round(takeway_total_discount, 2),
-                "sell_percentage": round(takeway_total_sell_percentage, 2)
+
+
+
+            takeway_order_summary ={
+                    "total_order": takeway_total_order,
+                    "total_sell": round(takeway_total_sell, 2),
+                    "total_tax": round(takeway_total_tax, 2),
+                    "total_discount": round(takeway_total_discount, 2),
+                    "sell_percentage": round(takeway_total_sell_percentage, 2)
                 }
-            )
+
+
 
             # ------- Takeway Order Details Summary -------
             takeway_order_type_details_list = restaurant_qs.values_list(
