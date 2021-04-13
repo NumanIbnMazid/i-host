@@ -7,9 +7,32 @@
 </head>
 <body>
     <h1>
-        EXAMPLE PDF HTML FILE
+        {{ report_data.RestaurantName }}
     </h1>
     <br>
+    <div>
+       <h2>Report Information</h2>
+       <div>
+          <span>Start Date: </span>
+          <span>{{ report_data.FilterKeysData.StartDate }}</span>
+       </div>
+       <div>
+          <span>End Date: </span>
+          <span>{{ report_data.FilterKeysData.EndDate }}</span>
+       </div>
+       <div>
+          <span>Category List: </span>
+          <span>{{ report_data.FilterKeysData.CategoryList }}</span>
+       </div>
+       <div>
+          <span>Item List: </span>
+          <span>{{ report_data.FilterKeysData.ItemList }}</span>
+       </div>
+       <div>
+          <span>Waiter List: </span>
+          <span>{{ report_data.FilterKeysData.WaiterList }}</span>
+       </div>
+    </div>
     <div>
         <table border="1">
          <tr>
@@ -24,18 +47,18 @@
             <th>Net Price</th>
          </tr>
 
-         {% for data in report_data.results %}
+         {% for object in report_data.ReportObjectList %}
 
          <tr>
-            <td>{{ data.order_info.order_no }}</td>
-            <td>Row</td>
-            <td>Row</td>
-            <td>Row</td>
-            <td>Row</td>
-            <td>Row</td>
-            <td>Row</td>
-            <td>Row</td>
-            <td>Row</td>
+            <td>{{ object.order.order_no }}</td>
+            <td>{{ object.order_info.table_no }}</td>
+            <td>{{ object.created_at }}</td>
+            <td>{{ object.order_info.customer.name }}</td>
+            <td>{{ object.order_info.waiter.name }}</td>
+            <td>{{ object.order_info.price.grand_total_price }}</td>
+            <td>{{ object.order_info.price.tax_amount }}</td>
+            <td>{{ object.order_info.price.discount_amount }}</td>
+            <td>{{ object.order_info.price.payable_amount }}</td>
          </tr>
 
          {% empty %}
