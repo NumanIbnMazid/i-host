@@ -276,6 +276,9 @@ dashboard_urls = [
     path('top_food_items_by_date_range/<int:restaurant_id>/',
          InvoiceViewSet.as_view({'post': 'top_food_items_by_date_range'}), name='top_food_items_by_date_range'),
 
+    path('print-pdf-datewise-report/<int:restaurant_id>/',
+         InvoiceViewSet.as_view({'post': 'generate_datewise_filtered_report_pdf'}), name='generate_datewise_report_pdf'),
+
     path('dashboard_total_report/<int:restaurant_id>',
          ReportingViewset.as_view({'get': 'dashboard_total_report'}), name='dashboard_total_report'),
     path('daily_report/<int:restaurant_id>',
@@ -340,5 +343,6 @@ dashboard_urls = [
      # list (get all takeway order types)
     path('takeway_order_type_list/', TakewayOrderTypeViewSet.as_view({'get': 'list'}, name='takeway_order_type_list')
     ),
+
 
 ] + fake_dashboard_urls

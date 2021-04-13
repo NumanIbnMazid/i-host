@@ -19,3 +19,18 @@ class CustomLimitPagination(LimitOffsetPagination):
     paginated_data = self.get_paginated_response(serializer.data)
 
     """
+
+
+class NoLimitPagination(LimitOffsetPagination):
+    # default_limit = 1000000000
+    # limit_query_param = 'limit'
+    # offset_query_param = 'offset'
+    # max_limit = 1000000000
+    def paginate_queryset(self, queryset, request, view=None):
+        self.count = self.get_count(queryset)
+        self.limit = self.get_limit(request)
+        self.offset = self.get_offset(request)
+        self.request = request
+        self.display_page_controls = False
+
+        return list(queryset)

@@ -5,7 +5,15 @@ import decimal
 from decimal import getcontext, Decimal, ROUND_HALF_UP
 import json
 from datetime import date, datetime, timedelta
-
+import base64
+from xhtml2pdf import pisa
+from django.template.loader import render_to_string
+from django.template.loader import get_template
+from django.template import Context
+from weasyprint import CSS, HTML
+from django.http import HttpResponse
+import tempfile
+from rest_framework.views import APIView
 from account_management import models, serializers
 from account_management.models import (CustomerInfo, FcmNotificationStaff,
                                        HotelStaffInformation, StaffFcmDevice,
@@ -30,7 +38,7 @@ from rest_framework.serializers import Serializer
 from rest_framework_tracking.mixins import LoggingMixin
 from utils.custom_viewset import CustomViewSet
 from utils.fcm import send_fcm_push_notification_appointment
-from utils.pagination import CustomLimitPagination
+from utils.pagination import CustomLimitPagination, NoLimitPagination
 from utils.print_node import print_node
 from utils.response_wrapper import ResponseWrapper
 from actstream import action
@@ -3081,6 +3089,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                 "total_discount": round(dining_total_discount, 2),
                 "sell_percentage": round(dining_total_sell_percentage, 2)
             }
+            
             # ------- Takeway Order Summary -------
             takeway_invoice_qs = Invoice.objects.filter(
                 Q(order__table=None),
@@ -3237,7 +3246,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
     def get_serializer_class(self):
         if self.action in ['invoice_history']:
             self.serializer_class = InvoiceSerializer
-        elif self.action in ['invoice_all_report', 'top_food_items_by_date_range']:
+        elif self.action in ['invoice_all_report', 'top_food_items_by_date_range', 'generate_datewise_filtered_report_pdf']:
             self.serializer_class = ReportByDateRangeSerializer
         elif self.action in ['waiter_report_by_date_range']:
             self.serializer_class = ReportDateRangeSerializer
@@ -3246,11 +3255,36 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
     def get_pagination_class(self):
         if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice', 'invoice_all_report', 'top_food_items_by_date_range', 'waiter_report_by_date_range']:
             return CustomLimitPagination
+        elif self.action in ['generate_datewise_filtered_report_pdf']:
+            return CustomLimitPagination
+        else:
+            return None
 
     queryset = Invoice.objects.all()
     lookup_field = 'pk'
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     pagination_class = property(get_pagination_class)
+
+    def generate_datewise_filtered_report_pdf(self, request, restaurant_id, *args, **kwargs):
+        template_path = 'report/report-pdf.html'
+        today = timezone.datetime.now()
+        datetime_str = today.strftime("%Y%m%d%H%M%S")
+        target_filename = f"report_{datetime_str}.pdf"
+
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{target_filename}"'
+
+        report_data = self.invoice_all_report(request=request, restaurant=restaurant_id, getOnlyData=True)
+
+        print(report_data, "\n Report Data XXXXXXXXXXXXXXXXXXXXX")
+
+        html = render_to_string(template_path, {'report_data': report_data})
+        print(html)
+
+        pisaStatus = pisa.CreatePDF(html, dest=response)
+
+        # return ResponseWrapper(data=response, msg='success')
+        return response
 
     # @swagger_auto_schema(
     #     request_body=ReportByDateRangeSerializer
@@ -3313,13 +3347,14 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
         return ResponseWrapper(data=staff_report_details)
 
+ 
     @swagger_auto_schema(manual_parameters=[
         openapi.Parameter("limit", openapi.IN_QUERY,
                           type=openapi.TYPE_INTEGER),
         openapi.Parameter("offset", openapi.IN_QUERY,
                           type=openapi.TYPE_INTEGER)
     ])
-    def invoice_all_report(self, request, restaurant, *args, **kwargs):
+    def invoice_all_report(self, request=None, restaurant=None, getOnlyData=False, *args, **kwargs):
         start_date = request.data.get('start_date', timezone.now().date())
         end_date = request.data.get('end_date', timezone.now().date())
         category_list = request.data.get("category", [])
@@ -3350,21 +3385,39 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
         total_order = food_items_date_range_qs.count()
         total_payable_amount = food_items_date_range_qs.values_list(
-            'payable_amount', flat=True)
+            'payable_amount', flat=True
+        )
 
         total_amaount = sum(total_payable_amount)
 
-        page_qs = self.paginate_queryset(food_items_date_range_qs)
+        print(start_date, end_date, "\n Start Date, End Date DDDDDDDDDD \n")
+        print(food_items_date_range_qs, "\n QS QQQQQQQQQQ \n")
 
-        serializer = InvoiceSerializer(instance=page_qs, many=True)
-        paginated_data = self.get_paginated_response(serializer.data)
-        order_details = dict(self.get_paginated_response(serializer.data).data)
+        getOnlyData = True
+        if getOnlyData == True:
+            serializer = InvoiceSerializer(instance=food_items_date_range_qs, many=True)
+            paginated_data = serializer.data
+            order_details = paginated_data
 
-        order_details['total_amaount'] = round(total_amaount, 2)
-        order_details['total_order'] = total_order
+            print(order_details, "\n ORDER DETAILS DATA GGGGGGGGGGG")
 
+            order_details['total_amaount'] = round(total_amaount, 2)
+            order_details['total_order'] = total_order
 
-        return ResponseWrapper(data=order_details)
+            return order_details
+        else:
+            page_qs = self.paginate_queryset(food_items_date_range_qs)
+
+            serializer = InvoiceSerializer(instance=page_qs, many=True)
+            paginated_data = self.get_paginated_response(serializer.data)
+            order_details = dict(self.get_paginated_response(serializer.data).data)
+
+            print(order_details, "\n ORDER DETAILS DATA GGGGGGGGGGG")
+
+            order_details['total_amaount'] = round(total_amaount, 2)
+            order_details['total_order'] = total_order
+
+            return ResponseWrapper(data=order_details)
 
     @swagger_auto_schema(manual_parameters=[
         openapi.Parameter("limit", openapi.IN_QUERY,
@@ -4445,3 +4498,91 @@ class TakewayOrderTypeViewSet(LoggingMixin, CustomViewSet):
         qs = restaurant.takeway_order_type.all()
         serializer = TakewayOrderTypeSerializer(instance=qs, many=True)
         return ResponseWrapper(data=serializer.data)
+
+
+# Invoice Report Utils Viewset
+class InvoiceReportingUtilsViewSet(LoggingMixin, CustomViewSet):
+    serializer_class = ReportByDateRangeSerializer
+    queryset = Invoice.objects.all()
+    lookup_field = 'pk'
+    logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+
+    def paginate_queryset(self, queryset):
+        if self.paginator and self.request.query_params.get(self.paginator.page_query_param, None) is None:
+            return None
+        return super().paginate_queryset(queryset)
+
+
+    def generate_datewise_filtered_report_pdf(self, request, restaurant_id, start_date=None, end_date=None, category_list=[], item_list=[], waiter_list=[], *args, **kwargs):
+        start_date = request.data.get('start_date', timezone.now().date())
+        end_date = request.data.get('end_date', timezone.now().date())
+        category_list = request.data.get("category", [])
+        item_list = request.data.get('item', [])
+        waiter_list = request.data.get('waiter', [])
+        start_date = datetime.strptime(start_date, '%Y-%m-%d')
+
+        print(end_date, "XXXXXXXXXXXXXXXXXX")
+        template_path = 'report/report-pdf.html'
+        today = timezone.datetime.now()
+        datetime_str = today.strftime("%Y%m%d%H%M%S")
+        target_filename = f"report_{datetime_str}.pdf"
+
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{target_filename}"'
+
+        report_data = self.prepare_invoice_all_report(request=request, restaurant=restaurant_id, start_date=start_date, end_date=end_date, category_list=category_list, item_list=item_list, waiter_list=waiter_list)
+        print(report_data, "\n Report Data XXXXXXXXXXXXXXXXXXXXX")
+
+        html = render_to_string(template_path, {'report_data': report_data})
+        print(html)
+
+        pisaStatus = pisa.CreatePDF(html, dest=response)
+
+        # return ResponseWrapper(data=response, msg='success')
+        return response
+
+    def prepare_invoice_all_report(self, request=None, restaurant=None, start_date=None, end_date=None, category_list=[], item_list=[], waiter_list=[], *args, **kwargs):
+        start_date = request.data.get('start_date', timezone.now().date())
+        end_date = request.data.get('end_date', timezone.now().date())
+        category_list = request.data.get("category", [])
+        item_list = request.data.get('item', [])
+        waiter_list = request.data.get('waiter', [])
+        start_date = datetime.strptime(start_date, '%Y-%m-%d')
+        if end_date:
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        end_date += timedelta(days=1)
+        if item_list:
+            food_items_date_range_qs = Invoice.objects.filter(Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list), restaurant_id=restaurant,
+                                                              created_at__gte=start_date, created_at__lte=end_date, payment_status='1_PAID').order_by('-created_at').distinct()
+        elif category_list:
+            food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
+                                                              created_at__gte=start_date, created_at__lte=end_date,
+                                                              order__ordered_items__food_option__food__category_id__in=category_list,
+                                                              payment_status='1_PAID'
+                                                              ).order_by('-created_at').distinct()
+        elif waiter_list:
+            food_items_date_range_qs = Invoice.objects.filter(order__restaurant_id=restaurant, created_at__gte=start_date, created_at__lte=end_date,
+                                                              order__food_order_logs__staff_id__in=waiter_list, payment_status='1_PAID'
+                                                              ).order_by('-created_at').distinct()
+        else:
+            food_items_date_range_qs = Invoice.objects.filter(restaurant_id=restaurant,
+                                                              created_at__gte=start_date, created_at__lte=end_date,
+                                                              payment_status='1_PAID'
+                                                              ).order_by('-created_at').distinct()
+
+        total_order = food_items_date_range_qs.count()
+        total_payable_amount = food_items_date_range_qs.values_list(
+            'payable_amount', flat=True
+        )
+
+        total_amount = sum(total_payable_amount)
+
+        serializer = InvoiceSerializer(instance=food_items_date_range_qs, many=True)
+        order_details = serializer.data
+        print(order_details, "SERIALIZER DATA SAMPLE VVVVVVV")
+        print(food_items_date_range_qs.count(), "Query Counter CCCCCCCCCCCCCCC")
+
+        # order_details['total_amount'] = round(total_amount, 2)
+        # order_details['total_order'] = total_order
+
+        return ResponseWrapper(data=order_details)

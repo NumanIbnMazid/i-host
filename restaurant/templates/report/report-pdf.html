@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta charset="UTF-8">
+    <title>Example PDF File</title>
+</head>
+<body>
+    <h1>
+        EXAMPLE PDF HTML FILE
+    </h1>
+    <br>
+    <div>
+        <table border="1">
+         <tr>
+            <th>Order Number</th>
+            <th>Table Number</th>
+            <th>Time</th>
+            <th>Customer Name</th>
+            <th>Waiter Name</th>
+            <th>Price</th>
+            <th>Vat Amount</th>
+            <th>Discount Price</th>
+            <th>Net Price</th>
+         </tr>
+
+         {% for data in report_data.results %}
+
+         <tr>
+            <td>{{ data.order_info.order_no }}</td>
+            <td>Row</td>
+            <td>Row</td>
+            <td>Row</td>
+            <td>Row</td>
+            <td>Row</td>
+            <td>Row</td>
+            <td>Row</td>
+            <td>Row</td>
+         </tr>
+
+         {% empty %}
+         <tr>
+            <td colspan = "9">No data</td>
+         </tr>
+         {% endfor %}
+            
+         <tr>
+            <td colspan = "3">Result Row</td>
+         </tr>
+      </table>
+    </div>
+</body>
+</html>
