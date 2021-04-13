@@ -3253,6 +3253,16 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = ReportDateRangeSerializer
         return self.serializer_class
 
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ["generate_datewise_filtered_report_pdf"]:
+            permission_classes = [
+                custom_permissions.IsRestaurantManagementOrAdmin
+            ]
+        else:
+            permission_classes = [permissions.AllowAny]
+        return [permission() for permission in permission_classes]
+
     def get_pagination_class(self):
         if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice', 'invoice_all_report', 'top_food_items_by_date_range', 'waiter_report_by_date_range']:
             return CustomLimitPagination
@@ -3267,6 +3277,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
     pagination_class = property(get_pagination_class)
 
     def generate_datewise_filtered_report_pdf(self, request, restaurant_id, *args, **kwargs):
+        self.check_object_permissions(request, obj=restaurant_id)
         template_path = 'report/report-pdf.html'
         today = timezone.datetime.now()
         datetime_str = today.strftime("%Y%m%d%H%M%S")
