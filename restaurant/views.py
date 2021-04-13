@@ -3353,14 +3353,10 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
         report_data = self.invoice_all_report(request=request, restaurant=restaurant_id, getOnlyData=True)
 
-        # print(report_data, "\n Report Data XXXXXXXXXXXXXXXXXXXXX")
-
         html = render_to_string(template_path, {'report_data': report_data})
-        # print(html)
 
         pisaStatus = pisa.CreatePDF(html, dest=response)
 
-        # return ResponseWrapper(data=response, msg='success')
         return response
 
     # @swagger_auto_schema(
