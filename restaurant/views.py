@@ -43,6 +43,7 @@ from utils.print_node import print_node
 from utils.response_wrapper import ResponseWrapper
 from actstream import action
 from actstream.models import Action
+import xlwt
 
 # from restaurant.models import (Discount, Food, FoodCategory, FoodExtra,
 #                                FoodExtraType, FoodOption, FoodOptionType,
@@ -3305,7 +3306,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
     def get_serializer_class(self):
         if self.action in ['invoice_history']:
             self.serializer_class = InvoiceSerializer
-        elif self.action in ['invoice_all_report', 'top_food_items_by_date_range', 'generate_datewise_filtered_report_pdf']:
+        elif self.action in ['invoice_all_report', 'top_food_items_by_date_range', 'generate_datewise_filtered_report_pdf', 'generate_datewise_filtered_report_excel']:
             self.serializer_class = ReportByDateRangeSerializer
         elif self.action in ['waiter_report_by_date_range']:
             self.serializer_class = ReportDateRangeSerializer
@@ -3313,7 +3314,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ["generate_datewise_filtered_report_pdf"]:
+        if self.action in ["generate_datewise_filtered_report_pdf", "generate_datewise_filtered_report_excel"]:
             permission_classes = [
                 custom_permissions.IsRestaurantManagementOrAdmin
             ]
@@ -3324,7 +3325,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
     def get_pagination_class(self):
         if self.action in ['invoice_history', 'paid_cancel_invoice_history', 'invoice', 'invoice_all_report', 'top_food_items_by_date_range', 'waiter_report_by_date_range']:
             return CustomLimitPagination
-        elif self.action in ['generate_datewise_filtered_report_pdf']:
+        elif self.action in ['generate_datewise_filtered_report_pdf', 'generate_datewise_filtered_report_excel']:
             return CustomLimitPagination
         else:
             return None
@@ -3334,17 +3335,98 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     pagination_class = property(get_pagination_class)
 
+    def generate_datewise_filtered_report_excel(self, request, restaurant_id, *args, **kwargs):
+        # check permission
+        self.check_object_permissions(request, obj=restaurant_id)
+
+        # excel generation
+        # get report data
+        report_data = self.invoice_all_report(
+            request=request, restaurant=restaurant_id, getOnlyData=True
+        )
+        # File Name
+        today = timezone.datetime.now()
+        datetime_str = today.strftime("%Y%m%d%H%M%S")
+        # target_filename = f"report_{datetime_str}.xls"
+        target_filename = f"report_({report_data['FilterKeysData']['StartDate']}_to_{report_data['FilterKeysData']['EndDate']}).xls"
+
+        response = HttpResponse(content_type='application/ms-excel')
+        response['Content-Disposition'] = f'attachment; filename="{target_filename}"'
+
+        wb = xlwt.Workbook(encoding='utf-8')
+        # ws = wb.add_sheet(f"Report [Date: {report_data['FilterKeysData']['StartDate']} TO {report_data['FilterKeysData']['EndDate']}], Category List: {report_data['FilterKeysData']['CategoryList']}, Item List: {report_data['FilterKeysData']['ItemList']}, Waiter List: {report_data['FilterKeysData']['WaiterList']}")
+        ws = wb.add_sheet(f"Report")
+
+        # Sheet header, first row
+        row_num = 0
+
+        font_style = xlwt.XFStyle()
+        font_style.font.bold = True
+
+        columns = ['Order Number', 'Table Number', 'Time', 'Customer Name', 'Waiter Name', 'Price', 'Vat Amount', 'Discount Price', 'Net Price',]
+        
+        for col_num in range(len(columns)):
+            ws.write(row_num, col_num, columns[col_num], font_style)
+
+        # Sheet body, remaining rows
+        font_style = xlwt.XFStyle()
+
+        for col_num, row in enumerate(report_data.get("ReportObjectList", [])):
+            row_num += 1
+            for col_num in range(len(columns)):
+                # print(row_num, col_num, row, font_style, "GGGGGGGGGGG")
+                # ws.write(row_num, col_num, vars()[db_vars[col_num]], font_style)
+                if col_num == 0:
+                    ws.write(row_num, col_num, row.order.order_no, font_style)
+                elif col_num == 1:
+                    if not row.order_info["table_no"] == None and not row.order_info["table_no"] == "":
+                        ws.write(row_num, col_num, row.order_info.get(
+                            "table_no", "-"), font_style)
+                    else:
+                        ws.write(row_num, col_num, "-", font_style)
+                elif col_num == 2:
+                    ws.write(row_num, col_num, row.created_at, font_style)
+                elif col_num == 3:
+                    if not row.order_info["customer"] == None and not row.order_info["customer"] == "":
+                        ws.write(row_num, col_num, row.order_info["customer"].get("name", "-"), font_style)
+                    else:
+                        ws.write(row_num, col_num, "-", font_style)
+                elif col_num == 4:
+                    if not row.order_info["waiter"] == None and not row.order_info["waiter"] == "":
+                        ws.write(row_num, col_num, row.order_info["waiter"].get("name", "-"), font_style)
+                    else:
+                        ws.write(row_num, col_num, "-", font_style)
+                elif col_num == 5:
+                    ws.write(row_num, col_num, row.order_info["price"].get("grand_total_price", "-"), font_style)
+                elif col_num == 6:
+                    ws.write(row_num, col_num, row.order_info["price"].get(
+                        "tax_amount", "-"), font_style)
+                elif col_num == 7:
+                    ws.write(row_num, col_num, row.order_info["price"].get(
+                        "discount_amount", "-"), font_style)
+                elif col_num == 8:
+                    ws.write(row_num, col_num, row.order_info["price"].get(
+                        "payable_amount", "-"), font_style)
+                else:
+                    ws.write(row_num, col_num, "-", font_style)
+
+        wb.save(response)
+        return response
+
     def generate_datewise_filtered_report_pdf(self, request, restaurant_id, *args, **kwargs):
         self.check_object_permissions(request, obj=restaurant_id)
+
+        # Get report data
+        report_data = self.invoice_all_report(request=request, restaurant=restaurant_id, getOnlyData=True)
+
         template_path = 'report/report-pdf.html'
         today = timezone.datetime.now()
         datetime_str = today.strftime("%Y%m%d%H%M%S")
-        target_filename = f"report_{datetime_str}.pdf"
+        # target_filename = f"report_{datetime_str}.pdf"
+        target_filename = f"report_({report_data['FilterKeysData']['StartDate']}_to_{report_data['FilterKeysData']['EndDate']}).pdf"
 
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="{target_filename}"'
-
-        report_data = self.invoice_all_report(request=request, restaurant=restaurant_id, getOnlyData=True)
 
         html = render_to_string(template_path, {'report_data': report_data})
 
