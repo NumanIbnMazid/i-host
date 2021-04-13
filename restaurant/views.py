@@ -3012,8 +3012,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         today = timezone.datetime.now()
         # (******* Uncomment after testing *******)
         datetime_today = datetime.strptime(str(today.date()) + " 00:00:00", '%Y-%m-%d %H:%M:%S')
-        # tester datetime today (******* Comment after after testing *******)
-        # datetime_today = datetime.strptime("2021-03-01" + " 00:00:00", '%Y-%m-%d %H:%M:%S')
+
 
         # check validity of restaurant
         restaurant_qs = Restaurant.objects.filter(id=restaurant_id)
@@ -3050,13 +3049,27 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                 payment_method_total_discount = sum(order_invoice_qs.values_list("order__discount_amount", flat=True))
                 payment_method_sell_percentage = (payment_method_amount / payable_amount_overall) * 100
                 # => assign to data schema
-                daily_report_data_schema["payment_method_summary"][payment_method_name] = {
+
+                daily_report_data_schema["payment_method_summary"][payment_method] = {
+                    "name":payment_method_name,
                     "total_order": payment_method_total_order,
                     "total_sell": round(payment_method_amount, 2),
                     "total_tax": round(payment_method_total_tax, 2),
                     "total_discount": round(payment_method_total_discount, 2),
                     "sell_percentage": round(payment_method_sell_percentage, 2)
                 }
+
+
+                # payment_method_summary.append({
+                #     "name":payment_method_name,
+                #     "total_order": payment_method_total_order,
+                #     "total_sell": round(payment_method_amount, 2),
+                #     "total_tax": round(payment_method_total_tax, 2),
+                #     "total_discount": round(payment_method_total_discount, 2),
+                #     "sell_percentage": round(payment_method_sell_percentage, 2)
+                # })
+
+
 
             # ------- Dining Order Summary -------
             dining_invoice_qs = Invoice.objects.filter(
@@ -3111,7 +3124,8 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                 takeway_order_type_total_discount = sum(takeway_order_type_invoice_qs.values_list("order__discount_amount", flat=True))
                 takeway_order_type_sell_percentage = (takeway_order_type_amount / payable_amount_overall) * 100
                 # => assign to data schema
-                daily_report_data_schema["takeway_order_details_summary"][takeway_order_type_name] = {
+                daily_report_data_schema["takeway_order_details_summary"][takeway_order_type] = {
+                    "name": takeway_order_type_name,
                     "total_order": takeway_order_type_total_order,
                     "total_sell": round(takeway_order_type_amount, 2),
                     "total_tax": round(takeway_order_type_total_tax, 2),
