@@ -3113,6 +3113,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             takeway_order_type_details_list = restaurant_qs.values_list(
                 'takeway_order_type', 'takeway_order_type__name'
             )
+            #
 
             for takeway_order_type, takeway_order_type_name in takeway_order_type_details_list:
                 takeway_order_type_invoice_qs = takeway_invoice_qs.filter(
