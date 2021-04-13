@@ -3392,24 +3392,53 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
 
         if getOnlyData == True:
+            # Category List
+            categories = []
+            category_qs = FoodCategory.objects.filter(
+                id__in=category_list
+            )
+            for category in category_qs:
+                categories.append(
+                    category.name
+                )
+            # Item List
+            items = []
+            item_qs = Food.objects.filter(
+                id__in=item_list
+            )
+            for item in item_qs:
+                items.append(
+                    item.name
+                )
+            # Waiter List
+            waiters = []
+            waiter_qs = HotelStaffInformation.objects.filter(
+                id__in=waiter_list
+            )
+            for waiter in waiter_qs:
+                waiters.append(
+                    waiter.name
+                )
+            # Restaurant
             restaurant_qs = Restaurant.objects.filter(
                 id=restaurant
             )
-            restaurant_name = "Undefined"
+            restaurant_object = None
             if restaurant_qs.exists():
-                restaurant_name = restaurant_qs.last().name
+                restaurant_object = restaurant_qs.last()
             result = {
-                "RestaurantName": restaurant_name,
+                "RestaurantObject": restaurant_object,
                 "FilterKeysData": {
                     "StartDate": start_date,
                     "EndDate": end_date.strftime("%Y-%m-%d"),
-                    "CategoryList": category_list,
-                    "ItemList": item_list,
-                    "WaiterList": waiter_list
+                    "CategoryList": categories,
+                    "ItemList": items,
+                    "WaiterList": waiters
                 },
                 "ReportObjectList": food_items_date_range_qs,
                 "TotalAmount": round(total_amaount, 2),
-                "TotalOrder": total_order
+                "TotalOrder": total_order,
+                "GeneratedAt": timezone.now()
             }
 
             return result
