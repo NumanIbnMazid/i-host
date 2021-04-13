@@ -3418,8 +3418,6 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         for col_num, row in enumerate(report_data.get("ReportObjectList", [])):
             row_num += 1
             for col_num in range(len(columns)):
-                # print(row_num, col_num, row, font_style, "GGGGGGGGGGG")
-                # ws.write(row_num, col_num, vars()[db_vars[col_num]], font_style)
                 if col_num == 0:
                     ws.write(row_num, col_num, row.order.order_no, font_style)
                 elif col_num == 1:
