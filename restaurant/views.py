@@ -3029,6 +3029,11 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         dining_order_summary = {}
         takeway_order_summary = {}
         takeway_order_details_summary = []
+        total_calculation = {}
+        total_payment_sell_percentage = 0.0
+        total_payment_sell_amount = 0.0
+        total_takeaway_sell_percentage = 0.0
+        total_takeaway_sell_amount = 0.0
 
         today = timezone.datetime.now()
         # (******* Uncomment after testing *******)
@@ -3090,6 +3095,10 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                 #     "total_discount": round(payment_method_total_discount, 2),
                 #     "sell_percentage": round(payment_method_sell_percentage, 2)
                 # }
+                total_payment_sell_percentage += round(payment_method_sell_percentage, 2)
+                total_payment_sell_amount += round(payment_method_amount, 2)
+
+
                 payment_method_summary.append({
                     'name':payment_method_name,
                     "total_order": payment_method_total_order,
@@ -3196,6 +3205,10 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                 #     "total_discount": round(takeway_order_type_total_discount, 2),
                 #     "sell_percentage": round(takeway_order_type_sell_percentage, 2)
                 # }
+
+                total_takeaway_sell_percentage += round(takeway_order_type_sell_percentage, 2)
+                total_takeaway_sell_amount += round(takeway_order_type_amount, 2)
+
                 takeway_order_details_summary.append(
                     {
                     "name": takeway_order_type_name,
@@ -3206,6 +3219,13 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                     "sell_percentage": round(takeway_order_type_sell_percentage, 2)
                      }
                 )
+            total_calculation = {
+                    'total_takeaway_sell_percentage':total_takeaway_sell_percentage,
+                    'total_takeaway_sell_amount':total_takeaway_sell_amount,
+                    'total_payment_sell_percentage':total_payment_sell_percentage,
+                    'total_payment_sell_amount':total_payment_sell_amount
+            }
+
 
             return ResponseWrapper(data={'payment_method_summary':payment_method_summary,
                                          'dining_order_summary':dining_order_summary,
@@ -3214,7 +3234,8 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                          'total_order':total_order,
                                          'total_sell':total_sell,
                                          'total_tax':total_tax,
-                                         'total_discount':total_discount
+                                         'total_discount':total_discount,
+                                         'total_calculation':total_calculation
                                          }, msg="success")
         else:
             return ResponseWrapper(error_msg="Invalid Restaurant ID", error_code=400)
