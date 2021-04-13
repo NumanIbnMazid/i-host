@@ -2669,13 +2669,22 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             )
 
             # Current Month takeway Order report
-            this_month_food_tw_order_qs = FoodOrder.objects.filter(
-                status='5_PAID', 
+            # this_month_food_tw_order_qs = FoodOrder.objects.filter(
+            #     status='5_PAID',
+            #     created_at__year=timezone.now().year,
+            #     created_at__month=timezone.now().month,
+            #     restaurant_id=restaurant_id,
+            #     takeway_order_type=takeway_order_type
+            # )
+
+            this_month_food_tw_order_qs = Invoice.objects.filter(
+                payment_status='1_PAID',
                 created_at__year=timezone.now().year,
-                created_at__month=timezone.now().month, 
+                created_at__month=timezone.now().month,
                 restaurant_id=restaurant_id,
-                takeway_order_type=takeway_order_type
+                order__takeway_order_type=takeway_order_type
             )
+
             current_month_total_order = this_month_food_tw_order_qs.count()
             this_month_takeway_order_type_payable_amount_list = this_month_food_tw_order_qs.values_list(
                 'payable_amount', flat=True
@@ -2692,12 +2701,19 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             )
 
             # Last month Takeway Order Report
-            last_month_food_tw_order_qs = FoodOrder.objects.filter(
-                status='5_PAID', 
+            # last_month_food_tw_order_qs = FoodOrder.objects.filter(
+            #     status='5_PAID',
+            #     created_at__year=last_month.year,
+            #     created_at__month=last_month.month,
+            #     restaurant_id=restaurant_id,
+            #     takeway_order_type=takeway_order_type
+            # )
+            last_month_food_tw_order_qs = Invoice.objects.filter(
+                payment_status='1_PAID',
                 created_at__year=last_month.year,
                 created_at__month=last_month.month,
                 restaurant_id=restaurant_id,
-                takeway_order_type=takeway_order_type
+                order__takeway_order_type=takeway_order_type
             )
             takeway_order_type_last_month_total_order = last_month_food_tw_order_qs.count()
             last_month_takeway_order_type_payable_amount_list = last_month_food_tw_order_qs.values_list(
@@ -2718,12 +2734,12 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             first_day_of_week = start_of_week - timedelta(days=7)
             last_day_of_week = first_day_of_week + timedelta(days=6)
 
-            weekly_tw_order_qs = FoodOrder.objects.filter(
+            weekly_tw_order_qs = Invoice.objects.filter(
                 created_at__gte=first_day_of_week.date(),
                 created_at__lte=last_day_of_week.date(), 
-                status='5_PAID',
+                payment_status='1_PAID',
                 restaurant_id=restaurant_id, 
-                takeway_order_type=takeway_order_type
+                order__takeway_order_type=takeway_order_type
             )
             weekly_total_order = weekly_tw_order_qs.count()
             weekly_takeway_order_type_payable_amount_list = weekly_tw_order_qs.values_list(
@@ -3011,9 +3027,14 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         # }
 
         payment_method_summary = []
-        dining_order_summary = []
-        takeway_order_summary = []
+        dining_order_summary = {}
+        takeway_order_summary = {}
         takeway_order_details_summary = []
+        total_calculation = {}
+        total_payment_sell_percentage = 0.0
+        total_payment_sell_amount = 0.0
+        total_takeaway_sell_percentage = 0.0
+        total_takeaway_sell_amount = 0.0
 
         today = timezone.datetime.now()
         # (******* Uncomment after testing *******)
@@ -3075,6 +3096,10 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                 #     "total_discount": round(payment_method_total_discount, 2),
                 #     "sell_percentage": round(payment_method_sell_percentage, 2)
                 # }
+                total_payment_sell_percentage += round(payment_method_sell_percentage, 2)
+                total_payment_sell_amount += round(payment_method_amount, 2)
+
+
                 payment_method_summary.append({
                     'name':payment_method_name,
                     "total_order": payment_method_total_order,
@@ -3108,13 +3133,17 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             #     "total_discount": round(dining_total_discount, 2),
             #     "sell_percentage": round(dining_total_sell_percentage, 2)
             # }
-            dining_order_summary.append({
+
+
+
+
+            dining_order_summary = {
                 "total_order": dining_total_order,
                 "total_sell": round(dining_total_sell, 2),
                 "total_tax": round(dining_total_tax, 2),
                 "total_discount": round(dining_total_discount, 2),
                 "sell_percentage": round(dining_total_sell_percentage, 2)
-            })
+            }
 
             # ------- Takeway Order Summary -------
             takeway_invoice_qs = Invoice.objects.filter(
@@ -3137,15 +3166,18 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             #     "total_discount": round(takeway_total_discount, 2),
             #     "sell_percentage": round(takeway_total_sell_percentage, 2)
             # }
-            takeway_order_summary.append(
-                {
-                "total_order": takeway_total_order,
-                "total_sell": round(takeway_total_sell, 2),
-                "total_tax": round(takeway_total_tax, 2),
-                "total_discount": round(takeway_total_discount, 2),
-                "sell_percentage": round(takeway_total_sell_percentage, 2)
+
+
+
+            takeway_order_summary ={
+                    "total_order": takeway_total_order,
+                    "total_sell": round(takeway_total_sell, 2),
+                    "total_tax": round(takeway_total_tax, 2),
+                    "total_discount": round(takeway_total_discount, 2),
+                    "sell_percentage": round(takeway_total_sell_percentage, 2)
                 }
-            )
+
+
 
             # ------- Takeway Order Details Summary -------
             takeway_order_type_details_list = restaurant_qs.values_list(
@@ -3174,6 +3206,10 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                 #     "total_discount": round(takeway_order_type_total_discount, 2),
                 #     "sell_percentage": round(takeway_order_type_sell_percentage, 2)
                 # }
+
+                total_takeaway_sell_percentage += round(takeway_order_type_sell_percentage, 2)
+                total_takeaway_sell_amount += round(takeway_order_type_amount, 2)
+
                 takeway_order_details_summary.append(
                     {
                     "name": takeway_order_type_name,
@@ -3184,6 +3220,13 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                     "sell_percentage": round(takeway_order_type_sell_percentage, 2)
                      }
                 )
+            total_calculation = {
+                    'total_takeaway_sell_percentage':total_takeaway_sell_percentage,
+                    'total_takeaway_sell_amount':total_takeaway_sell_amount,
+                    'total_payment_sell_percentage':total_payment_sell_percentage,
+                    'total_payment_sell_amount':total_payment_sell_amount
+            }
+
 
             return ResponseWrapper(data={'payment_method_summary':payment_method_summary,
                                          'dining_order_summary':dining_order_summary,
@@ -3192,7 +3235,8 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                                          'total_order':total_order,
                                          'total_sell':total_sell,
                                          'total_tax':total_tax,
-                                         'total_discount':total_discount
+                                         'total_discount':total_discount,
+                                         'total_calculation':total_calculation
                                          }, msg="success")
         else:
             return ResponseWrapper(error_msg="Invalid Restaurant ID", error_code=400)
