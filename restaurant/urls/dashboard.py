@@ -276,7 +276,7 @@ dashboard_urls = [
     path('top_food_items_by_date_range/<int:restaurant_id>/',
          InvoiceViewSet.as_view({'post': 'top_food_items_by_date_range'}), name='top_food_items_by_date_range'),
 
-    path('print-datewise-report-pdf/<int:restaurant_id>/',
+    path('generate-datewise-report-pdf/<int:restaurant_id>/',
          InvoiceViewSet.as_view({'post': 'generate_datewise_filtered_report_pdf'}), name='generate_datewise_report_pdf'),
     path('generate-datewise-report-excel/<int:restaurant_id>/',
          InvoiceViewSet.as_view({'post': 'generate_datewise_filtered_report_excel'}), name='generate_datewise_filtered_report_excel'),
