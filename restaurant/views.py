@@ -3379,7 +3379,70 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
     pagination_class = property(get_pagination_class)
 
+
     def generate_datewise_filtered_report_excel(self, request, restaurant_id, *args, **kwargs):
+        """
+        Generates Excel File of Datewise Filtered Report
+        params => restaurant_id (int)
+        """
+
+        def attach_report_information(sheet=None, report_data=None):
+            """
+            Attach report information (filtered keys)
+            params => sheet (Workbook sheet instance), report_data (object)
+            """
+            info_columns = [
+                {"*** Report Info ***": "*** Data ***"},
+                {"Restaurant": report_data['RestaurantObject'].name},
+                {"Start Date": report_data['FilterKeysData']['StartDate']},
+                {"End Date": report_data['FilterKeysData']['EndDate']},
+                {"Category List": report_data['FilterKeysData']
+                    ['CategoryList']},
+                {"Item List": report_data['FilterKeysData']['ItemList']},
+                {"Waiter List": report_data['FilterKeysData']['WaiterList']},
+                {"Total Order": report_data['TotalOrder']},
+                {"Total Amount": report_data['TotalAmount']},
+                {"Generated At": report_data['GeneratedAt']}
+            ]
+
+            i_counter = 0
+            start_range = len(columns) + 3
+            end_range = start_range + 2
+
+            for single_info in info_columns:
+                i_counter += 1
+                for col_num in range(start_range, end_range):
+                    # Fix Style
+                    cwidth = ws.col(col_num).width
+
+                    if start_range == col_num:
+                        # Data
+                        data = list(info_columns[i_counter-1].keys())[0]
+                        # Fix Style
+                        if (len(str(data))*367) > cwidth:
+                            ws.col(col_num).width = (len(str(data))*367)
+                        font_style = xlwt.XFStyle()
+                        font_style.font.bold = True
+                        # Write
+                        ws.write(i_counter, col_num, data, font_style)
+                    else:
+                        # Data
+                        data = info_columns[i_counter -
+                                            1].get(list(info_columns[i_counter-1].keys())[0], "-")
+                        # Fix Style
+                        if (len(str(data))*367) > cwidth:
+                            ws.col(col_num).width = (len(str(data))*367)
+                        font_style = xlwt.XFStyle()
+                        if i_counter == 1:
+                            font_style.font.bold = True
+                        else:
+                            font_style.font.bold = False
+                        # Write
+                        ws.write(i_counter, col_num, data, font_style)
+
+            # pass the return argument
+            pass
+
         # check permission
         self.check_object_permissions(request, obj=restaurant_id)
 
@@ -3390,15 +3453,12 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         )
         # File Name
         today = timezone.datetime.now()
-        datetime_str = today.strftime("%Y%m%d%H%M%S")
-        # target_filename = f"report_{datetime_str}.xls"
         target_filename = f"report_({report_data['FilterKeysData']['StartDate']}_to_{report_data['FilterKeysData']['EndDate']}).xls"
 
         response = HttpResponse(content_type='application/ms-excel')
         response['Content-Disposition'] = f'attachment; filename="{target_filename}"'
 
         wb = xlwt.Workbook(encoding='utf-8')
-        # ws = wb.add_sheet(f"Report [Date: {report_data['FilterKeysData']['StartDate']} TO {report_data['FilterKeysData']['EndDate']}], Category List: {report_data['FilterKeysData']['CategoryList']}, Item List: {report_data['FilterKeysData']['ItemList']}, Waiter List: {report_data['FilterKeysData']['WaiterList']}")
         ws = wb.add_sheet(f"Report")
 
         # Sheet header, first row
@@ -3409,53 +3469,87 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
         columns = ['Order Number', 'Table Number', 'Time', 'Customer Name', 'Waiter Name', 'Price', 'Vat Amount', 'Discount Price', 'Net Price',]
         
+        # Define Fixed Width Cols
+        fixed_width_cols = {
+            "Time": 6000
+        }
+        # Generate
         for col_num in range(len(columns)):
+            # Fix Style
+            cwidth = ws.col(col_num).width
+            if columns[col_num] in fixed_width_cols.keys():
+                ws.col(col_num).width = fixed_width_cols.get(columns[col_num], 3300)
+            else:
+                if (len(str(columns[col_num]))*367) > cwidth:
+                    ws.col(col_num).width = (len(str(columns[col_num]))*367)
+            # Write
             ws.write(row_num, col_num, columns[col_num], font_style)
 
         # Sheet body, remaining rows
         font_style = xlwt.XFStyle()
 
-        for col_num, row in enumerate(report_data.get("ReportObjectList", [])):
+        for row in report_data.get("ReportObjectList", []):
             row_num += 1
             for col_num in range(len(columns)):
                 if col_num == 0:
+                    # Write
                     ws.write(row_num, col_num, row.order.order_no, font_style)
                 elif col_num == 1:
                     if not row.order_info["table_no"] == None and not row.order_info["table_no"] == "":
-                        ws.write(row_num, col_num, row.order_info.get(
-                            "table_no", "-"), font_style)
+                        # Write
+                        ws.write(row_num, col_num, row.order_info.get("table_no", "-"), font_style)
                     else:
                         ws.write(row_num, col_num, "-", font_style)
                 elif col_num == 2:
-                    ws.write(row_num, col_num, row.created_at, font_style)
+                    # Write
+                    ws.write(row_num, col_num, row.created_at.strftime(
+                        "%Y-%m-%d %H:%M:%S"), font_style)
                 elif col_num == 3:
                     if not row.order_info["customer"] == None and not row.order_info["customer"] == "":
+                        # Write
                         ws.write(row_num, col_num, row.order_info["customer"].get("name", "-"), font_style)
                     else:
                         ws.write(row_num, col_num, "-", font_style)
                 elif col_num == 4:
                     if not row.order_info["waiter"] == None and not row.order_info["waiter"] == "":
-                        ws.write(row_num, col_num, row.order_info["waiter"].get("name", "-"), font_style)
+                        try:
+                            if not row.order_info["waiter"]["name"] == None and not row.order_info["waiter"]["name"] == "":
+                                # Write
+                                ws.write(row_num, col_num, row.order_info["waiter"].get("name", "-"), font_style)
+                            else:
+                                ws.write(row_num, col_num, "-", font_style)
+                        except Exception as E:
+                            ws.write(row_num, col_num, "-", font_style)
                     else:
                         ws.write(row_num, col_num, "-", font_style)
                 elif col_num == 5:
+                    # Write
                     ws.write(row_num, col_num, row.order_info["price"].get("grand_total_price", "-"), font_style)
                 elif col_num == 6:
-                    ws.write(row_num, col_num, row.order_info["price"].get(
-                        "tax_amount", "-"), font_style)
+                    # Write
+                    ws.write(row_num, col_num, row.order_info["price"].get("tax_amount", "-"), font_style)
                 elif col_num == 7:
-                    ws.write(row_num, col_num, row.order_info["price"].get(
-                        "discount_amount", "-"), font_style)
+                    # Write
+                    ws.write(row_num, col_num, row.order_info["price"].get("discount_amount", "-"), font_style)
                 elif col_num == 8:
-                    ws.write(row_num, col_num, row.order_info["price"].get(
-                        "payable_amount", "-"), font_style)
+                    # Write
+                    ws.write(row_num, col_num, row.order_info["price"].get("payable_amount", "-"), font_style)
                 else:
                     ws.write(row_num, col_num, "-", font_style)
 
+        # Attach Report Information
+        attach_report_information(sheet=ws, report_data=report_data)
+        # Save the workbook
         wb.save(response)
+        # return the instance
         return response
 
     def generate_datewise_filtered_report_pdf(self, request, restaurant_id, *args, **kwargs):
+        """
+        Generates PDF of datewise filtered report
+        params => restaurant_id (int)
+        """
+        # Check permission
         self.check_object_permissions(request, obj=restaurant_id)
 
         # Get report data
@@ -3463,17 +3557,20 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
         template_path = 'report/report-pdf.html'
         today = timezone.datetime.now()
-        datetime_str = today.strftime("%Y%m%d%H%M%S")
+        # datetime_str = today.strftime("%Y%m%d%H%M%S")
         # target_filename = f"report_{datetime_str}.pdf"
         target_filename = f"report_({report_data['FilterKeysData']['StartDate']}_to_{report_data['FilterKeysData']['EndDate']}).pdf"
 
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="{target_filename}"'
 
+        # render html
         html = render_to_string(template_path, {'report_data': report_data})
 
+        # Create PDF
         pisaStatus = pisa.CreatePDF(html, dest=response)
 
+        # return the response
         return response
 
     # @swagger_auto_schema(
@@ -3582,6 +3679,10 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
 
 
         if getOnlyData == True:
+            # End Date
+            today = timezone.datetime.now()
+            filtered_end_date = end_date.strftime("%Y-%m-%d") if datetime.strptime(
+            end_date.strftime("%Y-%m-%d"), '%Y-%m-%d') <= datetime.strptime(str(today.date()), '%Y-%m-%d') else today.strftime("%Y-%m-%d")
             # Category List
             categories = []
             category_qs = FoodCategory.objects.filter(
@@ -3620,15 +3721,15 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
                 "RestaurantObject": restaurant_object,
                 "FilterKeysData": {
                     "StartDate": start_date,
-                    "EndDate": end_date.strftime("%Y-%m-%d"),
-                    "CategoryList": categories,
-                    "ItemList": items,
-                    "WaiterList": waiters
+                    "EndDate": filtered_end_date,
+                    "CategoryList": str(categories),
+                    "ItemList": str(items),
+                    "WaiterList": str(waiters)
                 },
                 "ReportObjectList": food_items_date_range_qs,
                 "TotalAmount": round(total_amaount, 2),
                 "TotalOrder": total_order,
-                "GeneratedAt": timezone.now()
+                "GeneratedAt": timezone.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
 
             return result
