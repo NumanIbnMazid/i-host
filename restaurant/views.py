@@ -3413,32 +3413,32 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
                 i_counter += 1
                 for col_num in range(start_range, end_range):
                     # Fix Style
-                    cwidth = ws.col(col_num).width
+                    cwidth = sheet.col(col_num).width
 
                     if start_range == col_num:
                         # Data
                         data = list(info_columns[i_counter-1].keys())[0]
                         # Fix Style
                         if (len(str(data))*367) > cwidth:
-                            ws.col(col_num).width = (len(str(data))*367)
+                            sheet.col(col_num).width = (len(str(data))*367)
                         font_style = xlwt.XFStyle()
                         font_style.font.bold = True
                         # Write
-                        ws.write(i_counter, col_num, data, font_style)
+                        sheet.write(i_counter, col_num, data, font_style)
                     else:
                         # Data
                         data = info_columns[i_counter -
                                             1].get(list(info_columns[i_counter-1].keys())[0], "-")
                         # Fix Style
                         if (len(str(data))*367) > cwidth:
-                            ws.col(col_num).width = (len(str(data))*367)
+                            sheet.col(col_num).width = (len(str(data))*367)
                         font_style = xlwt.XFStyle()
                         if i_counter == 1:
                             font_style.font.bold = True
                         else:
                             font_style.font.bold = False
                         # Write
-                        ws.write(i_counter, col_num, data, font_style)
+                        sheet.write(i_counter, col_num, data, font_style)
 
             # pass the return argument
             pass
