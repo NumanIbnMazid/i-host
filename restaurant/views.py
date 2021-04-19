@@ -2601,6 +2601,10 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         return first_day_of_all_month
 
 
+    def canceled_food_item_report(self, restaurant_id=None):
+        pass
+
+
     def get_takeway_order_type_report_data(self, restaurant_id=None):
         """
         Generates Takeway Order Type Report Data
@@ -3396,8 +3400,8 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
                 {"Restaurant": report_data['RestaurantObject'].name},
                 {"Start Date": report_data['FilterKeysData']['StartDate']},
                 {"End Date": report_data['FilterKeysData']['EndDate']},
-                {"Category List": report_data['FilterKeysData']
-                    ['CategoryList']},
+                # {"Category List": report_data['FilterKeysData']
+                #     ['CategoryList']},
                 {"Item List": report_data['FilterKeysData']['ItemList']},
                 {"Waiter List": report_data['FilterKeysData']['WaiterList']},
                 {"Total Order": report_data['TotalOrder']},
