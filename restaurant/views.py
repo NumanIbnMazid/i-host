@@ -105,7 +105,8 @@ from .serializers import (
     FoodOrderPromoCodeSerializer, DiscountPostSerializer, PaymentWithAmaountSerializer,
     CashLogSerializer, RestaurantOpeningSerializer, RestaurantClosingSerializer,
     WithdrawCashSerializer, ForceDiscountSerializer, PromoCodePromotionSerializer,
-    PromoCodePromotionDetailsSerializer, TakewayOrderTypeSerializer
+    PromoCodePromotionDetailsSerializer, TakewayOrderTypeSerializer,
+    CanceledFoodItemReportSerializer
 )
 from .signals import order_done_signal, kitchen_items_print_signal
 
@@ -2600,10 +2601,27 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
         return first_day_of_all_month
 
+    def canceled_food_item_report(self, request, restaurant_id, *args, **kwargs):
+        # Original QS
+        canceled_ordered_item_qs = OrderedItem.objects.filter(
+            status__iexact="4_CANCELLED", 
+            food_order__restaurant_id=restaurant_id
+        )
+        # Testing QS
+        # canceled_ordered_item_qs = OrderedItem.objects.filter(
+        #     status__iexact="4_CANCELLED", food_order__restaurant_id=restaurant_id,
+        #     food_order__created_at__year="2021",
+        #     food_order__created_at__month="04",
+        #     food_order__created_at__day__gte="15"
+        # )
 
-    def canceled_food_item_report(self, restaurant_id=None):
-        pass
-
+        serializer = CanceledFoodItemReportSerializer(
+            instance=canceled_ordered_item_qs, many=True
+        )
+        return ResponseWrapper(
+            data=serializer.data,
+            msg="success"
+        )
 
     def get_takeway_order_type_report_data(self, restaurant_id=None):
         """
