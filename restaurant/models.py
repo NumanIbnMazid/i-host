@@ -239,6 +239,10 @@ class FoodOrder(SoftDeleteModel):
     discount_given = models.FloatField(null=True, blank=True)
     discount_amount_is_percentage = models.BooleanField(default=False)
     discount_base_amount = models.FloatField(default=False)
+    take_away_discount_given = models.FloatField(null=True, blank=True)
+    take_away_discount_amount_is_percentage = models.BooleanField(default=False)
+    take_away_discount_base_amount = models.FloatField(default=False)
+
 
 
     def __str__(self):
