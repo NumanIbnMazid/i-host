@@ -3457,9 +3457,9 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         )
         # File Name
         today = timezone.datetime.now()
-        target_filename = f"report_({report_data['FilterKeysData']['StartDate']}_to_{report_data['FilterKeysData']['EndDate']}).xls"
+        target_filename = f"report_({report_data['FilterKeysData']['StartDate']}_to_{report_data['FilterKeysData']['EndDate']}).xlsx"
 
-        response = HttpResponse(content_type='application/ms-excel')
+        response = HttpResponse(content_type='application/vnd.ms-excel')
         response['Content-Disposition'] = f'attachment; filename="{target_filename}"'
 
         wb = xlwt.Workbook(encoding='utf-8')
