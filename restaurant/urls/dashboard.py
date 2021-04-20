@@ -222,6 +222,8 @@ fake_dashboard_urls = [
          RestaurantMessagesViewset.as_view({'get': 'restaurant_messages_list'}, name='restaurant_messages_list')),
     path('force_discount/<int:order_id>',
          DiscountViewSet.as_view({'post': 'force_discount'}, name='force_discount')),
+    path('take_away_discount/<int:order_id>',
+         DiscountViewSet.as_view({'post': 'take_away_discount'}, name='take_away_discount')),
 
 ]
 
