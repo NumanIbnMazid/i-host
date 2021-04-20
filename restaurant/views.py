@@ -1069,12 +1069,14 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
                 pass
     def create_take_away_order(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if not serializer.is_valid():
-            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
         restaurant_id = request.data.get('restaurant')
         takeway_order_type_id = request.data.get('takeway_order_type')
         if not takeway_order_type_id:
-            return ResponseWrapper(error_msg=[' Take Away Type Not Selected'], error_code=400)
+            return ResponseWrapper(error_msg=['Take Away Type Not Selected'], error_code=400)
+
+        if not serializer.is_valid():
+            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+
         self.check_object_permissions(request, obj=restaurant_id)
         food_order_dict = {}
         if restaurant_id:
