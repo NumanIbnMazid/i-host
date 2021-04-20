@@ -106,7 +106,7 @@ from .serializers import (
     CashLogSerializer, RestaurantOpeningSerializer, RestaurantClosingSerializer,
     WithdrawCashSerializer, ForceDiscountSerializer, PromoCodePromotionSerializer,
     PromoCodePromotionDetailsSerializer, TakewayOrderTypeSerializer,
-    CanceledFoodItemReportSerializer
+    CanceledFoodItemReportSerializer, TakeAwayOrderDiscountSerializer
 )
 from .signals import order_done_signal, kitchen_items_print_signal
 
@@ -3935,6 +3935,8 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = DiscountByFoodSerializer
         elif self.action in ['force_discount']:
             self.serializer_class = ForceDiscountSerializer
+        elif self.action in ['take_away_discount']:
+            self.serializer_class = TakeAwayOrderDiscountSerializer
 
         return self.serializer_class
 
@@ -4122,14 +4124,33 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         discount_amount_is_percentage = request.data.get('discount_amount_is_percentage')
         qs.discount_given = discount_given
         qs.discount_amount_is_percentage = discount_amount_is_percentage
+        qs.discount_base_amount = discount_given
         qs.save
         serializer = FoodOrderByTableSerializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='success')
 
+    def take_away_discount(self,request, order_id, *args, **kwargs):
+        qs = FoodOrder.objects.filter(pk = order_id).last()
+        if not qs:
+            return ResponseWrapper(error_msg=['Food order is not valid'], error_code=400)
+        if qs.table:
+            return ResponseWrapper(error_msg=['This is not Take Away Order'],  error_code=400)
+        take_away_discount_amount = request.data.get('take_away_discount_amount')
+        take_away_discount_amount_is_percentage = request.data.get('take_away_discount_amount_is_percentage')
+        if take_away_discount_amount < 0:
+            return ResponseWrapper(error_msg=['Discount amount is not valid'], error_code=400)
+        if take_away_discount_amount > qs.payable_amount:
+            return ResponseWrapper(error_msg=['Discount amount is grater then payable amount'], error_code=400)
+        if take_away_discount_amount_is_percentage == True and take_away_discount_amount > 100:
+            return ResponseWrapper(error_msg=['Discount Amount is must less then 100'], error_code=400)
+        qs.take_away_discount_given = take_away_discount_amount
+        qs.take_away_discount_amount_is_percentage = take_away_discount_amount_is_percentage
+        qs.take_away_discount_base_amount =  take_away_discount_amount
+        qs.save()
+        serializer = FoodOrderByTableSerializer(instance=qs)
+        return ResponseWrapper(data=serializer.data, msg='success')
 
 
-
-#
 class FcmCommunication(viewsets.GenericViewSet):
     serializer_class = StaffFcmSerializer
 

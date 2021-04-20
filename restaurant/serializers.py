@@ -1440,6 +1440,12 @@ class ForceDiscountSerializer(serializers.ModelSerializer):
         model = FoodOrder
         fields = ['force_discount_amount', 'discount_amount_is_percentage']
 
+class TakeAwayOrderDiscountSerializer(serializers.ModelSerializer):
+    take_away_discount_amount = serializers.FloatField(source='take_away_discount_given')
+    class Meta:
+        model = FoodOrder
+        fields = ['take_away_discount_amount','take_away_discount_amount_is_percentage']
+
 
 class PromoCodePromotionSerializer(serializers.ModelSerializer):
     # restaurant = RestaurantInfoSerializer(read_only=True)
