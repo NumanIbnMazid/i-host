@@ -3059,7 +3059,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         )
 
         invoice_filter_qs = Invoice.objects.filter(
-            restaurant_id=restaurant,
+            restaurant_id=restaurant_id,
             created_at__gte=start_date, 
             created_at__lte=end_date,
             payment_status='1_PAID'
@@ -3084,6 +3084,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
 
         total_amount = sum(total_payable_amount)
 
+        # return argument
         pass
 
     def get_dashboard_daily_report(self, request, restaurant_id, *args, **kwargs):
