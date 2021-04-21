@@ -2372,8 +2372,8 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
     def get_serializer_class(self):
         if self.action in ['report_by_date_range']:
             self.serializer_class = ReportDateRangeSerializer
-        elif self.action in ["get_invoice_short_report"]:
-            self.serializer_class = ReportByDateRangeSerializer
+        # elif self.action in ["get_invoice_short_report"]:
+        #     self.serializer_class = ReportByDateRangeSerializer
 
         # if self.action in ['waiter_report_by_date_range']:
         #     self.serializer_class = ReportDateRangeSerializer
@@ -3062,8 +3062,13 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         openapi.Parameter("limit", openapi.IN_QUERY,
                           type=openapi.TYPE_INTEGER),
         openapi.Parameter("offset", openapi.IN_QUERY,
-                          type=openapi.TYPE_INTEGER)
-    ])
+                          type=openapi.TYPE_INTEGER),
+
+    ],
+    request_body=ReportByDateRangeSerializer)
+    # @swagger_auto_schema(
+    #     request_body=ReportDateRangeSerializer
+    # )
     def get_invoice_short_report(self, request, restaurant_id, *args, **kwargs):
         # Result placeholders
         payment_method_summary = []
