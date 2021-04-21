@@ -1378,8 +1378,14 @@ class TakeAwayOrderSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_running_order(self, obj):
-        if obj.running_order:
+        if obj:
             pass
+
+# class TakeAwayOrderDetailsSerializer(serializers.ModelSerializer):
+#
+#     class Meta:
+#         model = TakeAwayOrder
+#         fields = '__all__'
 
 
 class RestaurantInfoSerializer(serializers.ModelSerializer):
