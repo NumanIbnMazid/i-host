@@ -3058,17 +3058,15 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             msg="success"
         )
 
-    @swagger_auto_schema(manual_parameters=[
-        openapi.Parameter("limit", openapi.IN_QUERY,
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter("limit", openapi.IN_QUERY,
+                            type=openapi.TYPE_INTEGER),
+            openapi.Parameter("offset", openapi.IN_QUERY,
                           type=openapi.TYPE_INTEGER),
-        openapi.Parameter("offset", openapi.IN_QUERY,
-                          type=openapi.TYPE_INTEGER),
-
-    ],
-    request_body=ReportByDateRangeSerializer)
-    # @swagger_auto_schema(
-    #     request_body=ReportDateRangeSerializer
-    # )
+        ],
+        request_body=ReportByDateRangeSerializer
+    )
     def get_invoice_short_report(self, request, restaurant_id, *args, **kwargs):
         # Result placeholders
         payment_method_summary = []
