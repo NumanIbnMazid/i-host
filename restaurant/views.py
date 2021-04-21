@@ -4841,11 +4841,11 @@ class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
     http_method_names = ['post', 'patch', 'get', 'delete']
 
     def take_away_order(self, request, restaurant_id, *args, **kwargs):
-        qs = TakeAwayOrder.objects.filter(restaurant_id=restaurant_id)
-        if not qs.first():
+        qs = TakeAwayOrder.objects.filter(restaurant_id=restaurant_id).first()
+        if not qs:
             return ResponseWrapper(msg='No Take Away Order is Available')
-        serializer = TakeAwayOrderSerializer(instance=qs, many=True)
-        # serializer = TakeAwayOrderDetailsSerializer(instance = qs, many=True)
+        serializer = FoodOrderByTableSerializer(instance=qs.running_order.exclude(
+            status__in=['5_PAID', '6_CANCELLED']), many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
 
