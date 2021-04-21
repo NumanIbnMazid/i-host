@@ -2365,11 +2365,14 @@ class FoodOrderViewSet(CustomViewSet):
 
 
 class ReportingViewset(LoggingMixin, viewsets.ViewSet):
+    # serializer_class = InvoiceSerializer
     logging_methods = ['GET', 'POST', 'PATCH', 'DELETE']
 
     def get_serializer_class(self):
         if self.action in ['report_by_date_range']:
             self.serializer_class = ReportDateRangeSerializer
+        elif self.action in ["get_invoice_short_report"]:
+            self.serializer_class = ReportByDateRangeSerializer
 
         # if self.action in ['waiter_report_by_date_range']:
         #     self.serializer_class = ReportDateRangeSerializer
@@ -2384,11 +2387,23 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             permission_classes = [
                 custom_permissions.IsRestaurantStaff
             ]
+        elif self.action in ['get_invoice_short_report']:
+            permission_classes = [
+                custom_permissions.IsRestaurantManagementOrAdmin
+            ]
         # elif self.action == "retrieve" or self.action == "update":
         #     permission_classes = [permissions.AllowAny]
         # else:
         #     permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
+
+    def get_pagination_class(self):
+        if self.action in ['get_invoice_short_report']:
+            return CustomLimitPagination
+        else:
+            return None
+
+    pagination_class = property(get_pagination_class)
 
     """
     @swagger_auto_schema(
@@ -3042,15 +3057,29 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             msg="success"
         )
 
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter("limit", openapi.IN_QUERY,
+                          type=openapi.TYPE_INTEGER),
+        openapi.Parameter("offset", openapi.IN_QUERY,
+                          type=openapi.TYPE_INTEGER)
+    ])
     def get_invoice_short_report(self, request, restaurant_id, *args, **kwargs):
+        # Result placeholders
+        payment_method_summary = []
+        dining_order_summary = {}
+        takeway_order_summary = {}
+        takeway_order_details_summary = []
+        total_calculation = {}
+        total_payment_sell_percentage = 0.0
+        total_payment_sell_amount = 0.0
+        total_takeaway_sell_percentage = 0.0
+        total_takeaway_sell_amount = 0.0
+
+        # Define Filter Keys
         pre_start_date = request.data.get('start_date', timezone.now().date())
         pre_end_date = request.data.get('end_date', timezone.now().date())
-        # category_list = request.data.get("category", [])
         item_list = request.data.get('item', [])
         waiter_list = request.data.get('waiter', [])
-        # if request.data.get('end_date'):
-        #     end_date = datetime.strptime(end_date, '%Y-%m-%d')
-        # end_date += timedelta(days=1)
         start_date = datetime.strptime(
             str(pre_start_date) + " 00:00:00", '%Y-%m-%d %H:%M:%S'
         )
@@ -3058,34 +3087,238 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
             str(pre_end_date) + " 23:59:59", '%Y-%m-%d %H:%M:%S'
         )
 
-        invoice_filter_qs = Invoice.objects.filter(
-            restaurant_id=restaurant_id,
-            created_at__gte=start_date, 
-            created_at__lte=end_date,
-            payment_status='1_PAID'
-        ).order_by('-created_at').distinct()
+        # Verify Restaurant
+        restaurant_qs = Restaurant.objects.filter(id=restaurant_id)
+        if restaurant_qs.exists():
 
-        if item_list:
-            invoice_filter_qs = invoice_filter_qs.filter(
-                Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list)
+            # Filter Queryset
+            invoice_filter_qs = Invoice.objects.filter(
+                restaurant_id=restaurant_id,
+                created_at__gte=start_date, 
+                created_at__lte=end_date,
+                payment_status='1_PAID'
             ).order_by('-created_at').distinct()
-        # if category_list:
-        #     invoice_filter_qs = Invoice.objects.filter(
-        #         order__ordered_items__food_option__food__category_id__in=category_list
-        #     ).order_by('-created_at').distinct()
-        if waiter_list:
-            invoice_filter_qs = invoice_filter_qs.filter(
-                order__food_order_logs__staff_id__in=waiter_list
-            ).order_by('-created_at').distinct()
-        total_order = invoice_filter_qs.count()
-        total_payable_amount = invoice_filter_qs.values_list(
-            'payable_amount', flat=True
-        )
 
-        total_amount = sum(total_payable_amount)
+            if item_list:
+                invoice_filter_qs = invoice_filter_qs.filter(
+                    Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list)
+                ).order_by('-created_at').distinct()
+            if waiter_list:
+                invoice_filter_qs = invoice_filter_qs.filter(
+                    order__food_order_logs__staff_id__in=waiter_list
+                ).order_by('-created_at').distinct()
+            total_order = invoice_filter_qs.count()
+            total_payable_amount = invoice_filter_qs.values_list(
+                'payable_amount', flat=True
+            )
 
-        # return argument
-        pass
+            total_amount = sum(total_payable_amount)
+
+            # ------- Overall Order Summary -------
+            total_order_count_overall = invoice_filter_qs.count()
+            payable_amount_overall = sum(
+                invoice_filter_qs.values_list('payable_amount', flat=True))
+            tax_overall = sum(invoice_filter_qs.values_list(
+                'order__tax_amount', flat=True))
+            discount_overall = sum(invoice_filter_qs.values_list(
+                'order__discount_amount', flat=True))
+
+            total_order = total_order_count_overall
+            total_sell = round(payable_amount_overall, 2)
+            total_tax = round(tax_overall,2)
+            total_discount =  round(discount_overall, 2)
+
+            # ------- Payment Method Summary -------
+            payment_method_details_list = restaurant_qs.values_list(
+                'payment_type', 'payment_type__name')
+
+            for payment_method, payment_method_name in payment_method_details_list:
+                order_invoice_qs = Invoice.objects.filter(
+                    order__payment_method=payment_method, restaurant_id=restaurant_id, payment_status__iexact="1_PAID", 
+                    created_at__gte=start_date, 
+                    created_at__lte=end_date
+                )
+
+                if item_list:
+                    order_invoice_qs = order_invoice_qs.filter(
+                        Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list)
+                    ).order_by('-created_at').distinct()
+                if waiter_list:
+                    order_invoice_qs = order_invoice_qs.filter(
+                        order__food_order_logs__staff_id__in=waiter_list
+                    ).order_by('-created_at').distinct()
+
+                payment_method_total_order = order_invoice_qs.count()
+                payment_method_amount = sum(
+                    order_invoice_qs.values_list('payable_amount', flat=True))
+                payment_method_total_tax = sum(
+                    order_invoice_qs.values_list("order__tax_amount", flat=True))
+                payment_method_total_discount = sum(
+                    order_invoice_qs.values_list("order__discount_amount", flat=True))
+
+                if payable_amount_overall < 1:
+                    payment_method_sell_percentage = 0
+                else:
+                    payment_method_sell_percentage = (
+                        payment_method_amount / payable_amount_overall) * 100
+                total_payment_sell_percentage += round(
+                    payment_method_sell_percentage, 2)
+                total_payment_sell_amount += round(payment_method_amount, 2)
+
+                payment_method_summary.append({
+                    'name': payment_method_name,
+                    "total_order": payment_method_total_order,
+                    "total_sell": round(payment_method_amount, 2),
+                    "total_tax": round(payment_method_total_tax, 2),
+                    "total_discount": round(payment_method_total_discount, 2),
+                    "sell_percentage": round(payment_method_sell_percentage, 2)
+
+                })
+
+            # ------- Dining Order Summary -------
+            dining_invoice_qs = Invoice.objects.filter(
+                ~Q(order__table=None),
+                Q(payment_status__iexact="1_PAID", restaurant_id=restaurant_id, created_at__gte=start_date,
+                    created_at__lte=end_date
+                  ))
+
+            if item_list:
+                dining_invoice_qs = dining_invoice_qs.filter(
+                    Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list)
+                ).order_by('-created_at').distinct()
+            if waiter_list:
+                dining_invoice_qs = dining_invoice_qs.filter(
+                    order__food_order_logs__staff_id__in=waiter_list
+                ).order_by('-created_at').distinct()
+                
+            dining_total_order = dining_invoice_qs.count()
+            dining_total_sell = sum(
+                dining_invoice_qs.values_list("payable_amount", flat=True))
+            dining_total_tax = sum(dining_invoice_qs.values_list(
+                "order__tax_amount", flat=True))
+            dining_total_discount = sum(dining_invoice_qs.values_list(
+                "order__discount_amount", flat=True))
+            if payable_amount_overall < 1:
+                dining_total_sell_percentage = 0
+            else:
+                dining_total_sell_percentage = (
+                    dining_total_sell / payable_amount_overall) * 100
+
+            dining_order_summary = {
+                "total_order": dining_total_order,
+                "total_sell": round(dining_total_sell, 2),
+                "total_tax": round(dining_total_tax, 2),
+                "total_discount": round(dining_total_discount, 2),
+                "sell_percentage": round(dining_total_sell_percentage, 2)
+            }
+
+            # ------- Takeway Order Summary -------
+            takeway_invoice_qs = Invoice.objects.filter(
+                Q(order__table=None),
+                Q(payment_status__iexact="1_PAID", restaurant_id=restaurant_id, created_at__gte=start_date,
+                    created_at__lte=end_date
+                  ))
+            
+            if item_list:
+                takeway_invoice_qs = takeway_invoice_qs.filter(
+                    Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list)
+                ).order_by('-created_at').distinct()
+            if waiter_list:
+                takeway_invoice_qs = takeway_invoice_qs.filter(
+                    order__food_order_logs__staff_id__in=waiter_list
+                ).order_by('-created_at').distinct()
+
+            takeway_total_order = takeway_invoice_qs.count()
+            takeway_total_sell = sum(
+                takeway_invoice_qs.values_list("payable_amount", flat=True))
+            takeway_total_tax = sum(takeway_invoice_qs.values_list(
+                "order__tax_amount", flat=True))
+            takeway_total_discount = sum(takeway_invoice_qs.values_list(
+                "order__discount_amount", flat=True))
+            if payable_amount_overall < 1:
+                takeway_total_sell_percentage = 0
+            else:
+                takeway_total_sell_percentage = (
+                    takeway_total_sell / payable_amount_overall) * 100
+
+            takeway_order_summary = {
+                "total_order": takeway_total_order,
+                "total_sell": round(takeway_total_sell, 2),
+                "total_tax": round(takeway_total_tax, 2),
+                "total_discount": round(takeway_total_discount, 2),
+                "sell_percentage": round(takeway_total_sell_percentage, 2)
+            }
+
+            # ------- Takeway Order Details Summary -------
+            takeway_order_type_details_list = restaurant_qs.values_list(
+                'takeway_order_type', 'takeway_order_type__name'
+            )
+
+            for takeway_order_type, takeway_order_type_name in takeway_order_type_details_list:
+                takeway_order_type_invoice_qs = takeway_invoice_qs.filter(
+                    order__takeway_order_type=takeway_order_type
+                )
+
+                if item_list:
+                    takeway_order_type_invoice_qs = takeway_order_type_invoice_qs.filter(
+                        Q(order__ordered_items__status='3_IN_TABLE') & Q(order__ordered_items__food_option__food_id__in=item_list)
+                    ).order_by('-created_at').distinct()
+                if waiter_list:
+                    takeway_order_type_invoice_qs = takeway_order_type_invoice_qs.filter(
+                        order__food_order_logs__staff_id__in=waiter_list
+                    ).order_by('-created_at').distinct()
+
+                takeway_order_type_total_order = takeway_order_type_invoice_qs.count()
+                takeway_order_type_amount = sum(
+                    takeway_order_type_invoice_qs.values_list('payable_amount', flat=True))
+                takeway_order_type_total_tax = sum(
+                    takeway_order_type_invoice_qs.values_list("order__tax_amount", flat=True))
+                takeway_order_type_total_discount = sum(
+                    takeway_order_type_invoice_qs.values_list("order__discount_amount", flat=True))
+                if payable_amount_overall < 1:
+                    takeway_order_type_sell_percentage = 0
+                else:
+                    takeway_order_type_sell_percentage = (
+                        takeway_order_type_amount / payable_amount_overall) * 100
+
+                total_takeaway_sell_percentage += round(
+                    takeway_order_type_sell_percentage, 2)
+                total_takeaway_sell_amount += round(
+                    takeway_order_type_amount, 2)
+
+                takeway_order_details_summary.append(
+                    {
+                        "name": takeway_order_type_name,
+                        "total_order": takeway_order_type_total_order,
+                        "total_sell": round(takeway_order_type_amount, 2),
+                        "total_tax": round(takeway_order_type_total_tax, 2),
+                        "total_discount": round(takeway_order_type_total_discount, 2),
+                        "sell_percentage": round(takeway_order_type_sell_percentage, 2)
+                    }
+                )
+            total_calculation = {
+                'total_takeaway_sell_percentage': total_takeaway_sell_percentage,
+                'total_takeaway_sell_amount': total_takeaway_sell_amount,
+                'total_payment_sell_percentage': total_payment_sell_percentage,
+                'total_payment_sell_amount': total_payment_sell_amount
+            }
+
+            return ResponseWrapper(
+                data={
+                    'payment_method_summary': payment_method_summary,
+                    'dining_order_summary': dining_order_summary,
+                    'takeway_order_summary': takeway_order_summary,
+                    'takeway_order_details_summary': takeway_order_details_summary,
+                    'total_order': total_order,
+                    'total_sell': total_sell,
+                    'total_tax': total_tax,
+                    'total_discount': total_discount,
+                    'total_calculation': total_calculation
+                }, 
+                msg="success"
+            )
+        else:
+            return ResponseWrapper(error_msg="Invalid Restaurant ID", error_code=400)
 
     def get_dashboard_daily_report(self, request, restaurant_id, *args, **kwargs):
         payment_method_summary = []

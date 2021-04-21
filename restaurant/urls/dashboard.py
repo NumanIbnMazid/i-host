@@ -283,17 +283,17 @@ dashboard_urls = [
     path('generate-datewise-report-excel/<int:restaurant_id>/',
          InvoiceViewSet.as_view({'post': 'generate_datewise_filtered_report_excel'}), name='generate_datewise_filtered_report_excel'),
 
-    path('dashboard_total_report/<int:restaurant_id>',
+    path('dashboard_total_report/<int:restaurant_id>/',
          ReportingViewset.as_view({'get': 'dashboard_total_report'}), name='dashboard_total_report'),
 
-    path('canceled_food_item_report/<int:restaurant_id>',
+    path('canceled_food_item_report/<int:restaurant_id>/',
          ReportingViewset.as_view({'get': 'canceled_food_item_report'}), name='canceled_food_item_report'),
 
-    path('daily_report/<int:restaurant_id>',
+    path('daily_report/<int:restaurant_id>/',
          ReportingViewset.as_view({'get': 'get_dashboard_daily_report'}), name='dashboard_daily_report'),
 
-    path('invoice_short_report/<int:restaurant_id>',
-         ReportingViewset.as_view({'get': 'get_invoice_short_report'}), name='invoice_short_report'),
+    path('invoice_short_report/<int:restaurant_id>/',
+         ReportingViewset.as_view({'post': 'get_invoice_short_report'}), name='invoice_short_report'),
 
     path('subscription/',
          SubscriptionViewset.as_view({'get': 'list', 'post': 'create'}), name='subscription_list'),
