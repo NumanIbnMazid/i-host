@@ -291,6 +291,10 @@ dashboard_urls = [
 
     path('daily_report/<int:restaurant_id>',
          ReportingViewset.as_view({'get': 'get_dashboard_daily_report'}), name='dashboard_daily_report'),
+
+    path('invoice_short_report/<int:restaurant_id>',
+         ReportingViewset.as_view({'get': 'get_invoice_short_report'}), name='invoice_short_report'),
+
     path('subscription/',
          SubscriptionViewset.as_view({'get': 'list', 'post': 'create'}), name='subscription_list'),
     path('subscription_by_restaurant/<int:restaurant_id>/',
