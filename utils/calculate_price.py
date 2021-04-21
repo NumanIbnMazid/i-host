@@ -17,6 +17,7 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
     promo_code = food_order_obj.applied_promo_code  # kwargs.get('promo_code')
     cash_received = food_order_obj.cash_received
     discount_given= food_order_obj.discount_given
+    take_away_discount_given = food_order_obj.take_away_discount_given
     if promo_code:
         parent_promo_code_promotion_qs = ParentCompanyPromotion.objects.filter(
             code=promo_code,  restaurant=restaurant_qs, start_date__lte=timezone.now(), end_date__gte=timezone.now()).first()
@@ -42,6 +43,8 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
     discount_amount = 0.0
     total_price_without_vat=0.0
     total_price_with_vat=0.0
+    take_away_discount_amount = 0.0
+    total_take_away_discount = 0.0
 
     for ordered_item in ordered_items_qs:
 
@@ -73,6 +76,19 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
                 discount_amount +=(discount_given/100)*item_price
             else:
                 discount_amount += discount_given
+
+        if take_away_discount_given:
+            if discount_id:
+                food_price_with_discount = item_price - discount_amount
+            else:
+                food_price_with_discount =  item_price
+            if food_order_obj.take_away_discount_amount_is_percentage:
+                take_away_discount_amount =  (take_away_discount_given*food_price_with_discount)/100
+                total_take_away_discount += take_away_discount_amount
+                discount_amount+=take_away_discount_amount
+
+            else:
+                discount_amount+=take_away_discount_given
 
 
         if parent_promo_qs and not discount_id:
@@ -145,6 +161,7 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
         if cash_received>payable_amount:
             change_amount = cash_received - payable_amount
         food_order_obj.change_amount = change_amount
+        food_order_obj.take_away_discount_base_amount = total_take_away_discount
         food_order_obj.save()
 
 
