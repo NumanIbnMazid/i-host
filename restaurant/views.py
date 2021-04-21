@@ -1069,9 +1069,10 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
                 pass
     def create_take_away_order(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
+        table = request.data.get('table')
         restaurant_id = request.data.get('restaurant')
         takeway_order_type_id = request.data.get('takeway_order_type')
-        if not takeway_order_type_id:
+        if not takeway_order_type_id and not table:
             return ResponseWrapper(error_msg=['Take Away Type Not Selected'], error_code=400)
 
         if not serializer.is_valid():
@@ -3126,6 +3127,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
                 total_payment_sell_amount += round(payment_method_amount, 2)
 
 
+
                 payment_method_summary.append({
                     'name':payment_method_name,
                     "total_order": payment_method_total_order,
@@ -4147,7 +4149,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
             return ResponseWrapper(error_msg=['Discount Amount is must less then 100'], error_code=400)
         qs.take_away_discount_given = take_away_discount_amount
         qs.take_away_discount_amount_is_percentage = take_away_discount_amount_is_percentage
-        qs.take_away_discount_base_amount =  take_away_discount_amount
+        # qs.take_away_discount_base_amount =  take_away_discount_amount
         qs.save()
         serializer = FoodOrderByTableSerializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='success')
