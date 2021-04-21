@@ -1381,11 +1381,11 @@ class TakeAwayOrderSerializer(serializers.ModelSerializer):
         if obj:
             pass
 
-# class TakeAwayOrderDetailsSerializer(serializers.ModelSerializer):
-#
-#     class Meta:
-#         model = TakeAwayOrder
-#         fields = '__all__'
+class TakeAwayOrderDetailsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TakeAwayOrder
+        fields = '__all__'
 
 
 class RestaurantInfoSerializer(serializers.ModelSerializer):

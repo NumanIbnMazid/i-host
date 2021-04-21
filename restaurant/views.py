@@ -106,7 +106,7 @@ from .serializers import (
     CashLogSerializer, RestaurantOpeningSerializer, RestaurantClosingSerializer,
     WithdrawCashSerializer, ForceDiscountSerializer, PromoCodePromotionSerializer,
     PromoCodePromotionDetailsSerializer, TakewayOrderTypeSerializer,
-    CanceledFoodItemReportSerializer, TakeAwayOrderDiscountSerializer
+    CanceledFoodItemReportSerializer, TakeAwayOrderDiscountSerializer, TakeAwayOrderDetailsSerializer
 )
 from .signals import order_done_signal, kitchen_items_print_signal
 
@@ -1102,14 +1102,17 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
 
         order_no = generate_order_no(restaurant_id=restaurant_id)
         qs = FoodOrder.objects.create(order_no=order_no, **food_order_dict)
+        # staff_qs = HotelStaffInformation.objects.filter(user_id=request.user.pk).first()
         take_away_order_qs = TakeAwayOrder.objects.filter(
             restaurant_id=restaurant_id).first()
         if take_away_order_qs:
             add_running_order = take_away_order_qs.running_order.add(qs.id)
+            # add_assigned_staff = take_away_order_qs.assigned_staff.add(staff_qs.pk)
         else:
             take_away_order = TakeAwayOrder.objects.create(
                 restaurant_id=restaurant_id)
             add_running_order = take_away_order.running_order.add(qs.id)
+            # add_assigned_staff = take_away_order_qs.assigned_staff.add(staff_qs.pk)
 
         serializer = FoodOrderUserPostSerializer(instance=qs)
 
@@ -4838,11 +4841,11 @@ class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
     http_method_names = ['post', 'patch', 'get', 'delete']
 
     def take_away_order(self, request, restaurant_id, *args, **kwargs):
-        qs = TakeAwayOrder.objects.filter(restaurant_id=restaurant_id).first()
-        if not qs:
+        qs = TakeAwayOrder.objects.filter(restaurant_id=restaurant_id)
+        if not qs.first():
             return ResponseWrapper(msg='No Take Away Order is Available')
-        serializer = TakeAwayOrderSerializer(instance=qs.running_order.exclude(
-            status__in=['5_PAID', '6_CANCELLED']), many=True)
+        serializer = TakeAwayOrderSerializer(instance=qs, many=True)
+        # serializer = TakeAwayOrderDetailsSerializer(instance = qs, many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
 
