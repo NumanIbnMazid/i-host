@@ -53,6 +53,21 @@ hr.style-two {
    text-align: right;
 }
 
+.font-10{
+   font-size: 10px;
+}
+.font-11{
+   font-size: 11px;
+}
+.font-12{
+   font-size: 12px;
+}
+.font-13{
+   font-size: 13px;
+}
+.font-14{
+   font-size: 14px;
+}
 .font-15{
    font-size: 15px;
 }
@@ -259,10 +274,10 @@ hr.style-two {
             <th>Time</th>
             <th>Customer Name</th>
             <th>Waiter Name</th>
-            <th>Price</th>
             <th>Service Charge</th>
-            <th>Vat Amount</th>
-            <th>Discount Price</th>
+            <th>Vat</th>
+            <th>Price</th>
+            <th>Discount</th>
             <th>Net Price</th>
          </tr>
 
@@ -292,9 +307,9 @@ hr.style-two {
                -
                {% endif %}
             </td>
-            <td>{{ object.order_info.price.grand_total_price }}</td>
             <td>{{ object.order_info.price.service_charge }}</td>
             <td>{{ object.order_info.price.tax_amount }}</td>
+            <td>{{ object.order_info.price.grand_total_price }}</td>
             <td>{{ object.order_info.price.discount_amount }}</td>
             <td>{{ object.order_info.price.payable_amount }}</td>
          </tr>
@@ -310,33 +325,28 @@ hr.style-two {
                <span class="font-bold font-15">Total : </span>
             </td>
             <td colspan = "4">
-               <span class="font-bold font-15">Order: </span>
-               <span class="font-italic font-15">{{ report_data.TotalOrder }}</span>
+               <span class="font-12">Order: </span>
+               <span class="font-italic font-13 font-bold m-2">{{ report_data.TotalOrder }}</span>
             </td>
             <td colspan = "1">
-               <span class="font-bold font-15">Price: </span>
-               <hr>
-               <span class="font-italic font-15">{{ report_data.TotalPrice }}</span>
+               <span class="font-italic font-13 font-bold m-2">{{ report_data.TotalPrice }}</span>
+               <div class="font-12">(Price)</div>
             </td>
             <td colspan = "1">
-               <span class="font-bold font-15">Service Charge: </span>
-               <hr>
-               <span class="font-italic font-15">{{ report_data.TotalServiceCharge }}</span>
+               <span class="font-italic font-13 font-bold m-2">{{ report_data.TotalServiceCharge }}</span>
+               <div class="font-12">(S. Charge)</div>
             </td>
             <td colspan = "1">
-               <span class="font-bold font-15">Vat: </span>
-               <hr>
-               <span class="font-italic font-15">{{ report_data.TotalVat }}</span>
+               <span class="font-italic font-13 font-bold m-2">{{ report_data.TotalVat }}</span>
+               <div class="font-12">(Vat)</div>
             </td>
             <td colspan = "1">
-               <span class="font-bold font-15">Discount: </span>
-               <hr>
-               <span class="font-italic font-15">{{ report_data.TotalDiscount }}</span>
+               <span class="font-italic font-13 font-bold m-2">{{ report_data.TotalDiscount }}</span>
+               <div class="font-12">(Discount)</div>
             </td>
             <td colspan = "1">
-               <span class="font-bold font-15">Net Price: </span>
-               <hr>
-               <span class="font-italic font-15">{{ report_data.TotalNetPrice }}</span>
+               <span class="font-italic font-13 font-bold m-2">{{ report_data.TotalNetPrice }}</span>
+               <div class="font-12">(Net Price)</div>
             </td>
          </tr>
       </table>
