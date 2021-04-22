@@ -3704,7 +3704,11 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
                 {"Item List": report_data['FilterKeysData']['ItemList']},
                 {"Waiter List": report_data['FilterKeysData']['WaiterList']},
                 {"Total Order": report_data['TotalOrder']},
-                {"Total Amount": report_data['TotalAmount']},
+                {"Total Price": report_data['TotalPrice']},
+                {"Total Service Charge": report_data['TotalServiceCharge']},
+                {"Total Vat": report_data['TotalVat']},
+                {"Total Discount": report_data['TotalDiscount']},
+                {"Total Net Price": report_data['TotalNetPrice']},
                 {"Generated At": report_data['GeneratedAt']}
             ]
 
@@ -3770,7 +3774,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         font_style = xlwt.XFStyle()
         font_style.font.bold = True
 
-        columns = ['Order Number', 'Table Number', 'Time', 'Customer Name', 'Waiter Name', 'Price', 'Vat Amount', 'Discount Price', 'Net Price',]
+        columns = ['Order Number', 'Table Number', 'Time', 'Customer Name', 'Waiter Name', 'Price', 'Service Charge', 'Vat', 'Discount', 'Net Price',]
         
         # Define Fixed Width Cols
         fixed_width_cols = {
@@ -3830,11 +3834,15 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
                     ws.write(row_num, col_num, row.order_info["price"].get("grand_total_price", "-"), font_style)
                 elif col_num == 6:
                     # Write
-                    ws.write(row_num, col_num, row.order_info["price"].get("tax_amount", "-"), font_style)
+                    ws.write(row_num, col_num, row.order_info["price"].get(
+                        "service_charge", "-"), font_style)
                 elif col_num == 7:
                     # Write
-                    ws.write(row_num, col_num, row.order_info["price"].get("discount_amount", "-"), font_style)
+                    ws.write(row_num, col_num, row.order_info["price"].get("tax_amount", "-"), font_style)
                 elif col_num == 8:
+                    # Write
+                    ws.write(row_num, col_num, row.order_info["price"].get("discount_amount", "-"), font_style)
+                elif col_num == 9:
                     # Write
                     ws.write(row_num, col_num, row.order_info["price"].get("payable_amount", "-"), font_style)
                 else:
@@ -3979,11 +3987,32 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
             invoice_filter_qs = invoice_filter_qs.filter(
                 order__food_order_logs__staff_id__in=waiter_list
             ).order_by('-created_at').distinct()
+        # Total Order
         total_order = invoice_filter_qs.count()
+        # Total Price
+        pre_total_price = invoice_filter_qs.values_list(
+            'grand_total', flat=True
+        )
+        total_price = sum(pre_total_price)
+        # Total Service Charge Amount
+        pre_service_charge_amount = invoice_filter_qs.values_list(
+            'order__service_charge', flat=True
+        )
+        total_service_charge = sum(pre_service_charge_amount)
+        # Total Vat Amount
+        pre_vat_amount = invoice_filter_qs.values_list(
+            'order__tax_amount', flat=True
+        )
+        total_vat = sum(pre_vat_amount)
+        # Total Discount Amount
+        pre_discount_amount = invoice_filter_qs.values_list(
+            'order__discount_amount', flat=True
+        )
+        total_discount = sum(pre_discount_amount)
+        # Total Net Price
         total_payable_amount = invoice_filter_qs.values_list(
             'payable_amount', flat=True
         )
-
         total_amaount = sum(total_payable_amount)
 
 
@@ -4036,8 +4065,12 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
                     "WaiterList": str(waiters)
                 },
                 "ReportObjectList": invoice_filter_qs,
-                "TotalAmount": round(total_amaount, 2),
                 "TotalOrder": total_order,
+                "TotalPrice": round(total_price, 2),
+                "TotalServiceCharge": round(total_service_charge, 2),
+                "TotalVat": round(total_vat, 2),
+                "TotalDiscount": round(total_discount, 2),
+                "TotalNetPrice": round(total_amaount, 2),
                 "GeneratedAt": timezone.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
 
@@ -4050,8 +4083,14 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
             paginated_data = self.get_paginated_response(serializer.data)
             order_details = dict(self.get_paginated_response(serializer.data).data)
 
-            order_details['total_amaount'] = round(total_amaount, 2)
             order_details['total_order'] = total_order
+            order_details['total_price'] = round(total_price, 2)
+            order_details['total_service_charge'] = round(
+                total_service_charge, 2)
+            order_details['total_vat'] = round(total_vat, 2)
+            order_details['total_discount'] = round(total_discount, 2)
+            order_details['total_amaount'] = round(total_amaount, 2)
+            
 
             return ResponseWrapper(data=order_details)
 
