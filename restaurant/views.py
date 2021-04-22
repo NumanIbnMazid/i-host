@@ -4845,7 +4845,7 @@ class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
         if not qs:
             return ResponseWrapper(msg='No Take Away Order is Available')
         serializer = FoodOrderByTableSerializer(instance=qs.running_order.exclude(
-            status__in=['5_PAID', '6_CANCELLED']), many=True)
+            status__in=['0_ORDER_INITIALIZED','1_ORDER_PLACED','2_ORDER_CONFIRMED','5_PAID', '6_CANCELLED']), many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
 

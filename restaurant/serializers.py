@@ -422,6 +422,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
     restaurant_info = serializers.SerializerMethodField(read_only=True)
     customer = serializers.SerializerMethodField(read_only=True)
     payment_method = serializers.SerializerMethodField(read_only=True)
+    take_away_type_method = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = FoodOrder
@@ -432,6 +433,7 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
                   "status",
                   'status_details',
                   'payment_method',
+                  'take_away_type_method',
                   "price",
                   'ordered_items',
                   'table_name',
@@ -542,6 +544,13 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
             return {'id':obj.payment_method.pk, 'name':obj.payment_method.name}
         else:
             return {}
+    def get_take_away_type_method(self,obj):
+        if obj.takeway_order_type:
+            return {'id':obj.takeway_order_type.pk,
+                    'name':obj.takeway_order_type.name}
+        else:
+            return {}
+
 
 
 class FoodOrderSerializer(FoodOrderByTableSerializer):
