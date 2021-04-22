@@ -306,32 +306,35 @@ hr.style-two {
          {% endfor %}
             
          <tr class="text-center p-2">
-            <td colspan = "5">
-               <span class="font-bold font-15">Total Order: </span>
+            <td colspan = "1">
+               <span class="font-bold font-15">Total : </span>
+            </td>
+            <td colspan = "4">
+               <span class="font-bold font-15">Order: </span>
                <span class="font-italic font-15">{{ report_data.TotalOrder }}</span>
             </td>
             <td colspan = "1">
-               <span class="font-bold font-15">Total Price: </span>
+               <span class="font-bold font-15">Price: </span>
                <hr>
                <span class="font-italic font-15">{{ report_data.TotalPrice }}</span>
             </td>
             <td colspan = "1">
-               <span class="font-bold font-15">Total Service Charge: </span>
+               <span class="font-bold font-15">Service Charge: </span>
                <hr>
                <span class="font-italic font-15">{{ report_data.TotalServiceCharge }}</span>
             </td>
             <td colspan = "1">
-               <span class="font-bold font-15">Total Vat: </span>
+               <span class="font-bold font-15">Vat: </span>
                <hr>
                <span class="font-italic font-15">{{ report_data.TotalVat }}</span>
             </td>
             <td colspan = "1">
-               <span class="font-bold font-15">Total Discount: </span>
+               <span class="font-bold font-15">Discount: </span>
                <hr>
                <span class="font-italic font-15">{{ report_data.TotalDiscount }}</span>
             </td>
             <td colspan = "1">
-               <span class="font-bold font-15">Total Net Price: </span>
+               <span class="font-bold font-15">Net Price: </span>
                <hr>
                <span class="font-italic font-15">{{ report_data.TotalNetPrice }}</span>
             </td>
