@@ -106,7 +106,7 @@ from .serializers import (
     CashLogSerializer, RestaurantOpeningSerializer, RestaurantClosingSerializer,
     WithdrawCashSerializer, ForceDiscountSerializer, PromoCodePromotionSerializer,
     PromoCodePromotionDetailsSerializer, TakewayOrderTypeSerializer,
-    CanceledFoodItemReportSerializer, TakeAwayOrderDiscountSerializer
+    CanceledFoodItemReportSerializer, TakeAwayOrderDiscountSerializer, TakeAwayOrderDetailsSerializer
 )
 from .signals import order_done_signal, kitchen_items_print_signal
 
@@ -870,7 +870,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['apps_cancel_order', 'create_order', 'order_status', "create_order_apps", 'customer_order_history', 'add_items', 'cancel_order', 'placed_status', 'confirm_status', 'cancel_items', 'in_table_status', 'create_invoice','promo_code']:
+        if self.action in ['apps_cancel_order', 'create_order','create_order_apps', 'order_status', 'customer_order_history', 'add_items', 'cancel_order', 'placed_status', 'confirm_status', 'cancel_items', 'in_table_status', 'create_invoice','promo_code']:
             permission_classes = [permissions.IsAuthenticated]
         if self.action in ['create_take_away_order']:
             permission_classes = [
@@ -1102,14 +1102,17 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
 
         order_no = generate_order_no(restaurant_id=restaurant_id)
         qs = FoodOrder.objects.create(order_no=order_no, **food_order_dict)
+        # staff_qs = HotelStaffInformation.objects.filter(user_id=request.user.pk).first()
         take_away_order_qs = TakeAwayOrder.objects.filter(
             restaurant_id=restaurant_id).first()
         if take_away_order_qs:
             add_running_order = take_away_order_qs.running_order.add(qs.id)
+            # add_assigned_staff = take_away_order_qs.assigned_staff.add(staff_qs.pk)
         else:
             take_away_order = TakeAwayOrder.objects.create(
                 restaurant_id=restaurant_id)
             add_running_order = take_away_order.running_order.add(qs.id)
+            # add_assigned_staff = take_away_order_qs.assigned_staff.add(staff_qs.pk)
 
         serializer = FoodOrderUserPostSerializer(instance=qs)
 
@@ -4880,7 +4883,7 @@ class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
         qs = TakeAwayOrder.objects.filter(restaurant_id=restaurant_id).first()
         if not qs:
             return ResponseWrapper(msg='No Take Away Order is Available')
-        serializer = TakeAwayOrderSerializer(instance=qs.running_order.exclude(
+        serializer = FoodOrderByTableSerializer(instance=qs.running_order.exclude(
             status__in=['5_PAID', '6_CANCELLED']), many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
