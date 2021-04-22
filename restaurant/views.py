@@ -870,7 +870,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['apps_cancel_order', 'create_order', 'order_status', "create_order_apps", 'customer_order_history', 'add_items', 'cancel_order', 'placed_status', 'confirm_status', 'cancel_items', 'in_table_status', 'create_invoice','promo_code']:
+        if self.action in ['apps_cancel_order', 'create_order','create_order_apps', 'order_status', 'customer_order_history', 'add_items', 'cancel_order', 'placed_status', 'confirm_status', 'cancel_items', 'in_table_status', 'create_invoice','promo_code']:
             permission_classes = [permissions.IsAuthenticated]
         if self.action in ['create_take_away_order']:
             permission_classes = [
