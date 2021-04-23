@@ -3706,7 +3706,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
                 {"Total Order": report_data['TotalOrder']},
                 {"Total Service Charge": report_data['TotalServiceCharge']},
                 {"Total Vat": report_data['TotalVat']},
-                {"Total Price": report_data['TotalPrice']},
+                {"Grand Total": report_data['TotalPrice']},
                 {"Total Discount": report_data['TotalDiscount']},
                 {"Total Net Price": report_data['TotalNetPrice']},
                 {"Generated At": report_data['GeneratedAt']}
@@ -3774,7 +3774,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         font_style = xlwt.XFStyle()
         font_style.font.bold = True
 
-        columns = ['Order Number', 'Table Number', 'Time', 'Customer Name', 'Waiter Name', 'Service Charge', 'Vat', 'Price', 'Discount', 'Net Price',]
+        columns = ['Order Number', 'Table Number', 'Time', 'Customer Name', 'Waiter Name', 'Service Charge', 'Vat', 'Grand Total', 'Discount', 'Net Price',]
         
         # Define Fixed Width Cols
         fixed_width_cols = {
