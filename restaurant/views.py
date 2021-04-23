@@ -4881,7 +4881,7 @@ class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
     http_method_names = ['post', 'patch', 'get', 'delete']
 
     def take_away_order(self, request, restaurant_id, *args, **kwargs):
-        qs = TakeAwayOrder.objects.filter(restaurant_id=restaurant_id).first()
+        qs = TakeAwayOrder.objects.filter(restaurant_id=restaurant_id).order_by('running_order__order_no').first()
         if not qs:
             return ResponseWrapper(msg='No Take Away Order is Available')
         serializer = FoodOrderByTableSerializer(instance=qs.running_order.exclude(
