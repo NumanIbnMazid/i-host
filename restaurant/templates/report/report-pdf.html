@@ -276,7 +276,7 @@ hr.style-two {
             <th>Waiter Name</th>
             <th>Service Charge</th>
             <th>Vat</th>
-            <th>Price</th>
+            <th>Grand Total</th>
             <th>Discount</th>
             <th>Net Price</th>
          </tr>
@@ -329,16 +329,16 @@ hr.style-two {
                <span class="font-italic font-13 font-bold m-2">{{ report_data.TotalOrder }}</span>
             </td>
             <td colspan = "1">
-               <span class="font-italic font-13 font-bold m-2">{{ report_data.TotalPrice }}</span>
-               <div class="font-12">(Price)</div>
-            </td>
-            <td colspan = "1">
                <span class="font-italic font-13 font-bold m-2">{{ report_data.TotalServiceCharge }}</span>
                <div class="font-12">(S. Charge)</div>
             </td>
             <td colspan = "1">
                <span class="font-italic font-13 font-bold m-2">{{ report_data.TotalVat }}</span>
                <div class="font-12">(Vat)</div>
+            </td>
+            <td colspan = "1">
+               <span class="font-italic font-13 font-bold m-2">{{ report_data.TotalPrice }}</span>
+               <div class="font-12">(G. Total)</div>
             </td>
             <td colspan = "1">
                <span class="font-italic font-13 font-bold m-2">{{ report_data.TotalDiscount }}</span>
