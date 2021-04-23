@@ -1072,8 +1072,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
         table = request.data.get('table')
         restaurant_id = request.data.get('restaurant')
         takeway_order_type_id = request.data.get('takeway_order_type')
-        if not takeway_order_type_id and not table:
-            return ResponseWrapper(error_msg=['Take Away Type Not Selected'], error_code=400)
+        # if not takeway_order_type_id and not table:
+        #     return ResponseWrapper(error_msg=['Take Away Type Not Selected'], error_code=400)
 
         if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
