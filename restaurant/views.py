@@ -3704,6 +3704,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
                 {"Item List": report_data['FilterKeysData']['ItemList']},
                 {"Waiter List": report_data['FilterKeysData']['WaiterList']},
                 {"Total Order": report_data['TotalOrder']},
+                {"Total Food Price": report_data['TotalFoodPrice']},
                 {"Total Service Charge": report_data['TotalServiceCharge']},
                 {"Total Vat": report_data['TotalVat']},
                 {"Grand Total": report_data['TotalPrice']},
@@ -3774,7 +3775,7 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         font_style = xlwt.XFStyle()
         font_style.font.bold = True
 
-        columns = ['Order Number', 'Table Number', 'Time', 'Customer Name', 'Waiter Name', 'Service Charge', 'Vat', 'Grand Total', 'Discount', 'Net Price',]
+        columns = ['Order Number', 'Table Number', 'Time', 'Customer Name', 'Waiter Name','Food Price', 'Service Charge', 'Vat', 'Grand Total', 'Discount', 'Net Price',]
         
         # Define Fixed Width Cols
         fixed_width_cols = {
@@ -3829,21 +3830,26 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
                             ws.write(row_num, col_num, "-", font_style)
                     else:
                         ws.write(row_num, col_num, "-", font_style)
+
                 elif col_num == 5:
                     # Write
                     ws.write(row_num, col_num, row.order_info["price"].get(
-                        "service_charge", "-"), font_style)
+                        "total_price", "-"), font_style)
                 elif col_num == 6:
                     # Write
                     ws.write(row_num, col_num, row.order_info["price"].get(
-                        "tax_amount", "-"), font_style)
+                        "service_charge", "-"), font_style)
                 elif col_num == 7:
                     # Write
-                    ws.write(row_num, col_num, row.order_info["price"].get("grand_total_price", "-"), font_style)
+                    ws.write(row_num, col_num, row.order_info["price"].get(
+                        "tax_amount", "-"), font_style)
                 elif col_num == 8:
                     # Write
-                    ws.write(row_num, col_num, row.order_info["price"].get("discount_amount", "-"), font_style)
+                    ws.write(row_num, col_num, row.order_info["price"].get("grand_total_price", "-"), font_style)
                 elif col_num == 9:
+                    # Write
+                    ws.write(row_num, col_num, row.order_info["price"].get("discount_amount", "-"), font_style)
+                elif col_num == 10:
                     # Write
                     ws.write(row_num, col_num, row.order_info["price"].get("payable_amount", "-"), font_style)
                 else:

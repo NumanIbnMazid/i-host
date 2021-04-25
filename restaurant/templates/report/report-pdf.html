@@ -274,6 +274,7 @@ hr.style-two {
             <th>Time</th>
             <th>Customer Name</th>
             <th>Waiter Name</th>
+            <th>Food Price</th>
             <th>Service Charge</th>
             <th>Vat</th>
             <th>Grand Total</th>
@@ -307,6 +308,7 @@ hr.style-two {
                -
                {% endif %}
             </td>
+            <td>{{ object.order_info.price.total_price }}</td>
             <td>{{ object.order_info.price.service_charge }}</td>
             <td>{{ object.order_info.price.tax_amount }}</td>
             <td>{{ object.order_info.price.grand_total_price }}</td>
@@ -327,6 +329,10 @@ hr.style-two {
             <td colspan = "4">
                <span class="font-12">Order: </span>
                <span class="font-italic font-13 font-bold m-2">{{ report_data.TotalOrder }}</span>
+            </td>
+             <td colspan = "1">
+               <span class="font-italic font-13 font-bold m-2">{{ report_data.TotalFoodPrice }}</span>
+               <div class="font-12">(Food Price)</div>
             </td>
             <td colspan = "1">
                <span class="font-italic font-13 font-bold m-2">{{ report_data.TotalServiceCharge }}</span>
