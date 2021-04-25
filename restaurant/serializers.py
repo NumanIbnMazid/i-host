@@ -455,6 +455,8 @@ class FoodOrderByTableSerializer(serializers.ModelSerializer):
         read_only_fields = ('applied_promo_code',)
         # ordering = ['table']
 
+        # ordering = ['order_no']
+
     def get_ordered_items(self, obj):
         is_apps = self.context.get('is_apps', False)
         request = self.context.get('request')

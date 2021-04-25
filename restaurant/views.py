@@ -3990,6 +3990,11 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
             ).order_by('-created_at').distinct()
         # Total Order
         total_order = invoice_filter_qs.count()
+
+        pre_total_price = invoice_filter_qs.values_list\
+            ('order__total_price', flat=True)
+        total_food_price = round(sum(pre_total_price), 2)
+
         # Total Service Charge Amount
         pre_service_charge_amount = invoice_filter_qs.values_list(
             'order__service_charge', flat=True
@@ -4002,17 +4007,17 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
         total_vat = sum(pre_vat_amount)
         # Total Price
         pre_total_price = invoice_filter_qs.values_list(
-            'grand_total', flat=True
+            'order__grand_total_price', flat=True
         )
-        total_price = sum(pre_total_price)
-        # Total Discount Amount
+        total_grand_total_price = sum(pre_total_price)
+        # Total Discount Amountround(total_price, 2)
         pre_discount_amount = invoice_filter_qs.values_list(
             'order__discount_amount', flat=True
         )
         total_discount = sum(pre_discount_amount)
         # Total Net Price
         total_payable_amount = invoice_filter_qs.values_list(
-            'payable_amount', flat=True
+            'order__payable_amount', flat=True
         )
         total_amaount = sum(total_payable_amount)
 
@@ -4067,9 +4072,10 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
                 },
                 "ReportObjectList": invoice_filter_qs,
                 "TotalOrder": total_order,
+                "TotalFoodPrice":total_food_price,
                 "TotalServiceCharge": round(total_service_charge, 2),
                 "TotalVat": round(total_vat, 2),
-                "TotalPrice": round(total_price, 2),
+                "TotalPrice": round(total_grand_total_price, 2),
                 "TotalDiscount": round(total_discount, 2),
                 "TotalNetPrice": round(total_amaount, 2),
                 "GeneratedAt": timezone.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -4085,10 +4091,11 @@ class InvoiceViewSet(LoggingMixin, CustomViewSet):
             order_details = dict(self.get_paginated_response(serializer.data).data)
 
             order_details['total_order'] = total_order
+            order_details['total_food_price']=  total_food_price
             order_details['total_service_charge'] = round(
                 total_service_charge, 2)
             order_details['total_vat'] = round(total_vat, 2)
-            order_details['total_price'] = round(total_price, 2)
+            order_details['total_grand_total_price'] = round(total_grand_total_price, 2)
             order_details['total_discount'] = round(total_discount, 2)
             order_details['total_amaount'] = round(total_amaount, 2)
             
