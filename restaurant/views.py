@@ -4901,6 +4901,18 @@ class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
             status__in=['0_ORDER_INITIALIZED','1_ORDER_PLACED','2_ORDER_CONFIRMED','5_PAID', '6_CANCELLED']), many=True)
         return ResponseWrapper(data=serializer.data, msg='success')
 
+    def complete_take_away_order(self,reqquest, restaurant_id, *args, **kwargs):
+        today = timezone.datetime.now()
+        datetime_today = datetime.strptime(
+            str(today.date()) + " 00:00:00", '%Y-%m-%d %H:%M:%S'
+        )
+        qs = Invoice.objects.filter(restaurant_id = restaurant_id, payment_status='1_PAID',order__table=None,
+                                    created_at__gte = datetime_today.date())
+        if not qs.first():
+            return ResponseWrapper(error_msg='Restaurant is not Valid')
+
+        serializer = InvoiceSerializer(instance=qs, many=True)
+        return ResponseWrapper(data = serializer.data, msg='Success')
 
 class ParentCompanyPromotionViewSet(LoggingMixin, CustomViewSet):
     serializer_class = ParentCompanyPromotionSerializer

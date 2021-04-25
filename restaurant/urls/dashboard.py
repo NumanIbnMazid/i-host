@@ -317,6 +317,8 @@ dashboard_urls = [
          PrintNodeViewSet.as_view({'get': 'print_node_list'}, name='print_node_list')),
     path('take_away_order/<int:restaurant_id>/',
          TakeAwayOrderViewSet.as_view({'get': 'take_away_order'}, name='take_away_order')),
+    path('complete_take_away_order/<int:restaurant_id>/',
+         TakeAwayOrderViewSet.as_view({'get': 'complete_take_away_order'}, name='complete_take_away_order')),
     path('parent_company_promotion/',
          ParentCompanyPromotionViewSet.as_view({'get': 'list', 'post': 'create'}, name='parent_company_promotion')),
     path('parent_company_promotion/<int:pk>/',
