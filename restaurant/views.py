@@ -4907,7 +4907,7 @@ class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
             str(today.date()) + " 00:00:00", '%Y-%m-%d %H:%M:%S'
         )
         qs = Invoice.objects.filter(restaurant_id = restaurant_id, payment_status='1_PAID',order__table=None,
-                                    created_at__gte = datetime_today.date())
+                                    created_at__gte = datetime_today.date()).order_by('order__order_no')
         if not qs.first():
             return ResponseWrapper(error_msg='Restaurant is not Valid')
 
