@@ -4906,10 +4906,14 @@ class TakeAwayOrderViewSet(LoggingMixin, CustomViewSet):
         datetime_today = datetime.strptime(
             str(today.date()) + " 00:00:00", '%Y-%m-%d %H:%M:%S'
         )
-        qs = Invoice.objects.filter(restaurant_id = restaurant_id, payment_status='1_PAID',order__table=None,
+        restaurant_qs = Restaurant.objects.filter(pk = restaurant_id).first()
+        if not restaurant_qs:
+            return ResponseWrapper(error_msg=['Restaurant is not Valid'], error_code=400)
+
+        qs = Invoice.objects.filter(restaurant_id = restaurant_qs, payment_status='1_PAID',order__table=None,
                                     created_at__gte = datetime_today.date()).order_by('order__order_no')
-        if not qs.first():
-            return ResponseWrapper(error_msg='Restaurant is not Valid')
+        if not qs:
+            return ResponseWrapper(error_msg=['No Take Away Order Complete Today'], error_code=400)
 
         serializer = InvoiceSerializer(instance=qs, many=True)
         return ResponseWrapper(data = serializer.data, msg='Success')
