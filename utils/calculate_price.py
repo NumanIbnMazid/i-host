@@ -45,6 +45,7 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
     total_price_with_vat=0.0
     take_away_discount_amount = 0.0
     total_take_away_discount = 0.0
+    without_discount_food_price = 0.0
 
     for ordered_item in ordered_items_qs:
 
@@ -69,7 +70,9 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
             time_wise_discount_qs = Discount.objects.filter(pk = discount_id.id, restaurant_id = food_order_obj.restaurant_id,discount_slot_closing_time__gte = current_time,
                                                             discount_slot_start_time__lte =current_time, discount_schedule_type='Time_wise').exclude(food=None, image=None)
             if date_wise_discount_qs or time_wise_discount_qs:
-                discount_amount += (ordered_item.food_option.food.discount.amount/100)*item_price
+                # discount_amount += (ordered_item.food_option.food.discount.amount/100)*item_price
+                without_discount_food_price = (ordered_item.food_option.food.discount.amount/100)*item_price
+                discount_amount+=without_discount_food_price
 
         if discount_given and not discount_id:
             if food_order_obj.discount_amount_is_percentage:
@@ -79,11 +82,11 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
 
         if take_away_discount_given:
             if discount_id:
-                food_price_with_discount = item_price - discount_amount
+                food_price_with_discount = item_price - without_discount_food_price
             else:
                 food_price_with_discount =  item_price
             if food_order_obj.take_away_discount_amount_is_percentage:
-                take_away_discount_amount =  (take_away_discount_given*food_price_with_discount)/100
+                take_away_discount_amount = (take_away_discount_given*food_price_with_discount)/100
                 total_take_away_discount += take_away_discount_amount
                 discount_amount+=take_away_discount_amount
 
