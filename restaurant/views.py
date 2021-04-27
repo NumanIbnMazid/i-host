@@ -1936,14 +1936,14 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, many=True)
 
+        serializer = self.get_serializer(data=request.data, many=True)
         if serializer.is_valid():
             is_invalid_order = True
             is_staff_order = False
             is_waiter_staff_order = False
+
             if request.data:
-                food_order = request.data[0].get('food_order')
                 food_order_qs = FoodOrder.objects.filter(pk=food_order)
                 restaurant_id = food_order_qs.first().table.restaurant_id
                 is_staff = request.path.__contains__('/waiter_order/')
@@ -2008,6 +2008,9 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def cart_create_from_dashboard(self, request, *args, **kwargs):
+        food_order = request.data[0].get('food_order')
+        if not food_order:
+            return ResponseWrapper(error_msg=['No Food Order is Create'], error_code=400)
         serializer = self.get_serializer(data=request.data, many=True)
         if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -4466,6 +4469,8 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         qs.save
         serializer = FoodOrderByTableSerializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='success')
+    def remove_discount(self, request, order_id, *args, **kwargs):
+        pass
 
     def take_away_discount(self,request, order_id, *args, **kwargs):
         qs = FoodOrder.objects.filter(pk = order_id).last()
