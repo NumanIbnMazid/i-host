@@ -1944,6 +1944,7 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             is_waiter_staff_order = False
 
             if request.data:
+                food_order = request.data[0].get('food_order')
                 food_order_qs = FoodOrder.objects.filter(pk=food_order)
                 restaurant_id = food_order_qs.first().table.restaurant_id
                 is_staff = request.path.__contains__('/waiter_order/')
