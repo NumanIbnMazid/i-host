@@ -1087,7 +1087,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             takeway_order_type_qs = TakewayOrderType.objects.filter(
                 id=takeway_order_type_id)
             if not takeway_order_type_qs.exists():
-                return ResponseWrapper(error_msg=['Invalid Takeway Order Type Given!'], error_code=400)
+                return ResponseWrapper(error_msg=['Invalid Takeaway Order Type Given!'], error_code=400)
         if request.data.get('table'):
             food_order_dict['table_id'] = request.data.get('table')
 
