@@ -4275,7 +4275,7 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = DiscountSerializer
         elif self.action in ['food_discount']:
             self.serializer_class = DiscountByFoodSerializer
-        elif self.action in ['force_discount']:
+        elif self.action in ['force_discount','remove_discount']:
             self.serializer_class = ForceDiscountSerializer
         elif self.action in ['take_away_discount']:
             self.serializer_class = TakeAwayOrderDiscountSerializer
@@ -4470,8 +4470,16 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         qs.save
         serializer = FoodOrderByTableSerializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='success')
+
     def remove_discount(self, request, order_id, *args, **kwargs):
-        pass
+        qs = FoodOrder.objects.filter(pk = order_id).first()
+        if not qs:
+            return ResponseWrapper(error_msg=['Food Order is not valid'], error_code=400)
+        if qs.customer:
+            return ResponseWrapper(error_msg=['Order is created by customer'], error_code=400)
+        discount_given = request.data.get('force_discount_amount')
+        discount_amount_is_percentage = request.data.get('discount_amount_is_percentage')
+
 
     def take_away_discount(self,request, order_id, *args, **kwargs):
         qs = FoodOrder.objects.filter(pk = order_id).last()
