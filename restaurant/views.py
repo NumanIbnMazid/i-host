@@ -106,7 +106,8 @@ from .serializers import (
     CashLogSerializer, RestaurantOpeningSerializer, RestaurantClosingSerializer,
     WithdrawCashSerializer, ForceDiscountSerializer, PromoCodePromotionSerializer,
     PromoCodePromotionDetailsSerializer, TakewayOrderTypeSerializer,
-    CanceledFoodItemReportSerializer, TakeAwayOrderDiscountSerializer, TakeAwayOrderDetailsSerializer
+    CanceledFoodItemReportSerializer, TakeAwayOrderDiscountSerializer, TakeAwayOrderDetailsSerializer,
+    RemoveDiscountSerializer
 )
 from .signals import order_done_signal, kitchen_items_print_signal
 
@@ -2633,7 +2634,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         canceled_ordered_item_qs = OrderedItem.objects.filter(
             status__iexact="4_CANCELLED", 
             food_order__restaurant_id=restaurant_id
-        )
+        ).order_by('food_order__created_at')
         # Testing QS
         # canceled_ordered_item_qs = OrderedItem.objects.filter(
         #     status__iexact="4_CANCELLED", food_order__restaurant_id=restaurant_id,
@@ -4275,8 +4276,10 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = DiscountSerializer
         elif self.action in ['food_discount']:
             self.serializer_class = DiscountByFoodSerializer
-        elif self.action in ['force_discount','remove_discount']:
+        elif self.action in ['force_discount']:
             self.serializer_class = ForceDiscountSerializer
+        elif self.action in ['remove_discount']:
+            self.serializer_class = RemoveDiscountSerializer
         elif self.action in ['take_away_discount']:
             self.serializer_class = TakeAwayOrderDiscountSerializer
 
@@ -4473,12 +4476,31 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
 
     def remove_discount(self, request, order_id, *args, **kwargs):
         qs = FoodOrder.objects.filter(pk = order_id).first()
+        base_remove_discount = 0.0
+        final_discount_amount = 0.0
         if not qs:
             return ResponseWrapper(error_msg=['Food Order is not valid'], error_code=400)
         if qs.customer:
             return ResponseWrapper(error_msg=['Order is created by customer'], error_code=400)
-        discount_given = request.data.get('force_discount_amount')
-        discount_amount_is_percentage = request.data.get('discount_amount_is_percentage')
+        remove_discount = request.data.get('remove_discount')
+        remove_discount_amount_is_percentage = request.data.get('remove_discount_amount_is_percentage')
+        if remove_discount < 0 :
+            return ResponseWrapper(error_msg=['Remove Amount is not valid'], error_code=400)
+        if remove_discount_amount_is_percentage:
+            if remove_discount > 100:
+                return ResponseWrapper(error_msg=['Remove Amount is must less then 100'], error_code=400)
+            base_remove_discount = (remove_discount*qs.discount_amount)/100
+        else:
+            base_remove_discount = remove_discount
+        if base_remove_discount > qs.discount_amount:
+            return ResponseWrapper(error_msg=['Remove amount is grater then discount amount'], error_code=400)
+        qs.remove_discount = remove_discount
+        qs.remove_discount_amount_is_percentage = remove_discount_amount_is_percentage
+        # final_discount_amount = (qs.discount_amount - base_remove_discount)
+        # qs.discount_amount = final_discount_amount
+        qs.save()
+        serializer = FoodOrderByTableSerializer(instance=qs)
+        return ResponseWrapper(data=serializer.data, msg='success')
 
 
     def take_away_discount(self,request, order_id, *args, **kwargs):
