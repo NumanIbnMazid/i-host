@@ -106,7 +106,8 @@ from .serializers import (
     CashLogSerializer, RestaurantOpeningSerializer, RestaurantClosingSerializer,
     WithdrawCashSerializer, ForceDiscountSerializer, PromoCodePromotionSerializer,
     PromoCodePromotionDetailsSerializer, TakewayOrderTypeSerializer,
-    CanceledFoodItemReportSerializer, TakeAwayOrderDiscountSerializer, TakeAwayOrderDetailsSerializer
+    CanceledFoodItemReportSerializer, TakeAwayOrderDiscountSerializer, TakeAwayOrderDetailsSerializer,
+    RemoveDiscountSerializer
 )
 from .signals import order_done_signal, kitchen_items_print_signal
 
@@ -308,8 +309,8 @@ class RestaurantViewSet(LoggingMixin, CustomViewSet):
         today_date = timezone.now().date()
         qs = Invoice.objects.filter(
             created_at__icontains=today_date, payment_status='1_PAID', restaurant_id=pk)
-        order_qs = FoodOrder.objects.filter(
-            created_at__icontains=today_date, status='5_PAID', restaurant_id=pk).count()
+        order_qs = Invoice.objects.filter(
+            created_at__icontains=today_date, payment_status='1_PAID', restaurant_id=pk).count()
 
         payable_amount_list = qs.values_list('payable_amount', flat=True)
         total = sum(payable_amount_list)
@@ -1072,8 +1073,8 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
         table = request.data.get('table')
         restaurant_id = request.data.get('restaurant')
         takeway_order_type_id = request.data.get('takeway_order_type')
-        # if not takeway_order_type_id and not table:
-        #     return ResponseWrapper(error_msg=['Take Away Type Not Selected'], error_code=400)
+        if not takeway_order_type_id and not table:
+            return ResponseWrapper(error_msg=['Take Away Type Not Selected'], error_code=400)
 
         if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -1087,7 +1088,7 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             takeway_order_type_qs = TakewayOrderType.objects.filter(
                 id=takeway_order_type_id)
             if not takeway_order_type_qs.exists():
-                return ResponseWrapper(error_msg=['Invalid Takeway Order Type Given!'], error_code=400)
+                return ResponseWrapper(error_msg=['Invalid Takeaway Order Type Given!'], error_code=400)
         if request.data.get('table'):
             food_order_dict['table_id'] = request.data.get('table')
 
@@ -1936,12 +1937,13 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, many=True)
 
+        serializer = self.get_serializer(data=request.data, many=True)
         if serializer.is_valid():
             is_invalid_order = True
             is_staff_order = False
             is_waiter_staff_order = False
+
             if request.data:
                 food_order = request.data[0].get('food_order')
                 food_order_qs = FoodOrder.objects.filter(pk=food_order)
@@ -2008,6 +2010,9 @@ class OrderedItemViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     def cart_create_from_dashboard(self, request, *args, **kwargs):
+        food_order = request.data[0].get('food_order')
+        if not food_order:
+            return ResponseWrapper(error_msg=['No Food Order is Create'], error_code=400)
         serializer = self.get_serializer(data=request.data, many=True)
         if not serializer.is_valid():
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
@@ -2629,7 +2634,7 @@ class ReportingViewset(LoggingMixin, viewsets.ViewSet):
         canceled_ordered_item_qs = OrderedItem.objects.filter(
             status__iexact="4_CANCELLED", 
             food_order__restaurant_id=restaurant_id
-        )
+        ).order_by('food_order__created_at')
         # Testing QS
         # canceled_ordered_item_qs = OrderedItem.objects.filter(
         #     status__iexact="4_CANCELLED", food_order__restaurant_id=restaurant_id,
@@ -4273,6 +4278,8 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
             self.serializer_class = DiscountByFoodSerializer
         elif self.action in ['force_discount']:
             self.serializer_class = ForceDiscountSerializer
+        elif self.action in ['remove_discount']:
+            self.serializer_class = RemoveDiscountSerializer
         elif self.action in ['take_away_discount']:
             self.serializer_class = TakeAwayOrderDiscountSerializer
 
@@ -4466,6 +4473,35 @@ class DiscountViewSet(LoggingMixin, CustomViewSet):
         qs.save
         serializer = FoodOrderByTableSerializer(instance=qs)
         return ResponseWrapper(data=serializer.data, msg='success')
+
+    def remove_discount(self, request, order_id, *args, **kwargs):
+        qs = FoodOrder.objects.filter(pk = order_id).first()
+        base_remove_discount = 0.0
+        final_discount_amount = 0.0
+        if not qs:
+            return ResponseWrapper(error_msg=['Food Order is not valid'], error_code=400)
+        if qs.customer:
+            return ResponseWrapper(error_msg=['Order is created by customer'], error_code=400)
+        remove_discount = request.data.get('remove_discount')
+        remove_discount_amount_is_percentage = request.data.get('remove_discount_amount_is_percentage')
+        if remove_discount < 0 :
+            return ResponseWrapper(error_msg=['Remove Amount is not valid'], error_code=400)
+        if remove_discount_amount_is_percentage:
+            if remove_discount > 100:
+                return ResponseWrapper(error_msg=['Remove Amount is must less then 100'], error_code=400)
+            base_remove_discount = (remove_discount*qs.discount_amount)/100
+        else:
+            base_remove_discount = remove_discount
+        if base_remove_discount > qs.discount_amount:
+            return ResponseWrapper(error_msg=['Remove amount is grater then discount amount'], error_code=400)
+        qs.remove_discount = remove_discount
+        qs.remove_discount_amount_is_percentage = remove_discount_amount_is_percentage
+        # final_discount_amount = (qs.discount_amount - base_remove_discount)
+        # qs.discount_amount = final_discount_amount
+        qs.save()
+        serializer = FoodOrderByTableSerializer(instance=qs)
+        return ResponseWrapper(data=serializer.data, msg='success')
+
 
     def take_away_discount(self,request, order_id, *args, **kwargs):
         qs = FoodOrder.objects.filter(pk = order_id).last()

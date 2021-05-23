@@ -646,7 +646,7 @@ class FoodSerializer(serializers.ModelSerializer):
 
 class FoodPostSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
-    # discount = serializers.IntegerField()
+    discount_id = serializers.IntegerField(required=False)
     code = serializers.CharField(required=False)
     discount_details = serializers.SerializerMethodField()
 
@@ -663,7 +663,7 @@ class FoodPostSerializer(serializers.ModelSerializer):
             'ingredients',
             'category',
             'id',
-            'discount',
+            'discount_id',
             'is_available',
             'is_vat_applicable',
             'discount_details',
@@ -1457,6 +1457,12 @@ class ForceDiscountSerializer(serializers.ModelSerializer):
         model = FoodOrder
         fields = ['force_discount_amount', 'discount_amount_is_percentage']
 
+class RemoveDiscountSerializer(serializers.ModelSerializer):
+    # force_discount_amount = serializers.FloatField(source='discount_given')
+    class Meta:
+        model = FoodOrder
+        fields = ['remove_discount', 'remove_discount_amount_is_percentage']
+
 class TakeAwayOrderDiscountSerializer(serializers.ModelSerializer):
     take_away_discount_amount = serializers.FloatField(source='take_away_discount_given')
     class Meta:
@@ -1481,12 +1487,14 @@ class PromoCodePromotionDetailsSerializer(serializers.ModelSerializer):
 
 class CanceledFoodItemReportSerializer(serializers.ModelSerializer):
     canceled_item = serializers.SerializerMethodField()
+    canceled_at = serializers.SerializerMethodField()
     display_status = serializers.CharField(source='get_status_display')
+
 
     class Meta:
         model = OrderedItem
         fields = [
-            'canceled_item', 'quantity', 'food_order', 'status', 'display_status'
+            'canceled_item', 'quantity', 'food_order', 'status', 'display_status','canceled_at'
         ]
 
     def get_canceled_item(self, obj):
@@ -1499,3 +1507,9 @@ class CanceledFoodItemReportSerializer(serializers.ModelSerializer):
                 "food_option_name": food_option_name,
                 "food_price": food_price
             }
+    def get_canceled_at(self,obj):
+        if obj:
+            # canceled_at = obj.food_order.created_at
+            return obj.food_order.created_at
+        else:
+            return None
