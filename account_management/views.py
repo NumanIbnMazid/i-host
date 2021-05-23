@@ -613,6 +613,10 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
                 f"Invalid Phone Number Given! \n {str(E)}"
             )
         # print(phone_country('+81 072-334-0550'))
+        is_bd = False
+        if country == "BD":
+            is_bd = True
+            
         if country == "JP":
             return ResponseWrapper(
                 msg="otp won't be sent! Japanese contact number.", 
@@ -620,7 +624,7 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
                     'name': None, 
                     'id': None,
                     'phone': phone, 
-                    'default_otp': 8899,
+                    'is_bd': is_bd,
                     'sms_gateway_response': None
                 },
                 status=200
@@ -642,7 +646,7 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
                         'name': None, 
                         'id': None, 
                         'phone': phone,
-                        'default_otp': None, 
+                        'is_bd': is_bd,
                         'sms_gateway_response': sms_res.json()
                     },
                     status=200
@@ -654,7 +658,7 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
                         'name': None,
                         'id': None,
                         'phone': phone,
-                        'default_otp': None,
+                        'is_bd': is_bd,
                         'sms_gateway_response': sms_res.json()
                     },
                     status=400,
