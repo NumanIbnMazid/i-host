@@ -1,6 +1,7 @@
 from calendar import month
 from datetime import datetime
 import random
+from phone_iso3166.country import *
 from utils.fcm import send_fcm_push_notification_appointment
 from utils.sms import send_sms
 from re import error
@@ -209,15 +210,18 @@ class OtpSignUpView(KnoxLoginView):
     @swagger_auto_schema(request_body=OtpLoginSerializer)
     def post(self, request, format=None):
         phone = request.data.get('phone')
-        otp_qs = OtpUser.objects.filter(phone=phone).last()
-        if not settings.JAPAN_SERVER:
-            if otp_qs.updated_at < (timezone.now() - timezone.timedelta(minutes=5)):
-                return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp timeout'])
-            if request.data.get('otp') != otp_qs.otp_code:
-                return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp mismatched'])
-        else:
-            if request.data.get('otp') != 1234:
-                return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp mismatched'])
+
+        # Bypass OTP is OTP Code is 8899
+        if request.data.get('otp') != 8899:
+            otp_qs = OtpUser.objects.filter(phone=phone).last()
+            if not settings.JAPAN_SERVER:
+                if otp_qs.updated_at < (timezone.now() - timezone.timedelta(minutes=5)):
+                    return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp timeout'])
+                if request.data.get('otp') != otp_qs.otp_code:
+                    return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp mismatched'])
+            else:
+                if request.data.get('otp') != 1234:
+                    return ResponseWrapper(error_code=status.HTTP_401_UNAUTHORIZED, error_msg=['otp mismatched'])
 
         token_limit_per_user = self.get_token_limit_per_user()
         user_qs = User.objects.filter(phone=request.data.get('phone')).first()
@@ -227,7 +231,6 @@ class OtpSignUpView(KnoxLoginView):
                 password=uuid.uuid4().__str__()
             )
             customer_qs, _ = CustomerInfo.objects.get_or_create(user=user_qs)
-
         if token_limit_per_user is not None:
             now = timezone.now()
             token = user_qs.auth_token_set.filter(expiry__gt=now)
@@ -601,17 +604,34 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
         return ResponseWrapper(data="Active account not found", status=400)
 
     def get_otp(self, request, phone, *args, **kwargs):
-        otp = random.randint(1000, 9999)
-        otp_qs, _ = OtpUser.objects.get_or_create(phone=str(phone))
-        if request.user.pk:
-            otp_qs.user = request.user
-        otp_qs.otp_code = otp
-        otp_qs.save()
-
-        if send_sms(body=f'Your OTP code for I-HOST is {otp} . Thanks for using I-HOST.', phone=str(phone)):
-            return ResponseWrapper(msg='otp sent', data={'name': None, 'id': None, 'phone': phone}, status=200)
+        phone_with_country_code = "+" + str(phone)
+        country = None
+        try:
+            country = phone_country(phone_with_country_code)
+        except Exception as E:
+            raise ValueError(
+                f"Invalid Phone Number Given! \n {str(E)}"
+            )
+        # print(phone_country('+81 072-334-0550'))
+        if country == "JP":
+            return ResponseWrapper(
+                msg="otp won't be sent! Japanese contact number.", 
+                data={'name': None, 'id': None,
+                      'phone': phone, 'default_otp': 8899},
+                status=200
+            )
         else:
-            return ResponseWrapper(error_msg='otp sending failed')
+            otp = random.randint(1000, 9999)
+            otp_qs, _ = OtpUser.objects.get_or_create(phone=str(phone))
+            if request.user.pk:
+                otp_qs.user = request.user
+            otp_qs.otp_code = otp
+            otp_qs.save()
+
+            if send_sms(body=f'Your OTP code for I-HOST is {otp} . Thanks for using I-HOST.', phone=str(phone)):
+                return ResponseWrapper(msg='otp sent', data={'name': None, 'id': None, 'phone': phone, 'default_otp': None}, status=200)
+            else:
+                return ResponseWrapper(error_msg='otp sending failed')
 
 
 class CustomerInfoViewset(LoggingMixin, viewsets.ModelViewSet):
