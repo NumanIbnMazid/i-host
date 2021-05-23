@@ -635,7 +635,7 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
             sms_res = send_sms(
                 body=f'Your OTP code for I-HOST is {otp} . Thanks for using I-HOST.', phone=str(phone)
             )
-            if not sms_res == None and sms_res.status_code == 200:
+            if not sms_res == None and sms_res.json()["status_code"] == 200:
                 return ResponseWrapper(
                     msg='otp sent successfully!', 
                     data={
@@ -643,7 +643,7 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
                         'id': None, 
                         'phone': phone,
                         'default_otp': None, 
-                        'sms_gateway_response': sms_res
+                        'sms_gateway_response': sms_res.json()
                     },
                     status=200
                 )
@@ -655,7 +655,7 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
                         'id': None,
                         'phone': phone,
                         'default_otp': None,
-                        'sms_gateway_response': sms_res
+                        'sms_gateway_response': sms_res.json()
                     },
                     status=400,
                     error_msg='otp sending failed'
