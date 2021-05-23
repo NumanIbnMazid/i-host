@@ -616,8 +616,13 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
         if country == "JP":
             return ResponseWrapper(
                 msg="otp won't be sent! Japanese contact number.", 
-                data={'name': None, 'id': None,
-                      'phone': phone, 'default_otp': 8899},
+                data={
+                    'name': None, 
+                    'id': None,
+                    'phone': phone, 
+                    'default_otp': 8899,
+                    'sms_gateway_response': None
+                },
                 status=200
             )
         else:
@@ -628,14 +633,22 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
             otp_qs.otp_code = otp
             otp_qs.save()
             sms_res = send_sms(
-                body=f'Your OTP code for I-HOST is {otp} . Thanks for using I-HOST.', phone=str(phone))
-            return ResponseWrapper(
-                data=sms_res
+                body=f'Your OTP code for I-HOST is {otp} . Thanks for using I-HOST.', phone=str(phone)
             )
-            # if send_sms(body=f'Your OTP code for I-HOST is {otp} . Thanks for using I-HOST.', phone=str(phone)):
-            #     return ResponseWrapper(msg='otp sent successfully!', data={'name': None, 'id': None, 'phone': phone, 'default_otp': None}, status=200)
-            # else:
-            #     return ResponseWrapper(error_msg='otp sending failed')
+            if send_sms(body=f'Your OTP code for I-HOST is {otp} . Thanks for using I-HOST.', phone=str(phone)):
+                return ResponseWrapper(
+                    msg='otp sent successfully!', 
+                    data={
+                        'name': None, 
+                        'id': None, 
+                        'phone': phone,
+                        'default_otp': None, 
+                        'sms_gateway_response': sms_res
+                    },
+                    status=200
+                )
+            else:
+                return ResponseWrapper(error_msg='otp sending failed')
 
 
 class CustomerInfoViewset(LoggingMixin, viewsets.ModelViewSet):
