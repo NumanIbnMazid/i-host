@@ -629,7 +629,7 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
             otp_qs.save()
 
             if send_sms(body=f'Your OTP code for I-HOST is {otp} . Thanks for using I-HOST.', phone=str(phone)):
-                return ResponseWrapper(msg='otp sent', data={'name': None, 'id': None, 'phone': phone, 'default_otp': None}, status=200)
+                return ResponseWrapper(msg='otp sent successfully!', data={'name': None, 'id': None, 'phone': phone, 'default_otp': None}, status=200)
             else:
                 return ResponseWrapper(error_msg='otp sending failed')
 
