@@ -627,11 +627,15 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
                 otp_qs.user = request.user
             otp_qs.otp_code = otp
             otp_qs.save()
-
-            if send_sms(body=f'Your OTP code for I-HOST is {otp} . Thanks for using I-HOST.', phone=str(phone)):
-                return ResponseWrapper(msg='otp sent successfully!', data={'name': None, 'id': None, 'phone': phone, 'default_otp': None}, status=200)
-            else:
-                return ResponseWrapper(error_msg='otp sending failed')
+            sms_res = send_sms(
+                body=f'Your OTP code for I-HOST is {otp} . Thanks for using I-HOST.', phone=str(phone))
+            return ResponseWrapper(
+                data=sms_res
+            )
+            # if send_sms(body=f'Your OTP code for I-HOST is {otp} . Thanks for using I-HOST.', phone=str(phone)):
+            #     return ResponseWrapper(msg='otp sent successfully!', data={'name': None, 'id': None, 'phone': phone, 'default_otp': None}, status=200)
+            # else:
+            #     return ResponseWrapper(error_msg='otp sending failed')
 
 
 class CustomerInfoViewset(LoggingMixin, viewsets.ModelViewSet):
