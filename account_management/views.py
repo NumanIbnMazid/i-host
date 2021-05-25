@@ -604,38 +604,62 @@ class UserAccountManagerViewSet(LoggingMixin, viewsets.ModelViewSet):
         return ResponseWrapper(data="Active account not found", status=400)
 
     def get_otp(self, request, phone, *args, **kwargs):
-        otp = random.randint(1000, 9999)
-        otp_qs, _ = OtpUser.objects.get_or_create(phone=str(phone))
-        if request.user.pk:
-            otp_qs.user = request.user
-        otp_qs.otp_code = otp
-        otp_qs.save()
-        sms_res = send_sms(
-            body=f'Your OTP code for I-HOST is {otp} . Thanks for using I-HOST.', phone=str(phone)
-        )
-        if not sms_res == None and sms_res.json()["status_code"] == 200:
+        phone_with_country_code = "+" + str(phone)
+        country = None
+        try:
+            country = phone_country(phone_with_country_code)
+        except Exception as E:
+            raise ValueError(
+                f"Invalid Phone Number Given! \n {str(E)}"
+            )
+        # print(phone_country('+81 072-334-0550'))
+        if country == "JP":
             return ResponseWrapper(
-                msg='otp sent successfully!', 
+                msg="otp won't be sent! Japanese contact number.", 
                 data={
                     'name': None, 
-                    'id': None, 
-                    'phone': phone,
-                    'sms_gateway_response': sms_res.json()
+                    'id': None,
+                    'phone': phone, 
+                    'default_otp': 8899,
+                    'sms_gateway_response': None
                 },
                 status=200
             )
         else:
-            return ResponseWrapper(
-                msg='failed to send otp!',
-                data={
-                    'name': None,
-                    'id': None,
-                    'phone': phone,
-                    'sms_gateway_response': sms_res.json()
-                },
-                status=400,
-                error_msg='otp sending failed'
+            otp = random.randint(1000, 9999)
+            otp_qs, _ = OtpUser.objects.get_or_create(phone=str(phone))
+            if request.user.pk:
+                otp_qs.user = request.user
+            otp_qs.otp_code = otp
+            otp_qs.save()
+            sms_res = send_sms(
+                body=f'Your OTP code for I-HOST is {otp} . Thanks for using I-HOST.', phone=str(phone)
             )
+            if not sms_res == None and sms_res.json()["status_code"] == 200:
+                return ResponseWrapper(
+                    msg='otp sent successfully!', 
+                    data={
+                        'name': None, 
+                        'id': None, 
+                        'phone': phone,
+                        'default_otp': None, 
+                        'sms_gateway_response': sms_res.json()
+                    },
+                    status=200
+                )
+            else:
+                return ResponseWrapper(
+                    msg='failed to send otp!',
+                    data={
+                        'name': None,
+                        'id': None,
+                        'phone': phone,
+                        'default_otp': None,
+                        'sms_gateway_response': sms_res.json()
+                    },
+                    status=400,
+                    error_msg='otp sending failed'
+                )
 
 
 class CustomerInfoViewset(LoggingMixin, viewsets.ModelViewSet):
