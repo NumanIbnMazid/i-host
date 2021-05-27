@@ -1,7 +1,6 @@
 from calendar import month
 from datetime import datetime
 import random
-from phone_iso3166.country import *
 from utils.fcm import send_fcm_push_notification_appointment
 from utils.sms import send_sms
 from re import error
