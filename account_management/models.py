@@ -74,6 +74,8 @@ class UserAccount(AbstractUser):
 
     # class Meta(AbstractUser.Meta):
     #     swappable = 'AUTH_USER_MODEL'
+    # class Meta:
+    #     ordering = ["-created_at"]
 
 
 class CustomerInfo(models.Model):

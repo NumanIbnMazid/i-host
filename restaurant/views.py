@@ -2156,20 +2156,23 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
         else:
             return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
-    def update(self, request, **kwargs):
-        staff_qs = HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
-                                                        restaurant_id=request.data.get('restaurant'))
-        if not staff_qs:
-            return ResponseWrapper(msg='Your are not Valid Restaurant owner or manager', error_code=400)
-        serializer_class = self.get_serializer_class()
-        serializer = serializer_class(data=request.data, partial=True)
-        if serializer.is_valid():
-            qs = serializer.update(instance=self.get_object(
-            ), validated_data=serializer.validated_data)
-            serializer = self.serializer_class(instance=qs)
-            return ResponseWrapper(data=serializer.data)
-        else:
-            return ResponseWrapper(error_msg=serializer.errors, error_code=400)
+    # def update(self, request, **kwargs):
+    #     # staff_qs = HotelStaffInformation.objects.filter(Q(is_manager=True) | Q(is_owner=True), user=request.user.pk,
+    #     #                                                 restaurant_id=request.data.get('restaurant'))
+    #     # print(staff_qs)
+    #     # if not staff_qs:
+    #     #     return ResponseWrapper(msg='Your are not Valid Restaurant owner or manager', error_code=400)
+    #     discount_id = request.data.get('discount_id')
+    #     print(discount_id, "FFFFFFFFFFFFFFFF")
+    #     serializer_class = self.get_serializer_class()
+    #     serializer = serializer_class(data=request.data, partial=True)
+    #     if serializer.is_valid():
+    #         qs = serializer.update(instance=self.get_object(
+    #         ), validated_data=serializer.validated_data)
+    #         serializer = self.serializer_class(instance=qs)
+    #         return ResponseWrapper(data=serializer.data)
+    #     else:
+    #         return ResponseWrapper(error_msg=serializer.errors, error_code=400)
 
     # @method_decorator(cache_page(60*15))
     def food_details(self, request, pk, *args,  **kwargs):

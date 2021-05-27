@@ -22,3 +22,5 @@ admin.site.register(StaffFcmDevice)
 admin.site.register(CustomerFcmDevice, CustomerFcmDeviceAdmin)
 admin.site.register(FcmNotificationCustomer)
 admin.site.register(FcmNotificationStaff)
+admin.site.register(OtpUser)
+
