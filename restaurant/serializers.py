@@ -646,7 +646,7 @@ class FoodSerializer(serializers.ModelSerializer):
 
 class FoodPostSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
-    discount_id = serializers.IntegerField(required=False, allow_null=True)
+    discount_id = serializers.IntegerField(required=False, allow_null=True, default=None)
     # restaurant_id = serializers.IntegerField(required=False, allow_null=True)
     code = serializers.CharField(required=False)
     discount_details = serializers.SerializerMethodField()

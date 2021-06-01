@@ -2279,9 +2279,9 @@ class FoodViewSet(LoggingMixin, CustomViewSet):
             restaurant_id=  food_qs.restaurant_id
 
         self.check_object_permissions(request, obj=restaurant_id)
-        discount_id = request.data.get('discount_id')
-        if discount_id == 'undefined':
-            discount_id = None
+        # discount_id = request.data.get('discount_id')
+        # if discount_id == 'undefined':
+        #     discount_id = None
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data, partial=True)
         if serializer.is_valid():
