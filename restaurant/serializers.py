@@ -646,7 +646,7 @@ class FoodSerializer(serializers.ModelSerializer):
 
 class FoodPostSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
-    discount_id = serializers.CharField(required=False, allow_null=True, default=None)
+    discount_id = serializers.IntegerField(required=False, allow_null=True, default=None)
     # restaurant_id = serializers.IntegerField(required=False, allow_null=True)
     code = serializers.CharField(required=False)
     discount_details = serializers.SerializerMethodField()
@@ -674,6 +674,14 @@ class FoodPostSerializer(serializers.ModelSerializer):
             return {'id':obj.discount.id, 'name':obj.discount.name}
         else:
             return {}
+
+    def update(self, instance, validated_data):
+        discount_id = validated_data.pop('discount_id', None)
+
+        if discount_id:
+            instance.discount_id = discount_id
+            instance.save()
+        return super(FoodPostSerializer, self).update(instance, validated_data)
 
 
 class FoodWithPriceSerializer(serializers.ModelSerializer):
