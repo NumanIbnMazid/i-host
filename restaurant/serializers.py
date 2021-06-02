@@ -676,7 +676,7 @@ class FoodPostSerializer(serializers.ModelSerializer):
             return {}
 
     def validate_discount_id(self, obj):
-        if not obj.discount_id:
+        if not obj or not obj.discount_id:
             return None
         try:
             return int(obj.discount_id)
