@@ -679,10 +679,11 @@ class FoodPostSerializer(serializers.ModelSerializer):
         # print(obj, type(obj))
         if not discount_id or discount_id == "" or discount_id == None:
             return None
-        try:
-            return int(discount_id)
-        except ValueError:
-            raise serializers.ValidationError('You must supply an integer')
+        return None
+        # try:
+        #     return int(discount_id)
+        # except ValueError:
+        #     raise serializers.ValidationError('You must supply an integer')
 
 
 class FoodWithPriceSerializer(serializers.ModelSerializer):
