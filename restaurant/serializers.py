@@ -676,10 +676,10 @@ class FoodPostSerializer(serializers.ModelSerializer):
             return {}
 
     def validate_discount_id(self, obj):
-        if not obj:
-            return 0
+        if not obj.discount_id:
+            return None
         try:
-            return int(obj)
+            return int(obj.discount_id)
         except ValueError:
             raise serializers.ValidationError('You must supply an integer')
 
