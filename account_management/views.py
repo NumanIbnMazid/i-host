@@ -161,6 +161,7 @@ class LoginView(KnoxLoginView):
 
     @swagger_auto_schema(request_body=AuthTokenSerializer)
     def post(self, request, format=None):
+        print(request.data, "request.data from Knox *******")
         serializer = AuthTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
@@ -384,6 +385,11 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
 
         if request.data.get('image'):
             staff_info['image'] = request.data.get('image')
+        
+        if is_owner == True or is_manager == True:
+            if serializer.data.get("password_two"):
+                # print("*** Fake Password ***", serializer.data.get("password_two"))
+                staff_info['password_two'] = serializer.data.get("password_two")
 
         # request.data._mutable = False
 

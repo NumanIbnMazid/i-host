@@ -115,6 +115,7 @@ class HotelStaffInformation(SoftDeleteModel):
         to='restaurant.Restaurant', on_delete=models.CASCADE, null=True, blank=True, related_name='hotel_staff')
     email = models.EmailField(null=True, blank=True)
 
+
     class Meta:
         constraints = [
             models.UniqueConstraint(

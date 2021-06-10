@@ -992,6 +992,13 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
         if serializer.is_valid():
             table_qs = Table.objects.filter(
                 pk=request.data.get('table')).last()
+            
+            # -- Table Scan Bug Fix Test Code
+            last_food_order = FoodOrder.objects.filter(table_id=table_qs.id).last()
+            if last_food_order.status in ["5_PAID", "6_CANCELLED"]:
+                table_qs.is_occupied = False
+                table_qs.save()
+            # -- Table Scan Bug Fix Test Code
 
             # ____ Customer Running Order Checking______
             is_customer = request.path.__contains__(

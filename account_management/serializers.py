@@ -78,7 +78,8 @@ class UserSignupSerializer(serializers.ModelSerializer):
 class StaffInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelStaffInformation
-        fields = ['shift_start', 'shift_end', 'nid', 'image', 'name', 'email']
+        fields = ['shift_start', 'shift_end', 'nid',
+                  'image', 'name', 'email', 'password_two']
 
 
 class RestaurantUserSignUpSerializer(serializers.Serializer):
@@ -87,6 +88,7 @@ class RestaurantUserSignUpSerializer(serializers.Serializer):
     name = serializers.CharField()
     phone = serializers.CharField()
     password = serializers.CharField(required=False)
+    password_two = serializers.CharField(required=False)
     shift_start = serializers.TimeField(required=False)
     shift_end = serializers.TimeField(required=False)
     nid = serializers.CharField(required=False)
