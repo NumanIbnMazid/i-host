@@ -386,11 +386,6 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
         if request.data.get('image'):
             staff_info['image'] = request.data.get('image')
         
-        if is_owner == True or is_manager == True:
-            if serializer.data.get("password_two"):
-                # print("*** Fake Password ***", serializer.data.get("password_two"))
-                staff_info['password_two'] = serializer.data.get("password_two")
-
         # request.data._mutable = False
 
         restaurant_qs = Restaurant.objects.filter(pk=restaurant_id).first()
