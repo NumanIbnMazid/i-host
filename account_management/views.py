@@ -727,10 +727,14 @@ class CustomerNotificationViewSet(LoggingMixin, CustomViewSet):
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
             qs = serializer.save()
-            customer_qs = CustomerFcmDevice.objects.order_by('-pk')[:1000]
-            tokens = customer_qs.values_list('token', flat=True)
-            send_fcm_push_notification_appointment(
-                status="SendCustomerAdvertisement", qs=qs, tokens_list=tokens)
+            customer_fcm_device_qs = CustomerFcmDevice.objects.all()
+            if send_fcm_push_notification_appointment(
+                    tokens_list=list(
+                        customer_fcm_device_qs.values_list('token', flat=True)),
+                    status='Message',
+                    message_title=qs.title, message_body=qs.body
+            ):
+                pass
             serializer = self.serializer_class(instance=qs)
             return ResponseWrapper(data=serializer.data, msg='created')
         else:
