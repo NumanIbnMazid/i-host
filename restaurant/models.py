@@ -56,6 +56,8 @@ class Restaurant(SoftDeleteModel):
         default=00.00)
     tax_percentage = models.FloatField(
         default=00.00)
+    sd_charge_percentage = models.FloatField(
+        default=00.00)
     created_at = models.DateTimeField(auto_now_add=True)
     website = models.URLField(null=True, blank=True)
     status = models.CharField(

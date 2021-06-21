@@ -38,6 +38,7 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
 
     total_price = 0.0
     tax_amount = 0.0
+    sd_charge_amount = 0.0
     grand_total_price = 0.0
     service_charge = 0.0
     hundred = 100.0
@@ -138,6 +139,7 @@ def calculate_price(food_order_obj, include_initial_order=False, **kwargs):
         # ------!!!!!!-----Vat Apply Only Vat Applicable Food ------!!!!!!-----
 
         tax_amount = ((total_price_with_vat * restaurant_qs.tax_percentage)/hundred)
+        sd_charge_amount = ((total_price * restaurant_qs.sd_charge_percentage)/hundred)
         grand_total_price += tax_amount
         # if discount_given:
         #     payable_amount = grand_total_price - discount_amount
