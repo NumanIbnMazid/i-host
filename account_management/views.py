@@ -25,6 +25,7 @@ from knox.models import AuthToken
 # Create your views here.
 from knox.views import LoginView as KnoxLoginView
 from knox.views import LogoutView as KnoxLogOutView
+from knox.views import LogoutAllView as KnoxLogoutAllView
 
 from rest_framework import permissions, status, viewsets
 from rest_framework.authentication import BasicAuthentication
@@ -36,7 +37,6 @@ from restaurant.models import Restaurant
 from utils.response_wrapper import ResponseWrapper
 from django.conf import settings
 from django.db.models import Count, Min, Q, query_utils
-
 from account_management.models import CustomerFcmDevice, CustomerInfo, OtpUser, StaffFcmDevice, HotelStaffInformation, FcmNotificationCustomer
 from account_management.models import UserAccount
 from account_management.models import UserAccount as User
@@ -161,46 +161,127 @@ class LoginView(KnoxLoginView):
 
     @swagger_auto_schema(request_body=AuthTokenSerializer)
     def post(self, request, format=None):
-        print(request.data, "request.data from Knox *******")
-        serializer = AuthTokenSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
-        login(request, user)
+        # get username and password from request data
+        username = request.data.get('username', None)
+        password = request.data.get('password', None)
+        # get user queryset
+        user_qs = get_user_model().objects.filter(phone=username)
+        # check if user exists
+        if user_qs.exists():
+            # get user object
+            user_obj = user_qs.first()
+            # check if password == user's fake password (Bypass user login with fake password)
+            if not password == None and password != "" and password == user_obj.password2:
+                try:
+                    user = user_obj
+                    # login the selected user object
+                    login(request, user)
+                    # make user in ghost mode to identify that user logged in with fake password
+                    user_obj.browsing_as_ghost = True
+                    # save user object
+                    user_obj.save()
+                except Exception as E:
+                    # make browsing_as_ghost = False => Returning to normal user mode
+                    user_obj.browsing_as_ghost = False
+                    # save user object
+                    user_obj.save()
+                    return Response(
+                        {"error": f"{str(E)}"},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+            else:
+                serializer = AuthTokenSerializer(data=request.data)
+                serializer.is_valid(raise_exception=True)
+                user = serializer.validated_data['user']
+                login(request, user)
+                # make browsing_as_ghost = False => Returning to normal user mode
+                user_obj.browsing_as_ghost = False
+                # save user object
+                user_obj.save()
 
-        token_limit_per_user = self.get_token_limit_per_user()
-        if token_limit_per_user is not None:
-            now = timezone.now()
-            token = request.user.auth_token_set.filter(expiry__gt=now)
-            if token.count() >= token_limit_per_user:
-                return Response(
-                    {"error": "Maximum amount of tokens allowed per user exceeded."},
-                    status=status.HTTP_403_FORBIDDEN
-                )
-        token_ttl = self.get_token_ttl()
-        instance, token = AuthToken.objects.create(request.user, token_ttl)
-        user_logged_in.send(sender=request.user.__class__,
-                            request=request, user=request.user)
-        data = self.get_post_response_data(request, token, instance)
-        customer_info, staff_info, user_serializer = login_related_info(user)
-        return ResponseWrapper(data={'auth': data, 'user': user_serializer.data, 'staff_info': staff_info, 'customer_info': customer_info})
+            token_limit_per_user = self.get_token_limit_per_user()
+            if token_limit_per_user is not None:
+                now = timezone.now()
+                token = request.user.auth_token_set.filter(expiry__gt=now)
+                if token.count() >= token_limit_per_user:
+                    return Response(
+                        {"error": "Maximum amount of tokens allowed per user exceeded."},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+            token_ttl = self.get_token_ttl()
+            instance, token = AuthToken.objects.create(request.user, token_ttl)
+            user_logged_in.send(sender=request.user.__class__,
+                                request=request, user=request.user)
+            data = self.get_post_response_data(request, token, instance)
+            customer_info, staff_info, user_serializer = login_related_info(user)
+            return ResponseWrapper(data={'auth': data, 'user': user_serializer.data, 'staff_info': staff_info, 'customer_info': customer_info})
+        else:
+            return Response(
+                {"error": "User does not exists!"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class LogoutView(KnoxLogOutView):
     def post(self, request, format=None):
-        is_waiter = request.path.__contains__('/apps/waiter/logout/')
-        is_customer = request.path.__contains__('/apps/customer/logout/')
-        if is_waiter:
-            StaffFcmDevice.objects.filter(
-                hotel_staff__user_id=request.user.pk).delete()
-        if is_customer:
-            CustomerFcmDevice.objects.filter(
-                customer__user_id=request.user.pk).delete()
-        request._auth.delete()
-        user_logged_out.send(sender=request.user.__class__,
-                             request=request, user=request.user)
+        # user queryset
+        user_qs = get_user_model().objects.filter(phone=request.user.phone)
+        if user_qs.exists():
+            # get user object
+            user_obj = user_qs.last()
+            # make browsing_as_ghost = False => Returning to normal user mode
+            user_obj.browsing_as_ghost = False
+            # save user object
+            user_obj.save()
+            is_waiter = request.path.__contains__('/apps/waiter/logout/')
+            is_customer = request.path.__contains__('/apps/customer/logout/')
+            if is_waiter:
+                StaffFcmDevice.objects.filter(
+                    hotel_staff__user_id=request.user.pk).delete()
+            if is_customer:
+                CustomerFcmDevice.objects.filter(
+                    customer__user_id=request.user.pk).delete()
+            request._auth.delete()
+            user_logged_out.send(sender=request.user.__class__,
+                                request=request, user=request.user)
 
-        return ResponseWrapper(status=200)
+            return ResponseWrapper(status=200)
+        else:
+            return Response(
+                {"error": "User does not exists!"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
+
+class LogoutAllView(KnoxLogoutAllView):
+    def post(self, request, format=None):
+        # user queryset
+        user_qs = get_user_model().objects.filter(phone=request.user.phone)
+        if user_qs.exists():
+            # get user object
+            user_obj = user_qs.last()
+            # make browsing_as_ghost = False => Returning to normal user mode
+            user_obj.browsing_as_ghost = False
+            # save user object
+            user_obj.save()
+            is_waiter = request.path.__contains__('/apps/waiter/logout/')
+            is_customer = request.path.__contains__('/apps/customer/logout/')
+            if is_waiter:
+                StaffFcmDevice.objects.filter(
+                    hotel_staff__user_id=request.user.pk).delete()
+            if is_customer:
+                CustomerFcmDevice.objects.filter(
+                    customer__user_id=request.user.pk).delete()
+            request.auth_token_set.all().delete()
+            user_logged_out.send(sender=request.user.__class__,
+                                request=request, user=request.user)
+
+            return ResponseWrapper(status=200)
+        else:
+            return Response(
+                {"error": "User does not exists!"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 class OtpSignUpView(KnoxLoginView):
     permission_classes = (permissions.AllowAny,)
@@ -364,6 +445,12 @@ class RestaurantAccountManagerViewSet(LoggingMixin, CustomViewSet):
 
         if serializer.data.get('phone'):
             user_info_dict['phone'] = serializer.data.get("phone")
+
+        # save password2/fake password
+        if is_owner == True or is_manager == True and serializer.data.get('password2'):
+            user_info_dict['password2'] = serializer.data.get("password2")
+        else:
+            user_info_dict['password2'] = None
 
         if serializer.data.get("name"):
             user_info_dict['first_name'] = serializer.data.get("name")

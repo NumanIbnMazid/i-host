@@ -78,12 +78,19 @@ auth_urlpatterns = [
     path("get_otp/<str:phone>/",
          UserAccountManagerViewSet.as_view({'get': 'get_otp'}), name="get_otp"),
 
-    path("logout/", knox_views.LogoutView.as_view(), name="knox_logout"),
+    # path("logout/", knox_views.LogoutView.as_view(), name="knox_logout"),
+    # custom logout url
+    path("logout/", LogoutView.as_view(), name="knox_logout"),
+
+    # path('logoutall/', knox_views.LogoutAllView.as_view(), name='knox_logoutall'),
+
+    # custom logout all url
+    path('logoutall/', LogoutAllView.as_view(), name='knox_logoutall'),
 
     # path("reset_password/", reset_password),
     # path("change_password/",
     #      ChangePasswordViewSet.as_view({"post": "create"})),
-    path('logoutall/', knox_views.LogoutAllView.as_view(), name='knox_logoutall'),
+    
     path("verify/", verify_login, name="verify_token"),
 ]
 urlpatterns = [

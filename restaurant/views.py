@@ -1038,7 +1038,6 @@ class FoodOrderViewSet(LoggingMixin, CustomViewSet, FoodOrderCore):
             order_done_signal.send(
                 sender=self.__class__.create,
                 restaurant_id=table_qs.restaurant_id,
-
             )
 
             return ResponseWrapper(data=serializer.data, msg='created')

@@ -67,6 +67,14 @@ class UserAccount(AbstractUser):
     phone = models.CharField(max_length=35, unique=True)
     status = models.CharField(max_length=25,
                               choices=USERS_IN_STATUS_CHOICES, default='UNV')
+    # password2 used for fake password (report view) => Sets only for manager and owner
+    password2 = models.CharField(
+        max_length=255, null=True, blank=True, verbose_name="confirm password"
+    )
+    # browsing as ghost => identifier for fake password logged in user
+    browsing_as_ghost = models.BooleanField(
+        default=False
+    )
 
     USERNAME_FIELD = "phone"
     REQUIRED_FIELDS = []

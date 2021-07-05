@@ -88,7 +88,7 @@ class RestaurantUserSignUpSerializer(serializers.Serializer):
     name = serializers.CharField()
     phone = serializers.CharField()
     password = serializers.CharField(required=False)
-    password_two = serializers.CharField(required=False)
+    password2 = serializers.CharField(required=False)
     shift_start = serializers.TimeField(required=False)
     shift_end = serializers.TimeField(required=False)
     nid = serializers.CharField(required=False)
