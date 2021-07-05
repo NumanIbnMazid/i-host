@@ -25,6 +25,8 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
     food_name_list = kwargs.get('food_names', [])
     food_name_str = ' ,'.join(map(str, food_name_list))
     tokens_list = list(set(tokens_list))
+    message_title = kwargs.get(('message_title'))
+    message_body = kwargs.get(('message_body'))
 
     status_value = {
         "Received": {
@@ -81,6 +83,12 @@ def send_fcm_push_notification_appointment(tokens_list: list, status="CallStaff"
             'notification': {'title': 'Item cancel',
                              'body': f'{food_name} has been cancelled from your cart'},
             'data': {'title': '9', 'body': str(datetime.datetime.now())}
+        },
+        'Message': {
+            'notification': {'title': f'{message_title}',
+                             'body': f'{message_body}'},
+            'data': {'title': '9',
+                     'body': str(datetime.datetime.now())}
         },
 
 
